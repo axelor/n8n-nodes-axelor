@@ -48,7 +48,7 @@
 			},
 			"typeOptions": {
 				"resourceMapper": {
-					"resourceMapperMethod": "getFields",
+					"resourceMapperMethod": "getModelFields",
 					"mode": "add",
 					"fieldWords": { "singular": "field", "plural": "fields" }
 				}

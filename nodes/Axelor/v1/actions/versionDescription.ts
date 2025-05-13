@@ -50,7 +50,7 @@ export const versionDescription: INodeTypeDescription = {
 			default: { mappingMode: 'defineBelow', value: null },
 			typeOptions: {
 				resourceMapper: {
-					resourceMapperMethod: 'getFields',
+					resourceMapperMethod: 'getModelFields',
 					mode: 'add',
 					fieldWords: { singular: 'field', plural: 'fields' },
 				},
