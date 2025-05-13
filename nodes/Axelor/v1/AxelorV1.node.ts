@@ -15,6 +15,7 @@ const versionDescription: INodeTypeDescription = {
 	icon: 'file:Axelor.svg',
 	group: ['input'],
 	version: 1,
+	subtitle: 'Axelor',
 	description: 'Integrate with Axelor Open Platform',
 	defaults: {
 		name: 'Axelor',
@@ -35,8 +36,8 @@ export class AxelorV1 implements INodeType {
 
 	constructor(baseDescription?: INodeTypeBaseDescription) {
 		this.description = {
-			...versionDescription,
 			...(baseDescription || {}),
+			...versionDescription,
 		};
 	}
 

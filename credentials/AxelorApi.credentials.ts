@@ -1,13 +1,9 @@
-import {
-	INodeProperties,
-	ICredentialType,
-	IAuthenticateGeneric,
-} from 'n8n-workflow';
+import { INodeProperties, ICredentialType, IAuthenticateGeneric } from 'n8n-workflow';
 
 export class AxelorApi implements ICredentialType {
 	name = 'axelorApi';
 	displayName = 'Axelor API';
-	documentationUrl = '';  // (Optional) link to Axelor API docs
+	documentationUrl = ''; // (Optional) link to Axelor API docs
 	properties: INodeProperties[] = [
 		{
 			displayName: 'Base URL',
