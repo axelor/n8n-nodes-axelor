@@ -9,27 +9,8 @@ import type {
 
 import { LoggerProxy as Logger } from 'n8n-workflow';
 
-const versionDescription: INodeTypeDescription = {
-	displayName: 'Axelor',
-	name: 'axelor',
-	icon: 'file:Axelor.svg',
-	group: ['input'],
-	version: 1,
-	subtitle: 'Axelor',
-	description: 'Integrate with Axelor Open Platform',
-	defaults: {
-		name: 'Axelor',
-	},
-	inputs: ['main'],
-	outputs: ['main'],
-	credentials: [
-		{
-			name: 'axelorApi',
-			required: true,
-		},
-	],
-	properties: [],
-} as INodeTypeDescription;
+import { versionDescription } from './actions/versionDescription';
+import { loadOptions, resourceMapping } from './methods';
 
 export class AxelorV1 implements INodeType {
 	description: INodeTypeDescription;
@@ -40,6 +21,11 @@ export class AxelorV1 implements INodeType {
 			...versionDescription,
 		};
 	}
+
+	methods = {
+		loadOptions,
+		resourceMapping,
+	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		Logger.info('Axelor:execute - start');
