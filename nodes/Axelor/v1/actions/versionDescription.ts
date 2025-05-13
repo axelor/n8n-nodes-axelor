@@ -54,6 +54,7 @@ export const versionDescription: INodeTypeDescription = {
 					mode: 'add',
 					fieldWords: { singular: 'field', plural: 'fields' },
 				},
+				loadOptionsDependsOn: ['model'],
 			},
 			displayOptions: { show: { operation: ['create'] } },
 		},
