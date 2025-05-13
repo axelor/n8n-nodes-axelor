@@ -54,6 +54,8 @@ export async function getModelFields(this: ILoadOptionsFunctions): Promise<Resou
 			}),
 		);
 
+		mappedFields.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
 		return { fields: mappedFields };
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch model fields', error);
