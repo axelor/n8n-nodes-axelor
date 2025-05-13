@@ -18,4 +18,6 @@ export interface AxelorModelFieldSchema {
 	required?: boolean;
 	type: string;
 	selectionList?: AxelorSelectionOption[];
+	target?: string;
+	targetName?: string;
 }

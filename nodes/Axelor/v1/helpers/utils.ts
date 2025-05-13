@@ -1,10 +1,10 @@
 import { FieldType, INodePropertyOptions } from 'n8n-workflow';
 
 import { AxelorModelFieldSchema } from './interface';
-import { FIELD_TYPE_MAP } from './constants';
+import { AXELOR_FIELD_TYPE_MAP } from './constants';
 
 export const mapAxelorTypeToFieldType = (axelorType: string): FieldType | undefined => {
-	for (const [n8nType, axelorTypes] of Object.entries(FIELD_TYPE_MAP)) {
+	for (const [n8nType, axelorTypes] of Object.entries(AXELOR_FIELD_TYPE_MAP)) {
 		if (axelorTypes?.includes(axelorType)) {
 			return n8nType as FieldType;
 		}
