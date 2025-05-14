@@ -44,7 +44,10 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const creds = await this.getCredentials('axelorApi');
 			const baseUrl = creds.baseUrl as string;
 			const limit = this.getNodeParameter('limit', i, 10) as number;
-			const fieldNames = await getMetaFields.call(this, model);
+
+			const fields = await getMetaFields.call(this, model);
+			const fieldNames = fields.map((f) => f.name);
+
 			const query = this.getNodeParameter('query', i) as string;
 
 			const body: any = { offset: 0, limit, fields: fieldNames, sortBy: [], data: {} };
