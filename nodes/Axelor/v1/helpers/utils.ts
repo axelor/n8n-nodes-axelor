@@ -38,3 +38,20 @@ export function processAxelorError(error: NodeApiError, id?: string, itemIndex?:
 
 	return error;
 }
+
+export function getNameColoumn(data: Record<string, any>): string {
+	const fields = data?.fields || {};
+
+	const preferredOrder = [
+		(f: any) => f.nameColumn === true,
+		(f: any) => f.name === 'name',
+		(f: any) => f.name === 'code',
+	];
+
+	for (const selector of preferredOrder) {
+		const field = fields.find(selector);
+		if (field) return field.name;
+	}
+
+	return 'id';
+}
