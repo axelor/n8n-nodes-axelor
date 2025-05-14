@@ -1,8 +1,10 @@
 import type { INodeProperties } from 'n8n-workflow';
 
 import * as create from './create.operation';
+import * as find from './find.operation';
+import * as search from './search.operation';
 
-export { create };
+export { find, search, create };
 
 export const description: INodeProperties[] = [
 	{
@@ -18,10 +20,22 @@ export const description: INodeProperties[] = [
 				action: 'Create a record',
 			},
 			{
+				name: 'Find Records',
+				value: 'find',
+				description: 'Find existing records',
+				action: 'Find records',
+			},
+			{
 				name: 'Get Updated Records',
 				value: 'getUpdated',
 				description: 'Retrieve a record',
 				action: 'Get a record',
+			},
+			{
+				name: 'Search Records',
+				value: 'search',
+				description: 'Search records by criteria',
+				action: 'Search records',
 			},
 		],
 		default: 'create',
@@ -38,4 +52,6 @@ export const description: INodeProperties[] = [
 		default: '',
 	},
 	...create.description,
+	...find.description,
+	...search.description,
 ];
