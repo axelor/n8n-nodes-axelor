@@ -1,6 +1,14 @@
-import { type INodeProperties } from 'n8n-workflow';
-
+import type {
+	IDataObject,
+	INodeExecutionData,
+	INodeProperties,
+	IExecuteFunctions,
+} from 'n8n-workflow';
 import { updateDisplayOptions } from 'n8n-workflow';
+
+import { getMetaFields } from '../../helpers/api-helper';
+import { AXELOR_SELECTION_FIELDS } from '../../helpers/constants';
+import { wrapData } from '../../helpers/utils';
 
 const properties: INodeProperties[] = [
 	{
@@ -14,6 +22,7 @@ const properties: INodeProperties[] = [
 				resourceMapperMethod: 'getMetaModelFields',
 				mode: 'add',
 				fieldWords: { singular: 'field', plural: 'fields' },
+				addAllFields: false,
 			},
 			loadOptionsDependsOn: ['model'],
 		},
@@ -28,10 +37,59 @@ const displayOptions = {
 
 export const description = updateDisplayOptions(displayOptions, properties);
 
-// TODO
-// export async function execute(
-// 	this: IExecuteFunctions,
-// 	items: INodeExecutionData[],
-// 	base: string,
-// 	table: string,
-// ): Promise<INodeExecutionData[]> {}
+export async function execute(
+	this: IExecuteFunctions,
+	items: INodeExecutionData[],
+): Promise<INodeExecutionData[]> {
+	const returnData: INodeExecutionData[] = [];
+	const creds = await this.getCredentials('axelorApi');
+	const baseUrl = creds.baseUrl as string;
+
+	for (let i = 0; i < items.length; i++) {
+		const model = this.getNodeParameter('model', i) as string;
+
+		try {
+			const mapping = this.getNodeParameter('fields', i, {}) as any;
+
+			const fields = await getMetaFields.call(this, model);
+			const validFieldNames = new Set(fields.map((f) => f.name));
+
+			const data: IDataObject | any = {};
+			Object.entries(mapping.value || {}).forEach(([key, value]) => {
+				if (validFieldNames.has(key)) {
+					const fieldMeta: any = fields.find((f) => f.name === key);
+
+					if (AXELOR_SELECTION_FIELDS.includes(fieldMeta.type)) {
+						data[key] = { id: value };
+					} else {
+						data[key] = value;
+					}
+				}
+			});
+
+			const responseData = await this.helpers.request!({
+				method: 'POST',
+				url: `/ws/rest/${encodeURIComponent(model)}`,
+				baseURL: baseUrl,
+				auth: { user: creds.username as string, pass: creds.password as string },
+				body: { data },
+				json: true,
+			});
+
+			const executionData = this.helpers.constructExecutionMetaData(
+				wrapData(responseData as IDataObject[]),
+				{ itemData: { item: i } },
+			);
+
+			returnData.push(...executionData);
+		} catch (error) {
+			if (this.continueOnFail()) {
+				returnData.push({ json: { message: error.message, error } });
+				continue;
+			}
+			throw error;
+		}
+	}
+
+	return returnData;
+}

@@ -54,7 +54,10 @@ export async function getOptions(
 	}
 }
 
-export async function getMetaFields(this: IExecuteFunctions, model: string): Promise<string[]> {
+export async function getMetaFields(
+	this: IExecuteFunctions,
+	model: string,
+): Promise<AxelorModelFieldSchema[]> {
 	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
 		baseUrl: string;
 		username: string;
@@ -73,8 +76,8 @@ export async function getMetaFields(this: IExecuteFunctions, model: string): Pro
 			auth: { user: username as string, pass: password as string },
 			json: true,
 		});
-		const infos: Array<{ name: string }> = respFields.data?.fields || [];
-		return infos.map((f) => f.name);
+		const fields: AxelorModelFieldSchema[] = respFields.data?.fields || [];
+		return fields;
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
 	}

@@ -1,6 +1,12 @@
 import { set } from 'lodash';
+import {
+	FieldType,
+	IDataObject,
+	INodeExecutionData,
+	INodePropertyOptions,
+	NodeApiError,
+} from 'n8n-workflow';
 
-import { FieldType, INodePropertyOptions, NodeApiError } from 'n8n-workflow';
 import { AxelorModelFieldSchema } from './interface';
 import { AXELOR_FIELD_TYPE_MAP } from './constants';
 
@@ -54,4 +60,13 @@ export function getNameColoumn(data: Record<string, any>): string {
 	}
 
 	return 'id';
+}
+
+export function wrapData(data: IDataObject | IDataObject[]): INodeExecutionData[] {
+	if (!Array.isArray(data)) {
+		return [{ json: data }];
+	}
+	return data.map((item) => ({
+		json: item,
+	}));
 }
