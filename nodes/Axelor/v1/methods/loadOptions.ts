@@ -1,5 +1,6 @@
 import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
+import { getNameColoumn } from '../helpers/utils';
 
 export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
@@ -26,5 +27,48 @@ export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodeP
 			: [];
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
+	}
+}
+
+export async function getRecords(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
+		baseUrl: string;
+		username: string;
+		password: string;
+	};
+	const selectedModel = this.getCurrentNodeParameter('model') as string;
+
+	if (!selectedModel) return [];
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	try {
+		const respFields = await this.helpers.request!({
+			method: 'GET',
+			url: `/ws/meta/fields/${encodeURIComponent(selectedModel)}`,
+			baseURL: baseUrl,
+			auth: { user: username as string, pass: password as string },
+			json: true,
+		});
+
+		const nameColumn = getNameColoumn(respFields?.data);
+		const fields = ['id'];
+		if (nameColumn !== 'id') fields.push(nameColumn);
+		const resp = await this.helpers.request!({
+			method: 'POST',
+			url: `/ws/rest/${encodeURIComponent(selectedModel)}/search`,
+			baseURL: baseUrl,
+			auth: { user: username as string, pass: password as string },
+			body: { fields },
+			json: true,
+		});
+
+		return Array.isArray(resp.data)
+			? resp.data.map((item: any) => ({ name: item[nameColumn], value: item.id! }))
+			: [];
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch records', error);
 	}
 }
