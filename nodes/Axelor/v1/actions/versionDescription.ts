@@ -37,7 +37,7 @@ export const versionDescription: INodeTypeDescription = {
 			type: 'options',
 			description:
 				'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
-			typeOptions: { loadOptionsMethod: 'getModels' },
+			typeOptions: { loadOptionsMethod: 'getMetaModels' },
 			placeholder: 'Select Axelor model',
 			required: true,
 			default: '',
@@ -50,7 +50,7 @@ export const versionDescription: INodeTypeDescription = {
 			default: { mappingMode: 'defineBelow', value: null },
 			typeOptions: {
 				resourceMapper: {
-					resourceMapperMethod: 'getModelFields',
+					resourceMapperMethod: 'getMetaModelFields',
 					mode: 'add',
 					fieldWords: { singular: 'field', plural: 'fields' },
 				},

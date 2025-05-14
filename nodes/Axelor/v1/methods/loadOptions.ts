@@ -1,7 +1,7 @@
 import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-export async function getModels(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
 		baseUrl: string;
 		username: string;

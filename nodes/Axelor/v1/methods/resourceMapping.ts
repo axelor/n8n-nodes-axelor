@@ -11,7 +11,9 @@ import { AXELOR_SELECTION_FIELDS } from '../helpers/constants';
 
 import { getOptions } from '../helpers/api-helper';
 
-export async function getModelFields(this: ILoadOptionsFunctions): Promise<ResourceMapperFields> {
+export async function getMetaModelFields(
+	this: ILoadOptionsFunctions,
+): Promise<ResourceMapperFields> {
 	const credentials = await this.getCredentials('axelorApi');
 	const selectedModel = this.getCurrentNodeParameter('model') as string;
 
