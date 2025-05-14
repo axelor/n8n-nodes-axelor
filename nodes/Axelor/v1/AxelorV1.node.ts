@@ -4,10 +4,10 @@ import type {
 	INodeTypeBaseDescription,
 	IExecuteFunctions,
 } from 'n8n-workflow';
-import { router } from './actions/router';
 
 import { versionDescription } from './actions/versionDescription';
 import { loadOptions, resourceMapping } from './methods';
+import { router } from './actions/router';
 
 export class AxelorV1 implements INodeType {
 	description: INodeTypeDescription;

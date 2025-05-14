@@ -4,9 +4,10 @@ import {
 	INodeProperties,
 	updateDisplayOptions,
 } from 'n8n-workflow';
-import { processAxelorError } from '../../helpers/utils';
-import { getFields } from '../../methods/getFields';
 import { NodeApiError } from 'n8n-workflow';
+
+import { processAxelorError } from '../../helpers/utils';
+import { getMetaFields } from '../../helpers/api-helper';
 
 export const properties: INodeProperties[] = [
 	{
@@ -43,7 +44,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const creds = await this.getCredentials('axelorApi');
 			const baseUrl = creds.baseUrl as string;
 			const limit = this.getNodeParameter('limit', i, 10) as number;
-			const fieldNames = await getFields.call(this, model);
+			const fieldNames = await getMetaFields.call(this, model);
 			const query = this.getNodeParameter('query', i) as string;
 
 			const body: any = { offset: 0, limit, fields: fieldNames, sortBy: [], data: {} };

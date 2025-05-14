@@ -1,7 +1,8 @@
 import { IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n-workflow';
 import { processAxelorError } from '../../helpers/utils';
 import { NodeApiError } from 'n8n-workflow';
-import { getFields } from '../../methods';
+
+import { getMetaFields } from '../../helpers/api-helper';
 
 export const description: INodeProperties[] = [
 	{
@@ -45,7 +46,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const findById = this.getNodeParameter('findById', i, false) as boolean;
 			const recordId = this.getNodeParameter('recordId', i, null) as string;
 			const limit = this.getNodeParameter('limit', i, 10) as number;
-			const fieldNames = await getFields.call(this, model);
+			const fieldNames = await getMetaFields.call(this, model);
 
 			const url = findById
 				? `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`
