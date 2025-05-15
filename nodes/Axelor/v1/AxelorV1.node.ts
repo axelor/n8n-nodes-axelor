@@ -12,9 +12,9 @@ import { router } from './actions/router';
 export class AxelorV1 implements INodeType {
 	description: INodeTypeDescription;
 
-	constructor(baseDescription?: INodeTypeBaseDescription) {
+	constructor(baseDescription: INodeTypeBaseDescription) {
 		this.description = {
-			...(baseDescription || {}),
+			...baseDescription,
 			...versionDescription,
 		};
 	}
