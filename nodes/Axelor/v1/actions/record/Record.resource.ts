@@ -4,8 +4,9 @@ import * as create from './create.operation';
 import * as find from './find.operation';
 import * as search from './search.operation';
 import * as read from './read.operation';
+import * as deleteOp from './delete.operation';
 
-export { find, search, read, create };
+export { find, search, read, create, deleteOp as delete };
 
 export const description: INodeProperties[] = [
 	{
@@ -13,6 +14,7 @@ export const description: INodeProperties[] = [
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
+		// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 		options: [
 			{
 				name: 'Create Record',
@@ -44,6 +46,12 @@ export const description: INodeProperties[] = [
 				description: 'Search records by criteria',
 				action: 'Search records',
 			},
+			{
+				name: 'Delete Record',
+				value: 'delete',
+				description: 'Delete a record',
+				action: 'Delete a record',
+			},
 		],
 		default: 'create',
 	},
@@ -62,4 +70,5 @@ export const description: INodeProperties[] = [
 	...find.description,
 	...search.description,
 	...read.description,
+	...deleteOp.description,
 ];
