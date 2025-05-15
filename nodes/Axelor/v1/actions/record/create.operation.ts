@@ -4,11 +4,11 @@ import type {
 	INodeProperties,
 	IExecuteFunctions,
 } from 'n8n-workflow';
-import { updateDisplayOptions } from 'n8n-workflow';
+import { updateDisplayOptions, NodeApiError } from 'n8n-workflow';
 
 import { getMetaFields } from '../../helpers/api-helper';
 import { AXELOR_SELECTION_FIELDS } from '../../helpers/constants';
-import { wrapData } from '../../helpers/utils';
+import { processAxelorError, wrapData } from '../../helpers/utils';
 
 const properties: INodeProperties[] = [
 	{
@@ -83,8 +83,9 @@ export async function execute(
 
 			returnData.push(...executionData);
 		} catch (error) {
+			error = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {
-				returnData.push({ json: { message: error.message, error } });
+				returnData.push({ json: { error: error.message } });
 				continue;
 			}
 			throw error;
