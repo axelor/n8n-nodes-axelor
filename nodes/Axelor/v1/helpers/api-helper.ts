@@ -11,7 +11,7 @@ export async function getOptions(
 	this: ILoadOptionsFunctions,
 	field: AxelorModelFieldSchema,
 ): Promise<INodePropertyOptions[]> {
-	const { target, targetName = 'id' } = field;
+	const { target, targetName } = field;
 
 	if (!target) return [];
 
@@ -27,7 +27,7 @@ export async function getOptions(
 
 	const body = {
 		data: {},
-		fields: [targetName],
+		fields: [targetName ?? 'id'],
 	};
 
 	try {
