@@ -36,7 +36,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		try {
 			const creds = await this.getCredentials('axelorApi');
 			const baseUrl = creds.baseUrl as string;
-			const fieldNames = await getMetaFields.call(this, model);
+			const fields = await getMetaFields.call(this, model);
+			const fieldNames = fields.map((f) => f.name);
 			const recordId = this.getNodeParameter('records', i) as string;
 
 			const body: any = { fields: fieldNames, data: {} };
