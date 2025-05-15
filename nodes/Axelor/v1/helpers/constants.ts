@@ -13,3 +13,7 @@ export const AXELOR_FIELD_TYPE_MAP: Readonly<TypesMap> = {
 	// We are not able to see the field array values
 	array: ['ONE_TO_MANY', 'MANY_TO_MANY'],
 };
+
+export const MODEL = {
+	CONNECT_DB_WEBHOOK: 'com.axelor.connect.db.Webhook',
+};

@@ -1,19 +1,17 @@
 {
-	"name": "n8n-nodes-axelor",
-	"version": 1.0,
-	"displayName": "Axelor",
-	"description": "Interact with Axelor Open Platform.",
-	"defaults": {
-		"name": "Axelor",
-		"color": "#336699"
-	},
-	"inputs": ["main"],
-	"outputs": ["main"],
-	"credentials": [
-		{
-			"name": "axelorApi",
-			"required": true
-		}
-	],
-	"properties": []
+	"name": "n8n-nodes-base.axelor",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://docs.n8n.io/integrations/builtin/credentials/stripe/"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.stripe/"
+			}
+		]
+	}
 }
