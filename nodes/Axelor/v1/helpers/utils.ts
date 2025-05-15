@@ -70,3 +70,11 @@ export function wrapData(data: IDataObject | IDataObject[]): INodeExecutionData[
 		json: item,
 	}));
 }
+
+export function isValidResponse(response: any): boolean {
+	if (response.status === -1) {
+		throw new Error(response.data?.message || 'Invalid response');
+	}
+
+	return true;
+}

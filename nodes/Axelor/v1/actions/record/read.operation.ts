@@ -5,7 +5,7 @@ import {
 	NodeApiError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
-import { processAxelorError } from '../../helpers/utils';
+import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { getMetaFields } from '../../helpers/api-helper';
 
 const properties: INodeProperties[] = [
@@ -51,11 +51,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				json: true,
 			});
 
-			const records = resp.data || [];
-			if (Array.isArray(records)) {
-				returnData.push(...records.map((record) => ({ json: record })));
-			} else {
-				returnData.push({ json: records });
+			if (isValidResponse(resp)) {
+				returnData.push(...wrapData(resp.data || []));
 			}
 		} catch (error) {
 			error = processAxelorError(error as NodeApiError);

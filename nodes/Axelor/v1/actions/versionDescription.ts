@@ -22,4 +22,5 @@ export const versionDescription: INodeTypeDescription = {
 		},
 	],
 	properties: [...record.description],
+	continueOnFail: false,
 } as INodeTypeDescription;
