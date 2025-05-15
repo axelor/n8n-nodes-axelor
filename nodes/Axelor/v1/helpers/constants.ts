@@ -27,4 +27,19 @@ export const ARCHIVED_OPTIONS = [
 		name: 'No',
 		value: false,
 	},
+	{
+		name: 'Unset',
+		value: 'unset',
+	},
+];
+
+export const SORT_BY_OPTIONS = [
+	{
+		name: 'ASC',
+		value: 'asc',
+	},
+	{
+		name: 'DESC',
+		value: 'desc',
+	},
 ];

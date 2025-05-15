@@ -5,11 +5,13 @@ import {
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
-import { fromPairs, get } from 'lodash';
+import { fromPairs, get, isEmpty } from 'lodash';
 
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { getMetaFields } from '../../helpers/api-helper';
-import { ARCHIVED_OPTIONS } from '../../helpers/constants';
+import { ARCHIVED_OPTIONS, SORT_BY_OPTIONS } from '../../helpers/constants';
+
+const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
 
 export const properties: INodeProperties[] = [
 	{
@@ -39,25 +41,33 @@ export const properties: INodeProperties[] = [
 		default: 50,
 		description: 'Max number of results to return',
 		hint: 'The maximum no. of records to be fetched in one internal request and total there can be max. 3200 internal request in one operation',
-		displayOptions: {
-			show: {
-				advancedSettings: [true],
-			},
-		},
+		displayOptions: ENABLED_ON_ADVANCED_SETTING,
 	},
+	{
+		displayName: 'Field Name Names or IDs',
+		name: 'fields',
+		type: 'multiOptions',
+		description:
+			'Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+		default: [],
+		typeOptions: {
+			loadOptionsMethod: 'loadMetaFields',
+			loadOptionsDependsOn: ['model'],
+		},
+		displayOptions: ENABLED_ON_ADVANCED_SETTING,
+	},
+
 	{
 		displayName: 'Show Archived',
 		name: 'archived',
 		type: 'options',
 		options: ARCHIVED_OPTIONS,
-		default: false,
+		default: 'unset',
 		description: 'Whether the item is archived',
-		displayOptions: {
-			show: {
-				advancedSettings: [true],
-			},
-		},
+		displayOptions: ENABLED_ON_ADVANCED_SETTING,
+		required: true,
 	},
+
 	{
 		displayName: 'Context',
 		name: 'context',
@@ -86,11 +96,42 @@ export const properties: INodeProperties[] = [
 				],
 			},
 		],
-		displayOptions: {
-			show: {
-				advancedSettings: [true],
+		displayOptions: ENABLED_ON_ADVANCED_SETTING,
+	},
+	{
+		displayName: 'Sort By',
+		name: 'sortBy',
+		type: 'fixedCollection',
+		typeOptions: { multipleValues: true },
+		default: {},
+		options: [
+			{
+				displayName: 'Sort By',
+				name: 'sortBy',
+				values: [
+					{
+						displayName: 'Field Name or ID',
+						name: 'field',
+						type: 'options',
+						description:
+							'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+						default: '',
+						typeOptions: {
+							loadOptionsMethod: 'loadMetaFields',
+							loadOptionsDependsOn: ['model'],
+						},
+					},
+					{
+						displayName: 'Rule',
+						name: 'rule',
+						type: 'options',
+						options: SORT_BY_OPTIONS,
+						default: '',
+					},
+				],
 			},
-		},
+		],
+		displayOptions: ENABLED_ON_ADVANCED_SETTING,
 	},
 ];
 const displayOptions = { show: { operation: ['search'] } };
@@ -112,6 +153,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const fieldNames: string[] = fields.map((f) => f.name);
 
 			const data: Record<string, any> = {};
+			const body: Record<string, any> = { offset: 0, limit, data, fields: fieldNames };
 
 			const query = this.getNodeParameter('query', i, '') as string;
 			if (query) {
@@ -119,19 +161,20 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			}
 
 			if (enableAdvancedSettings) {
-				data._archived = this.getNodeParameter('archived', i, false) as boolean;
+				body.sortBy = getSortByFields.call(this, i);
+				const selectedFiels = getSelectedFields.call(this, i);
+				const domainContext = getContextFields.call(this, i);
+				const archived = this.getNodeParameter('archived', i, false) as boolean | string;
 
-				const contextValues = this.getNodeParameter('context', i, {}) as {
-					context: { key: string; value: string }[];
-				};
-
-				const contextArray = get(contextValues, 'context', []);
-				if (contextArray.length > 0) {
-					data._domainContext = fromPairs(contextArray.map((c) => [c.key, c.value]));
+				if (selectedFiels.length > 0) {
+					body.fields = selectedFiels;
 				}
-			}
+				if (!isEmpty(domainContext)) {
+					data._domainContext = domainContext;
+				}
 
-			const body = { offset: 0, limit, fields: fieldNames, data };
+				typeof archived === 'boolean' ? (data._archived = archived) : delete data._archived;
+			}
 
 			const resp = await this.helpers.request!({
 				method: 'POST',
@@ -155,4 +198,32 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		}
 	}
 	return returnData;
+}
+
+/**
+ *
+ *         Helper functions
+ *
+ * */
+
+export function getSortByFields(this: IExecuteFunctions, i: number): Array<String> {
+	const sortByValues = this.getNodeParameter('sortBy', i, {}) as {
+		sortBy: { field: string; rule: string }[];
+	};
+	const sortByArray = get(sortByValues, 'sortBy', []);
+	return sortByArray.length > 0
+		? sortByArray.map((sort) => (sort.rule === 'desc' ? `-${sort.field}` : sort.field))
+		: [];
+}
+
+export function getContextFields(this: IExecuteFunctions, i: number): Object {
+	const contextValues = this.getNodeParameter('context', i, {}) as {
+		context: { key: string; value: string }[];
+	};
+	const contextArray = get(contextValues, 'context', []);
+	return fromPairs(contextArray.map((c) => [c.key, c.value]));
+}
+
+export function getSelectedFields(this: IExecuteFunctions, i: number): Array<String> {
+	return this.getNodeParameter('fields', i, []) as Array<String>;
 }

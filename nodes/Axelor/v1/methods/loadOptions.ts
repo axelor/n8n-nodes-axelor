@@ -86,3 +86,38 @@ export async function getMetaModelRecords(
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch records', error);
 	}
 }
+
+export async function loadMetaFields(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
+		baseUrl: string;
+		username: string;
+		password: string;
+	};
+
+	const selectedModel = this.getCurrentNodeParameter('model') as string;
+
+	if (!selectedModel) return [];
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	try {
+		const respFields = await this.helpers.request!({
+			method: 'GET',
+			url: `/ws/meta/fields/${encodeURIComponent(selectedModel)}`,
+			baseURL: baseUrl,
+			auth: { user: username as string, pass: password as string },
+			json: true,
+		});
+
+		return Array.isArray(respFields?.data?.fields)
+			? respFields.data.fields.map((item: any) => ({
+					name: item.name,
+					value: item.name,
+				}))
+			: [];
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch Fields', error);
+	}
+}
