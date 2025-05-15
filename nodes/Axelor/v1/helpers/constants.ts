@@ -17,3 +17,14 @@ export const AXELOR_FIELD_TYPE_MAP: Readonly<TypesMap> = {
 export const MODEL = {
 	CONNECT_DB_WEBHOOK: 'com.axelor.connect.db.Webhook',
 };
+
+export const ARCHIVED_OPTIONS = [
+	{
+		name: 'Yes',
+		value: true,
+	},
+	{
+		name: 'No',
+		value: false,
+	},
+];
