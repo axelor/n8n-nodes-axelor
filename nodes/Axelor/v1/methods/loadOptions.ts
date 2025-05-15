@@ -1,5 +1,6 @@
 import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
+
 import { getNameColoumn } from '../helpers/utils';
 
 export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
@@ -14,16 +15,24 @@ export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodeP
 	}
 
 	try {
+		const body = {
+			fields: ['name', 'fullName'],
+		};
+
 		const response = await this.helpers.request({
-			method: 'GET',
-			url: '/ws/meta/models',
+			method: 'POST',
+			url: '/ws/rest/com.axelor.meta.db.MetaModel/search',
 			baseURL: baseUrl,
 			auth: { user: username, pass: password },
 			json: true,
+			body,
 		});
 
 		return Array.isArray(response.data)
-			? response.data.map((model: string) => ({ name: model, value: model }))
+			? response.data.map((model: { name: string; fullName: string }) => ({
+					name: model.name,
+					value: model.fullName,
+				}))
 			: [];
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
