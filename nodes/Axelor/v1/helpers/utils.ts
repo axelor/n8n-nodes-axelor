@@ -8,7 +8,7 @@ import {
 } from 'n8n-workflow';
 
 import { AxelorModelFieldSchema } from './interface';
-import { AXELOR_FIELD_TYPE_MAP } from './constants';
+import { AXELOR_FIELD_TYPE_MAP, AXELOR_SELECTION_FIELDS } from './constants';
 
 export const mapAxelorTypeToFieldType = (axelorType: string): FieldType | undefined => {
 	for (const [n8nType, axelorTypes] of Object.entries(AXELOR_FIELD_TYPE_MAP)) {
@@ -77,4 +77,29 @@ export function isValidResponse(response: any): boolean {
 	}
 
 	return true;
+}
+
+export function getChangedFieldNames(mapping: any): string[] {
+	return (mapping.schema || [])
+		.filter((field: any) => !field.removed)
+		.map((field: any) => field.id);
+}
+
+export function buildRequestData(keys: string[], mapping: any, fields: any[]): Record<string, any> {
+	const data: Record<string, any> = {};
+	const validFieldNames = new Set(fields.map((f: any) => f.name));
+
+	for (const key of keys) {
+		if (!validFieldNames.has(key)) continue;
+
+		const value = mapping.value?.[key];
+		if (value === undefined) continue;
+
+		const fieldMeta: any = fields.find((f) => f.name === key);
+		if (!fieldMeta) continue;
+
+		data[key] = AXELOR_SELECTION_FIELDS.includes(fieldMeta.type) ? { id: value } : value;
+	}
+
+	return data;
 }

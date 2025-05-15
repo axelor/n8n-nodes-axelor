@@ -7,8 +7,12 @@ import type {
 import { updateDisplayOptions, NodeApiError } from 'n8n-workflow';
 
 import { getMetaFields } from '../../helpers/api-helper';
-import { AXELOR_SELECTION_FIELDS } from '../../helpers/constants';
-import { processAxelorError, wrapData } from '../../helpers/utils';
+import {
+	buildRequestData,
+	getChangedFieldNames,
+	processAxelorError,
+	wrapData,
+} from '../../helpers/utils';
 
 const properties: INodeProperties[] = [
 	{
@@ -25,6 +29,12 @@ const properties: INodeProperties[] = [
 				addAllFields: false,
 			},
 			loadOptionsDependsOn: ['model'],
+			refreshOn: ['model'],
+		},
+		displayOptions: {
+			hide: {
+				model: [''],
+			},
 		},
 	},
 ];
@@ -52,20 +62,12 @@ export async function execute(
 			const mapping = this.getNodeParameter('fields', i, {}) as any;
 
 			const fields = await getMetaFields.call(this, model);
-			const validFieldNames = new Set(fields.map((f) => f.name));
 
-			const data: IDataObject | any = {};
-			Object.entries(mapping.value || {}).forEach(([key, value]) => {
-				if (validFieldNames.has(key)) {
-					const fieldMeta: any = fields.find((f) => f.name === key);
+			// Extract only the field names that have actually changed (not removed)
+			const changedKeys = getChangedFieldNames(mapping);
 
-					if (AXELOR_SELECTION_FIELDS.includes(fieldMeta.type)) {
-						data[key] = { id: value };
-					} else {
-						data[key] = value;
-					}
-				}
-			});
+			// Build the final data payload using the changed keys only
+			const data = buildRequestData(changedKeys, mapping, fields);
 
 			const responseData = await this.helpers.request!({
 				method: 'POST',
