@@ -30,7 +30,9 @@ export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodeP
 	}
 }
 
-export async function getRecords(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+export async function getMetaModelRecords(
+	this: ILoadOptionsFunctions,
+): Promise<INodePropertyOptions[]> {
 	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
 		baseUrl: string;
 		username: string;
@@ -54,9 +56,9 @@ export async function getRecords(this: ILoadOptionsFunctions): Promise<INodeProp
 		});
 
 		const nameColumn = getNameColoumn(respFields?.data);
-		const fields = ['id'];
-		if (nameColumn !== 'id') fields.push(nameColumn);
-		const resp = await this.helpers.request!({
+		const fields = nameColumn && nameColumn !== 'id' ? ['id', nameColumn] : ['id'];
+
+		const result = await this.helpers.request!({
 			method: 'POST',
 			url: `/ws/rest/${encodeURIComponent(selectedModel)}/search`,
 			baseURL: baseUrl,
@@ -65,8 +67,11 @@ export async function getRecords(this: ILoadOptionsFunctions): Promise<INodeProp
 			json: true,
 		});
 
-		return Array.isArray(resp.data)
-			? resp.data.map((item: any) => ({ name: item[nameColumn], value: item.id! }))
+		return Array.isArray(result.data)
+			? result.data.map((item: any) => ({
+					name: item[nameColumn] ? item[nameColumn] : `null(${item.id})`,
+					value: item.id!,
+				}))
 			: [];
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch records', error);

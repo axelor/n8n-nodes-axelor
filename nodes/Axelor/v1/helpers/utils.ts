@@ -46,7 +46,7 @@ export function processAxelorError(error: NodeApiError, id?: string, itemIndex?:
 }
 
 export function getNameColoumn(data: Record<string, any>): string {
-	const fields = data?.fields || {};
+	const fields = data?.fields || [];
 
 	const preferredOrder = [
 		(f: any) => f.nameColumn === true,

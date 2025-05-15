@@ -14,7 +14,7 @@ const properties: INodeProperties[] = [
 		name: 'records',
 		type: 'options',
 		typeOptions: {
-			loadOptionsMethod: 'getRecords',
+			loadOptionsMethod: 'getMetaModelRecords',
 			loadOptionsDependsOn: ['model'],
 			refreshOn: ['model'],
 		},
