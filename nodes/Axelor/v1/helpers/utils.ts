@@ -1,7 +1,8 @@
-import { set } from 'lodash';
+import { fromPairs, get, set } from 'lodash';
 import {
 	FieldType,
 	IDataObject,
+	IExecuteFunctions,
 	INodeExecutionData,
 	INodePropertyOptions,
 	NodeApiError,
@@ -102,4 +103,26 @@ export function buildRequestData(keys: string[], mapping: any, fields: any[]): R
 	}
 
 	return data;
+}
+
+export function getSortByFields(this: IExecuteFunctions, i: number): Array<String> {
+	const sortByValues = this.getNodeParameter('sortBy', i, {}) as {
+		sortBy: { field: string; rule: string }[];
+	};
+	const sortByArray = get(sortByValues, 'sortBy', []);
+	return sortByArray.length > 0
+		? sortByArray.map((sort) => (sort.rule === 'desc' ? `-${sort.field}` : sort.field))
+		: [];
+}
+
+export function getContextFields(this: IExecuteFunctions, i: number): Object {
+	const contextValues = this.getNodeParameter('context', i, {}) as {
+		context: { key: string; value: string }[];
+	};
+	const contextArray = get(contextValues, 'context', []);
+	return fromPairs(contextArray.map((c) => [c.key, c.value]));
+}
+
+export function getSelectedFields(this: IExecuteFunctions, i: number): Array<String> {
+	return this.getNodeParameter('fields', i, []) as Array<String>;
 }

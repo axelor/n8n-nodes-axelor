@@ -5,9 +5,16 @@ import {
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
-import { fromPairs, get, isEmpty } from 'lodash';
+import { isEmpty } from 'lodash';
 
-import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
+import {
+	getContextFields,
+	getSelectedFields,
+	getSortByFields,
+	isValidResponse,
+	processAxelorError,
+	wrapData,
+} from '../../helpers/utils';
 import { getMetaFields } from '../../helpers/api-helper';
 import { ARCHIVED_OPTIONS, SORT_BY_OPTIONS } from '../../helpers/constants';
 
@@ -198,32 +205,4 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		}
 	}
 	return returnData;
-}
-
-/**
- *
- *         Helper functions
- *
- * */
-
-export function getSortByFields(this: IExecuteFunctions, i: number): Array<String> {
-	const sortByValues = this.getNodeParameter('sortBy', i, {}) as {
-		sortBy: { field: string; rule: string }[];
-	};
-	const sortByArray = get(sortByValues, 'sortBy', []);
-	return sortByArray.length > 0
-		? sortByArray.map((sort) => (sort.rule === 'desc' ? `-${sort.field}` : sort.field))
-		: [];
-}
-
-export function getContextFields(this: IExecuteFunctions, i: number): Object {
-	const contextValues = this.getNodeParameter('context', i, {}) as {
-		context: { key: string; value: string }[];
-	};
-	const contextArray = get(contextValues, 'context', []);
-	return fromPairs(contextArray.map((c) => [c.key, c.value]));
-}
-
-export function getSelectedFields(this: IExecuteFunctions, i: number): Array<String> {
-	return this.getNodeParameter('fields', i, []) as Array<String>;
 }
