@@ -8,7 +8,7 @@ export class Axelor extends VersionedNodeType {
 		const baseDescription: INodeTypeBaseDescription = {
 			displayName: 'Axelor',
 			name: 'axelor',
-			icon: 'file:Axelor.svg',
+			icon: 'file:axelor.svg',
 			group: ['input'],
 			description: 'Integrate with Axelor Open Platform',
 			defaultVersion: 1,

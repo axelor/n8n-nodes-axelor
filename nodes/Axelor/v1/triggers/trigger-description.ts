@@ -4,7 +4,7 @@ import { INodeTypeDescription, NodeConnectionType } from 'n8n-workflow';
 export const triggerDescription: INodeTypeDescription = {
 	displayName: 'Axelor Delete Trigger',
 	name: 'axelorTrigger',
-	icon: 'file:Axelor.svg',
+	icon: 'file:axelor.svg',
 	group: ['trigger'],
 	version: 1,
 	description: 'Triggers when a record is deleted in Axelor',

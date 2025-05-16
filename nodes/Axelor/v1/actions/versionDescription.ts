@@ -6,7 +6,7 @@ import * as record from './record/Record.resource';
 export const versionDescription: INodeTypeDescription = {
 	displayName: 'Axelor',
 	name: 'axelor',
-	icon: 'file:Axelor.svg',
+	icon: 'file:axelor.svg',
 	group: ['input'],
 	version: 1,
 	description: 'Integrate with Axelor Open Platform',
