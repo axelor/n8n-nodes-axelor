@@ -2,6 +2,7 @@ import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
 import { getNameColoumn } from '../helpers/utils';
+import { startCase, toLower } from 'lodash';
 
 export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
@@ -113,7 +114,7 @@ export async function loadMetaFields(this: ILoadOptionsFunctions): Promise<INode
 
 		return Array.isArray(respFields?.data?.fields)
 			? respFields.data.fields.map((item: any) => ({
-					name: item.name,
+					name: item.title || startCase(toLower(item.name)),
 					value: item.name,
 				}))
 			: [];
