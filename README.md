@@ -92,7 +92,7 @@ Save credentials before using Axelor nodes.
 
 | Version | Date       | Highlights                                           |
 | ------- | ---------- | ---------------------------------------------------- |
-| 1.0.0   | 2025-05-16 | Initial release: CRUD operations + Delete Trigger 🚀 |
+| 0.0.0   | YYYY-MM-DD | Initial release: CRUD operations + Delete Trigger 🚀 |
 
 ---
 

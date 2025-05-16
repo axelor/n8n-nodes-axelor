@@ -29,12 +29,6 @@ export const description: INodeProperties[] = [
 				action: 'Find records',
 			},
 			{
-				name: 'Get Updated Records',
-				value: 'getUpdated',
-				description: 'Retrieve a record',
-				action: 'Get a record',
-			},
-			{
 				name: 'Read Records',
 				value: 'read',
 				description: 'Read records in the system',
