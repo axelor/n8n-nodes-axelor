@@ -43,7 +43,8 @@ const properties: INodeProperties[] = [
 		description: 'Whether to show advanced options',
 	},
 	{
-		displayName: 'Field Name Names or IDs',
+		// eslint-disable-next-line n8n-nodes-base/node-param-display-name-wrong-for-dynamic-multi-options
+		displayName: 'Select Fields',
 		name: 'fields',
 		type: 'multiOptions',
 		description:
