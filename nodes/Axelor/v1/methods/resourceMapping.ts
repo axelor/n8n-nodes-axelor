@@ -8,7 +8,6 @@ import {
 import { AxelorModelFieldSchema } from '../helpers/interface';
 import { constructOptions, mapAxelorTypeToFieldType } from '../helpers/utils';
 import { AXELOR_SELECTION_FIELDS } from '../helpers/constants';
-
 import { getOptions } from '../helpers/api-helper';
 
 export async function getMetaModelFields(

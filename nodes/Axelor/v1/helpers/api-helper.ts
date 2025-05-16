@@ -5,7 +5,8 @@ import {
 	NodeOperationError,
 } from 'n8n-workflow';
 
-import { AxelorModelFieldSchema } from './interface';
+import { AxelorModelFieldSchema, AxelorRecord } from './interface';
+import { getNameColoumn } from './utils';
 
 export async function getOptions(
 	this: ILoadOptionsFunctions,
@@ -80,5 +81,91 @@ export async function getMetaFields(
 		return fields;
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
+	}
+}
+
+export async function getMetaModelFieldRecord(
+	this: IExecuteFunctions,
+	model: string,
+	recordId: number,
+): Promise<AxelorRecord | null> {
+	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
+		baseUrl: string;
+		username: string;
+		password: string;
+	};
+
+	if (!model || !recordId) {
+		throw new NodeOperationError(
+			this.getNode(),
+			'Model and recordId are required to fetch the record.',
+		);
+	}
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	try {
+		const response = await this.helpers.request!({
+			method: 'POST',
+			url: `/ws/rest/${encodeURIComponent(model)}/${encodeURIComponent(recordId)}/fetch`,
+			baseURL: baseUrl,
+			auth: { user: username, pass: password },
+			json: true,
+			body: {},
+		});
+
+		return response.data?.[0] || {};
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch fields for the record', error);
+	}
+}
+
+export async function getMetaModelRecords(
+	this: ILoadOptionsFunctions,
+): Promise<INodePropertyOptions[]> {
+	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
+		baseUrl: string;
+		username: string;
+		password: string;
+	};
+	const selectedModel = this.getCurrentNodeParameter('model') as string;
+
+	if (!selectedModel) return [];
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	try {
+		const respFields = await this.helpers.request!({
+			method: 'GET',
+			url: `/ws/meta/fields/${encodeURIComponent(selectedModel)}`,
+			baseURL: baseUrl,
+			auth: { user: username as string, pass: password as string },
+			json: true,
+		});
+
+		const nameColumn = getNameColoumn(respFields?.data);
+		const fields = nameColumn && nameColumn !== 'id' ? ['id', nameColumn] : ['id'];
+
+		const result = await this.helpers.request!({
+			method: 'POST',
+			url: `/ws/rest/${encodeURIComponent(selectedModel)}/search`,
+			baseURL: baseUrl,
+			auth: { user: username as string, pass: password as string },
+			body: { fields },
+			json: true,
+		});
+
+		return Array.isArray(result.data)
+			? result.data.map((item: any) => ({
+					name: item[nameColumn] ? item[nameColumn] : `null(${item.id})`,
+					value: item.id!,
+				}))
+			: [];
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch records', error);
 	}
 }

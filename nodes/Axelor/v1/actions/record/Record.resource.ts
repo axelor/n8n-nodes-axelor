@@ -5,8 +5,9 @@ import * as find from './find.operation';
 import * as search from './search.operation';
 import * as read from './read.operation';
 import * as deleteOp from './delete.operation';
+import * as update from './update.operation';
 
-export { find, search, read, create, deleteOp as delete };
+export { find, search, read, create, deleteOp as delete, update };
 
 export const description: INodeProperties[] = [
 	{
@@ -46,6 +47,12 @@ export const description: INodeProperties[] = [
 				description: 'Delete a record',
 				action: 'Delete a record',
 			},
+			{
+				name: 'Update Record',
+				value: 'update',
+				description: 'Update a record',
+				action: 'Update record',
+			},
 		],
 		default: 'create',
 	},
@@ -65,4 +72,5 @@ export const description: INodeProperties[] = [
 	...search.description,
 	...read.description,
 	...deleteOp.description,
+	...update.description,
 ];

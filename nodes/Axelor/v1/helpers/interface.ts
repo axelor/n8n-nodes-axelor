@@ -21,3 +21,9 @@ export interface AxelorModelFieldSchema {
 	target?: string;
 	targetName?: string;
 }
+
+export interface AxelorRecord {
+	id: number;
+	version: number;
+	[key: string]: any;
+}
