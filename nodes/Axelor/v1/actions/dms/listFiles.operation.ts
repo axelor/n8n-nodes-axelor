@@ -32,7 +32,7 @@ export const properties: INodeProperties[] = [
 const displayOptions = {
 	show: {
 		resource: ['dms'],
-		operation: ['list'],
+		operation: ['listFiles'],
 	},
 };
 
