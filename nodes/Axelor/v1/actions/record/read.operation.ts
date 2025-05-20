@@ -59,7 +59,12 @@ const properties: INodeProperties[] = [
 	},
 ];
 
-const displayOptions = { show: { operation: ['read'] } };
+const displayOptions = {
+	show: {
+		resource: ['record'],
+		operation: ['read'],
+	},
+};
 export const description = updateDisplayOptions(displayOptions, properties);
 
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]) {

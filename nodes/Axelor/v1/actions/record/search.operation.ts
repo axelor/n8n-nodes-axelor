@@ -141,7 +141,8 @@ export const properties: INodeProperties[] = [
 		displayOptions: ENABLED_ON_ADVANCED_SETTING,
 	},
 ];
-const displayOptions = { show: { operation: ['search'] } };
+const displayOptions = { show: { resource: ['record'], operation: ['search'] } };
+
 export const description = updateDisplayOptions(displayOptions, properties);
 
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]) {

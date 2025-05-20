@@ -55,6 +55,11 @@ export const description: INodeProperties[] = [
 			},
 		],
 		default: 'create',
+		displayOptions: {
+			show: {
+				resource: ['record'],
+			},
+		},
 	},
 	{
 		displayName: 'Model Name or ID',
@@ -66,6 +71,11 @@ export const description: INodeProperties[] = [
 		placeholder: 'Select Axelor model',
 		required: true,
 		default: '',
+		displayOptions: {
+			show: {
+				resource: ['record'],
+			},
+		}
 	},
 	...create.description,
 	...find.description,

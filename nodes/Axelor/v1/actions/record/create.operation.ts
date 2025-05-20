@@ -41,6 +41,7 @@ const properties: INodeProperties[] = [
 
 const displayOptions = {
 	show: {
+		resource: ['record'],
 		operation: ['create'],
 	},
 };
