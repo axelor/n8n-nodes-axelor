@@ -1,10 +1,10 @@
-import { IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n-workflow';
+import { IExecuteFunctions, INodeExecutionData, INodeProperties, updateDisplayOptions } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
 
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { getMetaFields } from '../../helpers/api-helper';
 
-export const description: INodeProperties[] = [
+export const properties: INodeProperties[] = [
 	{
 		displayName: 'Limit',
 		name: 'limit',
@@ -14,7 +14,6 @@ export const description: INodeProperties[] = [
 		},
 		default: 50,
 		description: 'Max number of results to return',
-		displayOptions: { show: { operation: ['find'] } },
 	},
 	{
 		displayName: 'Find By ID',
@@ -22,7 +21,6 @@ export const description: INodeProperties[] = [
 		type: 'boolean',
 		default: false,
 		description: 'Whether to find a record by ID',
-		displayOptions: { show: { operation: ['find'] } },
 	},
 	{
 		displayName: 'ID',
@@ -30,10 +28,21 @@ export const description: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		description: 'ID of the record to find',
-		displayOptions: { show: { operation: ['find'], findById: [true] } },
+		displayOptions: { show: {  findById: [true] } },
 		required: true,
 	},
 ];
+
+const displayOptions = {
+	show: {
+		resource: ['record'],
+		operation: ['find'],
+	},
+};
+
+
+export const description = updateDisplayOptions(displayOptions, properties);
+
 
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]) {
 	const returnData: INodeExecutionData[] = [];

@@ -2,6 +2,7 @@
 import { type INodeTypeDescription } from 'n8n-workflow';
 
 import * as record from './record/Record.resource';
+import * as dms from './dms/Dms.resource';
 
 export const versionDescription: INodeTypeDescription = {
 	displayName: 'Axelor',
@@ -9,6 +10,7 @@ export const versionDescription: INodeTypeDescription = {
 	icon: 'file:axelor.svg',
 	group: ['input'],
 	version: 1,
+	subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',
 	description: 'Integrate with Axelor Open Platform',
 	defaults: {
 		name: 'Axelor',
@@ -21,6 +23,28 @@ export const versionDescription: INodeTypeDescription = {
 			required: true,
 		},
 	],
-	properties: [...record.description],
-	continueOnFail: false,
+		continueOnFail: false,
+	properties: [
+		{
+			displayName: 'Resource',
+			name: 'resource',
+			type: 'options',
+			noDataExpression: true,
+			options: [
+				{
+					name: 'Record',
+					value: 'record',
+				},
+				{
+					// eslint-disable-next-line n8n-nodes-base/node-param-resource-with-plural-option
+					name: 'DMS',
+					value: 'dms',
+				}
+			],
+			default: 'record',
+		},
+
+		...record.description,
+		...dms.description
+	]
 } as INodeTypeDescription;

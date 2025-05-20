@@ -1,1 +1,11 @@
-export type AxelorType = 'create' | 'deleteRecord' | 'find' | 'search' | 'update' | 'read';
+import { AllEntities } from "n8n-workflow";
+
+
+type NodeMap = {
+	record:  'create' | 'delete' | 'find' | 'search' | 'update' | 'read';
+	dms: 'list';
+};
+
+
+export type AxelorType =AllEntities<NodeMap>;
+
