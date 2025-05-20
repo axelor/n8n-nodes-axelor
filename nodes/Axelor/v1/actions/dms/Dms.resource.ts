@@ -12,12 +12,12 @@ export const description: INodeProperties[] = [
 		options: [
 			{
 				name: 'List File',
-				value: 'listfile',
+				value: 'list',
 				description: 'List all the files',
 				action: 'File listing',
 			},
 		],
-		default: 'listfile',
+		default: 'list',
 		displayOptions: {
 			show: {
 				resource: ['dms'],

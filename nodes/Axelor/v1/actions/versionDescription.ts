@@ -23,7 +23,7 @@ export const versionDescription: INodeTypeDescription = {
 			required: true,
 		},
 	],
-		continueOnFail: false,
+	continueOnFail: false,
 	properties: [
 		{
 			displayName: 'Resource',
@@ -39,12 +39,11 @@ export const versionDescription: INodeTypeDescription = {
 					// eslint-disable-next-line n8n-nodes-base/node-param-resource-with-plural-option
 					name: 'DMS',
 					value: 'dms',
-				}
+				},
 			],
 			default: 'record',
 		},
-
 		...record.description,
-		...dms.description
-	]
+		...dms.description,
+	],
 } as INodeTypeDescription;
