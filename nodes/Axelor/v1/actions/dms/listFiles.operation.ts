@@ -7,7 +7,7 @@ import {
 	updateDisplayOptions,
 } from 'n8n-workflow';
 
-import { processAxelorError, wrapData } from '../../helpers/utils';
+import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 
 export const properties: INodeProperties[] = [
 	{
@@ -69,6 +69,8 @@ export async function execute(
 				json: true,
 				qs,
 			});
+
+			isValidResponse(responseData);
 
 			const executionData = this.helpers.constructExecutionMetaData(
 				wrapData(responseData as IDataObject[]),

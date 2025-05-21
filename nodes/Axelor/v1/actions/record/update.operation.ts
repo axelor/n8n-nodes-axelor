@@ -10,6 +10,7 @@ import { updateDisplayOptions } from 'n8n-workflow';
 import {
 	buildRequestData,
 	getChangedFieldNames,
+	isValidResponse,
 	processAxelorError,
 	wrapData,
 } from '../../helpers/utils';
@@ -112,6 +113,8 @@ export async function execute(
 				body: { data },
 				json: true,
 			});
+
+			isValidResponse(responseData);
 
 			const executionData = this.helpers.constructExecutionMetaData(
 				wrapData(responseData as IDataObject[]),

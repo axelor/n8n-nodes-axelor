@@ -10,6 +10,7 @@ import { getMetaFields } from '../../helpers/api-helper';
 import {
 	buildRequestData,
 	getChangedFieldNames,
+	isValidResponse,
 	processAxelorError,
 	wrapData,
 } from '../../helpers/utils';
@@ -78,6 +79,8 @@ export async function execute(
 				body: { data },
 				json: true,
 			});
+
+			isValidResponse(responseData);
 
 			const executionData = this.helpers.constructExecutionMetaData(
 				wrapData(responseData as IDataObject[]),
