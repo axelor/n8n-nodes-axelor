@@ -126,3 +126,11 @@ export function getContextFields(this: IExecuteFunctions, i: number): Object {
 export function getSelectedFields(this: IExecuteFunctions, i: number): Array<String> {
 	return this.getNodeParameter('fields', i, []) as Array<String>;
 }
+
+export function createCriteria(fieldName: string, operator: string, value: string) {
+	return {
+		fieldName,
+		operator,
+		value,
+	};
+}
