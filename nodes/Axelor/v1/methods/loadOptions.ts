@@ -1,7 +1,7 @@
 import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { getNameColoumn } from '../helpers/utils';
+import { getJsonFields, getNameColoumn } from '../helpers/utils';
 import { startCase, toLower } from 'lodash';
 
 export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
@@ -112,12 +112,16 @@ export async function loadMetaFields(this: ILoadOptionsFunctions): Promise<INode
 			json: true,
 		});
 
-		return Array.isArray(respFields?.data?.fields)
-			? respFields.data.fields.map((item: any) => ({
-					name: item.title || startCase(toLower(item.name)),
-					value: item.name,
-				}))
-			: [];
+		if (respFields.status == -1) {
+			throw new Error(respFields.data?.message || 'Invalid response');
+		}
+
+		const jsonFields = getJsonFields(respFields?.data.jsonFields);
+		const metaField = respFields.data.fields.map((item: any) => ({
+			name: item.title || startCase(toLower(item.name)),
+			value: item.name,
+		}));
+		return [...metaField, ...jsonFields];
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch Fields', error);
 	}

@@ -181,3 +181,20 @@ export async function getItemBinaryData(
 		mimeType,
 	};
 }
+
+export function getJsonFields(jsonFields: Record<string, any>) {
+	if (!jsonFields) return [];
+
+	const jsonkeys = Object.keys(jsonFields);
+
+	return jsonkeys.reduce((acc: Array<{ name: string; value: string }>, key) => {
+		const attrs = jsonFields[key];
+		for (const attrKey in attrs) {
+			const attr = attrs[attrKey];
+			const name = attr?.title || attr?.autoTitle;
+			const value = `${key}_${attr?.name}`;
+			acc.push({ name, value });
+		}
+		return acc;
+	}, []);
+}
