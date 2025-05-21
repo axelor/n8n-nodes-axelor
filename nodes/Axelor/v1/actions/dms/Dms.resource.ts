@@ -1,7 +1,8 @@
 import type { INodeProperties } from 'n8n-workflow';
 import * as listFiles from './listFiles.operation';
+import * as listAttachments from './listAttachments.operation';
 
-export { listFiles };
+export { listFiles, listAttachments };
 
 export const description: INodeProperties[] = [
 	{
@@ -16,6 +17,12 @@ export const description: INodeProperties[] = [
 				description: 'List all the files',
 				action: 'File listing',
 			},
+			{
+				name: 'List Attachment',
+				value: 'listAttachments',
+				description: 'List all the attachments',
+				action: 'List attachments',
+			},
 		],
 		default: 'listFiles',
 		displayOptions: {
@@ -25,4 +32,5 @@ export const description: INodeProperties[] = [
 		},
 	},
 	...listFiles.description,
+	...listAttachments.description,
 ];
