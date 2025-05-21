@@ -1,3 +1,4 @@
+/* eslint-disable n8n-nodes-base/node-param-display-name-miscased */
 import { TypesMap } from './interface';
 
 export const AXELOR_SELECTION_FIELDS = ['ONE_TO_ONE', 'MANY_TO_ONE', 'MANY_TO_MANY', 'ONE_TO_MANY'];
@@ -41,5 +42,15 @@ export const SORT_BY_OPTIONS = [
 	{
 		name: 'DESC',
 		value: 'desc',
+	},
+];
+export const START_OPTIONS = [
+	{
+		name: 'Since specific date',
+		value: 'sinceSpecificDate',
+	},
+	{
+		name: 'All',
+		value: 'all',
 	},
 ];
