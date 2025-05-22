@@ -21,6 +21,7 @@ export interface AxelorModelFieldSchema {
 	target?: string;
 	targetName?: string;
 	autoTitle?: string;
+	selection?: string;
 }
 
 export interface AxelorRecord {

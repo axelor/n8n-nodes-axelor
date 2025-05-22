@@ -4,6 +4,7 @@ import {
 	ResourceMapperFields,
 	NodeOperationError,
 } from 'n8n-workflow';
+import { isEqual } from 'lodash';
 
 import { AxelorModelFieldSchema } from '../helpers/interface';
 import {
@@ -42,7 +43,7 @@ export async function getMetaModelFields(
 			'title',
 			'required',
 			'type',
-			'selectionList',
+			'selection',
 			'selectionList',
 			'target',
 			'targetName',
@@ -52,12 +53,12 @@ export async function getMetaModelFields(
 			return { name: item.attributeValue, ...item };
 		}) as AxelorModelFieldSchema[];
 
-		this.logger.info('jsonFields', { $jsonFields });
-
 		const mappedFields: ResourceMapperField[] = await Promise.all(
 			[...$fields, ...$jsonFields].map(async (field) => {
 				field['type'] = normalizeKey(field.type);
-				const type = mapAxelorTypeToFieldType(field.type);
+
+				const isIntegerWithoutSelection = isEqual(field.type, 'INTEGER') && !field.selection;
+				const type = !isIntegerWithoutSelection ? mapAxelorTypeToFieldType(field.type) : 'number';
 				const relationFieldsResponse = await getOptions.call(this, field);
 
 				const options = AXELOR_SELECTION_FIELDS.includes(field.type)
