@@ -1,4 +1,9 @@
-import { IExecuteFunctions, INodeExecutionData, INodeProperties, updateDisplayOptions } from 'n8n-workflow';
+import {
+	IExecuteFunctions,
+	INodeExecutionData,
+	INodeProperties,
+	updateDisplayOptions,
+} from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
 
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
@@ -28,7 +33,7 @@ export const properties: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		description: 'ID of the record to find',
-		displayOptions: { show: {  findById: [true] } },
+		displayOptions: { show: { findById: [true] } },
 		required: true,
 	},
 ];
@@ -40,15 +45,16 @@ const displayOptions = {
 	},
 };
 
-
 export const description = updateDisplayOptions(displayOptions, properties);
-
 
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]) {
 	const returnData: INodeExecutionData[] = [];
 
+	const metaFieldCache: Record<string, any> = {};
+
 	for (let i = 0; i < items.length; i++) {
 		const model = this.getNodeParameter('model', i) as string;
+
 		try {
 			const creds = await this.getCredentials('axelorApi');
 			const baseUrl = creds.baseUrl as string;
@@ -56,8 +62,12 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const recordId = this.getNodeParameter('recordId', i, null) as string;
 			const limit = this.getNodeParameter('limit', i, 10) as number;
 
-			const fields = await getMetaFields.call(this, model);
-			const fieldNames = fields.map((f) => f.name);
+			let fields = metaFieldCache[model];
+			if (!fields) {
+				fields = await getMetaFields.call(this, model);
+				metaFieldCache[model] = fields;
+			}
+			const fieldNames = fields.map((f: { name: string }) => f.name);
 
 			const url = findById
 				? `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`
@@ -70,6 +80,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				sortBy: ['-updatedOn'],
 				data: {},
 			};
+
 			const resp = await this.helpers.request!({
 				method: 'POST',
 				url,
@@ -91,5 +102,6 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			throw error;
 		}
 	}
+
 	return returnData;
 }

@@ -57,13 +57,19 @@ export async function execute(
 	const creds = await this.getCredentials('axelorApi');
 	const baseUrl = creds.baseUrl as string;
 
+	const metaFieldCache: Record<string, any> = {};
+
 	for (let i = 0; i < items.length; i++) {
 		const model = this.getNodeParameter('model', i) as string;
 
 		try {
 			const mapping = this.getNodeParameter('fields', i, {}) as any;
 
-			const fields = await getMetaFields.call(this, model);
+			let fields = metaFieldCache[model];
+			if (!fields) {
+				fields = await getMetaFields.call(this, model);
+				metaFieldCache[model] = fields;
+			}
 
 			// Extract only the field names that have actually changed (not removed)
 			const changedKeys = getChangedFieldNames(mapping);

@@ -74,6 +74,8 @@ export async function execute(
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
 
+	const metaFieldCache: Record<string, any> = {};
+
 	const creds = await this.getCredentials('axelorApi');
 	const baseUrl = creds.baseUrl as string;
 
@@ -94,7 +96,11 @@ export async function execute(
 		try {
 			const mapping = this.getNodeParameter('fields', i, {}) as any;
 
-			const fields = await getMetaFields.call(this, model);
+			let fields = metaFieldCache[model];
+			if (!fields) {
+				fields = await getMetaFields.call(this, model);
+				metaFieldCache[model] = fields;
+			}
 
 			// Extract changed field keys using schema info
 			const changedKeys = getChangedFieldNames(mapping);

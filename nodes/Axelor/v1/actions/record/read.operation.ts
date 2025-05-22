@@ -5,6 +5,7 @@ import {
 	NodeApiError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
+
 import {
 	getSelectedFields,
 	isValidResponse,
@@ -70,13 +71,23 @@ export const description = updateDisplayOptions(displayOptions, properties);
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]) {
 	const returnData: INodeExecutionData[] = [];
 
+	const metaFieldCache: Record<string, any> = {};
+
 	for (let i = 0; i < items?.length || 0; i++) {
 		const model = this.getNodeParameter('model', i) as string;
+
 		try {
 			const creds = await this.getCredentials('axelorApi');
 			const baseUrl = creds.baseUrl as string;
-			const fields = await getMetaFields.call(this, model);
-			const fieldNames = fields.map((f) => f.name);
+
+			let fields = metaFieldCache[model];
+			if (!fields) {
+				fields = await getMetaFields.call(this, model);
+				metaFieldCache[model] = fields;
+			}
+
+			const fieldNames = fields.map((f: { name: string }) => f.name);
+
 			const recordId = this.getNodeParameter('records', i) as string;
 			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
 
@@ -84,7 +95,6 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 
 			if (enableAdvancedSettings) {
 				const selectedFiels = getSelectedFields.call(this, i);
-
 				if (selectedFiels.length > 0) {
 					body.fields = selectedFiels;
 				}
@@ -111,5 +121,6 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			throw error;
 		}
 	}
+
 	return returnData;
 }

@@ -148,6 +148,8 @@ export const description = updateDisplayOptions(displayOptions, properties);
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]) {
 	const returnData: INodeExecutionData[] = [];
 
+	const metaFieldCache: Record<string, any> = {};
+
 	for (let i = 0; i < items.length; i++) {
 		const model = this.getNodeParameter('model', i) as string;
 
@@ -157,8 +159,13 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
 			const limit = this.getNodeParameter('limit', i, enableAdvancedSettings ? 50 : 10) as number;
 
-			const fields = await getMetaFields.call(this, model);
-			const fieldNames: string[] = fields.map((f) => f.name);
+			let fields = metaFieldCache[model];
+			if (!fields) {
+				fields = await getMetaFields.call(this, model);
+				metaFieldCache[model] = fields;
+			}
+
+			const fieldNames = fields.map((f: { name: string }) => f.name);
 
 			const data: Record<string, any> = {};
 			const body: Record<string, any> = { offset: 0, limit, data, fields: fieldNames };
