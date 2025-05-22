@@ -27,3 +27,9 @@ export interface AxelorRecord {
 	version: number;
 	[key: string]: any;
 }
+
+export interface AxelorApiCredentials {
+	baseUrl: string;
+	username: string;
+	password: string;
+}
