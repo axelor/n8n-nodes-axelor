@@ -226,3 +226,18 @@ export function getJsonFields(jsonFields: Record<string, any>, fieldNames: Array
 		return acc;
 	}, []);
 }
+
+export function manageCustomFieldData(
+	data: Record<string, any>,
+	record: Record<string, any>,
+	customFields: string[] = [],
+) {
+	for (const field of customFields) {
+		if (!data[field]) continue;
+		const updated = JSON.parse(data[field] || '{}');
+		const original = JSON.parse(record[field] || '{}');
+		const merged = { ...original, ...updated };
+		data[field] = JSON.stringify(merged);
+	}
+	return data;
+}

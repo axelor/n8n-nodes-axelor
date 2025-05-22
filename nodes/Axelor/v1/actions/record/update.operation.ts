@@ -13,8 +13,13 @@ import {
 	isValidResponse,
 	processAxelorError,
 	wrapData,
+	manageCustomFieldData,
 } from '../../helpers/utils';
-import { getMetaFields, getMetaModelFieldRecord } from '../../helpers/api-helper';
+import {
+	getMetaFields,
+	getMetaModelFieldRecord,
+	getModelCustomFields,
+} from '../../helpers/api-helper';
 
 const properties: INodeProperties[] = [
 	{
@@ -101,12 +106,16 @@ export async function execute(
 				fields = await getMetaFields.call(this, model);
 				metaFieldCache[model] = fields;
 			}
+			const customFields = (await getModelCustomFields.call(this, model)).map(
+				(field) => field.name,
+			);
 
 			// Extract changed field keys using schema info
 			const changedKeys = getChangedFieldNames(mapping);
 
 			// Build request payload with only changed fields
-			const data = buildRequestData(changedKeys, mapping, fields);
+			let data = buildRequestData(changedKeys, mapping, fields, customFields);
+			data = manageCustomFieldData(data, record, customFields);
 
 			data.id = recordId;
 			data.version = record.version;
