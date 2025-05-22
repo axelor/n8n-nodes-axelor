@@ -14,6 +14,11 @@ import { Readable } from 'stream';
 import { AxelorModelFieldSchema } from './interface';
 import { AXELOR_FIELD_TYPE_MAP, AXELOR_SELECTION_FIELDS, UPLOAD_CHUNK_SIZE } from './constants';
 
+export function normalizeKey(input: string) {
+	if (input && !input.trim()) return input;
+	return input.replace(/-/g, '_').toUpperCase();
+}
+
 export const mapAxelorTypeToFieldType = (axelorType: string): FieldType | undefined => {
 	for (const [n8nType, axelorTypes] of Object.entries(AXELOR_FIELD_TYPE_MAP)) {
 		if (axelorTypes?.includes(axelorType)) {
@@ -31,7 +36,7 @@ export const constructOptions = (field: AxelorModelFieldSchema) => {
 		})) as INodePropertyOptions[];
 	}
 
-	return undefined;
+	return [];
 };
 
 export function processAxelorError(error: NodeApiError, id?: string, itemIndex?: number) {
@@ -89,9 +94,15 @@ export function getChangedFieldNames(mapping: any): string[] {
 		.map((field: any) => field.id);
 }
 
-export function buildRequestData(keys: string[], mapping: any, fields: any[]): Record<string, any> {
+export function buildRequestData(
+	keys: string[],
+	mapping: any,
+	fields: any[],
+	customFields: string[] = [],
+): Record<string, any> {
 	const data: Record<string, any> = {};
 	const validFieldNames = new Set(fields.map((f: any) => f.name));
+	const customFieldData: Record<string, any> = {};
 
 	for (const key of keys) {
 		if (!validFieldNames.has(key)) continue;
@@ -102,9 +113,20 @@ export function buildRequestData(keys: string[], mapping: any, fields: any[]): R
 		const fieldMeta: any = fields.find((f) => f.name === key);
 		if (!fieldMeta) continue;
 
-		data[key] = AXELOR_SELECTION_FIELDS.includes(fieldMeta.type) ? { id: value } : value;
+		const [_, prefix, name] = key.match(/^([^_]+)_(.+)$/) || [];
+		if (prefix && customFields.includes(prefix)) {
+			customFieldData[prefix] = {
+				...(customFieldData[prefix] || {}),
+				[name]: AXELOR_SELECTION_FIELDS.includes(fieldMeta.type) ? { id: value } : value,
+			};
+		} else {
+			data[key] = AXELOR_SELECTION_FIELDS.includes(fieldMeta.type) ? { id: value } : value;
+		}
 	}
 
+	for (const [key, value] of Object.entries(customFieldData)) {
+		data[key] = JSON.stringify(value);
+	}
 	return data;
 }
 
@@ -182,18 +204,24 @@ export async function getItemBinaryData(
 	};
 }
 
-export function getJsonFields(jsonFields: Record<string, any>) {
+export function getJsonFields(jsonFields: Record<string, any>, fieldNames: Array<string> = []) {
 	if (!jsonFields) return [];
 
 	const jsonkeys = Object.keys(jsonFields);
 
-	return jsonkeys.reduce((acc: Array<{ name: string; value: string }>, key) => {
+	return jsonkeys.reduce((acc: Array<Record<string, any>>, key) => {
 		const attrs = jsonFields[key];
 		for (const attrKey in attrs) {
+			const fields: Record<string, any> = {};
 			const attr = attrs[attrKey];
-			const name = attr?.title || attr?.autoTitle;
-			const value = `${key}_${attr?.name}`;
-			acc.push({ name, value });
+			fields.attributeValue = `${key}_${attr?.name}`;
+
+			if (fieldNames && fieldNames.length > 0) {
+				fieldNames.forEach((f: string) => {
+					fields[f] = attr[f] || '';
+				});
+			}
+			acc.push(fields);
 		}
 		return acc;
 	}, []);

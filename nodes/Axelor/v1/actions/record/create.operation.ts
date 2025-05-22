@@ -6,7 +6,7 @@ import type {
 } from 'n8n-workflow';
 import { updateDisplayOptions, NodeApiError } from 'n8n-workflow';
 
-import { getMetaFields } from '../../helpers/api-helper';
+import { getMetaFields, getModelCustomFields } from '../../helpers/api-helper';
 import {
 	buildRequestData,
 	getChangedFieldNames,
@@ -70,12 +70,15 @@ export async function execute(
 				fields = await getMetaFields.call(this, model);
 				metaFieldCache[model] = fields;
 			}
+			const customFields = (await getModelCustomFields.call(this, model)).map(
+				(field) => field.name,
+			);
 
 			// Extract only the field names that have actually changed (not removed)
 			const changedKeys = getChangedFieldNames(mapping);
 
 			// Build the final data payload using the changed keys only
-			const data = buildRequestData(changedKeys, mapping, fields);
+			const data = buildRequestData(changedKeys, mapping, fields, customFields);
 
 			const responseData = await this.helpers.request!({
 				method: 'POST',

@@ -6,7 +6,7 @@ import {
 } from 'n8n-workflow';
 
 import { AxelorModelFieldSchema, AxelorRecord } from './interface';
-import { getNameColoumn } from './utils';
+import { getJsonFields, getNameColoumn, isValidResponse, normalizeKey } from './utils';
 
 export async function getOptions(
 	this: ILoadOptionsFunctions,
@@ -58,6 +58,7 @@ export async function getOptions(
 export async function getMetaFields(
 	this: IExecuteFunctions,
 	model: string,
+	options?: Record<string, any>,
 ): Promise<AxelorModelFieldSchema[]> {
 	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
 		baseUrl: string;
@@ -78,7 +79,24 @@ export async function getMetaFields(
 			json: true,
 		});
 		const fields: AxelorModelFieldSchema[] = respFields.data?.fields || [];
-		return fields;
+
+		if (!options?.jsonMetaFields) {
+			return fields;
+		}
+		const attrs = [
+			'title',
+			'required',
+			'type',
+			'selectionList',
+			'selectionList',
+			'target',
+			'targetName',
+		];
+		const jsonFields = getJsonFields(respFields?.data.jsonFields, attrs).map((item) => {
+			return { ...item, name: item.attributeValue, type: normalizeKey(item?.type) };
+		}) as AxelorModelFieldSchema[];
+
+		return [...fields, ...jsonFields];
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
 	}
@@ -167,5 +185,45 @@ export async function getMetaModelRecords(
 			: [];
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch records', error);
+	}
+}
+
+export async function getModelCustomFields(
+	this: IExecuteFunctions,
+	model: string,
+	options?: Record<string, any>,
+): Promise<AxelorModelFieldSchema[]> {
+	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
+		baseUrl: string;
+		username: string;
+		password: string;
+	};
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	const data = {
+		_domain: 'self.json = true AND self.metaModel.fullName=:model',
+		_domainContext: { model },
+	};
+
+	try {
+		const response = await this.helpers.request!({
+			method: 'POST',
+			url: `/ws/rest/com.axelor.meta.db.MetaField/search`,
+			baseURL: baseUrl,
+			auth: { user: username as string, pass: password as string },
+			json: true,
+			body: {
+				data,
+				fields: options?.fields ? options.fields : ['id', 'name'],
+				limit: 50,
+			},
+		});
+		isValidResponse(response);
+		return response.data || [];
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
 	}
 }

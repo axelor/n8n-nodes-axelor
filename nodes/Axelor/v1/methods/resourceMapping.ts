@@ -6,7 +6,12 @@ import {
 } from 'n8n-workflow';
 
 import { AxelorModelFieldSchema } from '../helpers/interface';
-import { constructOptions, mapAxelorTypeToFieldType } from '../helpers/utils';
+import {
+	constructOptions,
+	getJsonFields,
+	mapAxelorTypeToFieldType,
+	normalizeKey,
+} from '../helpers/utils';
 import { AXELOR_SELECTION_FIELDS } from '../helpers/constants';
 import { getOptions } from '../helpers/api-helper';
 
@@ -33,8 +38,25 @@ export async function getMetaModelFields(
 
 		const $fields: AxelorModelFieldSchema[] = response.data?.fields || [];
 
+		const attrs = [
+			'title',
+			'required',
+			'type',
+			'selectionList',
+			'selectionList',
+			'target',
+			'targetName',
+			'autoTitle',
+		];
+		const $jsonFields = getJsonFields(response?.data.jsonFields, attrs).map((item) => {
+			return { name: item.attributeValue, ...item };
+		}) as AxelorModelFieldSchema[];
+
+		this.logger.info('jsonFields', { $jsonFields });
+
 		const mappedFields: ResourceMapperField[] = await Promise.all(
-			$fields.map(async (field) => {
+			[...$fields, ...$jsonFields].map(async (field) => {
+				field['type'] = normalizeKey(field.type);
 				const type = mapAxelorTypeToFieldType(field.type);
 				const relationFieldsResponse = await getOptions.call(this, field);
 
@@ -44,7 +66,7 @@ export async function getMetaModelFields(
 
 				return {
 					id: field.name,
-					displayName: field.title || field.name,
+					displayName: field.title || field.autoTitle || field.name,
 					defaultMatch: false,
 					required: field.required === true,
 					display: true,

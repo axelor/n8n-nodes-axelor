@@ -7,7 +7,7 @@ export const AXELOR_FIELD_TYPE_MAP: Readonly<TypesMap> = {
 	string: ['TEXT', 'STRING'],
 	number: ['DECIMAL'],
 	boolean: ['BOOLEAN'],
-	dateTime: ['DATE'],
+	dateTime: ['DATE', 'DATETIME'],
 	time: [],
 	object: [],
 	options: ['MANY_TO_ONE', 'INTEGER', 'ONE_TO_ONE'],

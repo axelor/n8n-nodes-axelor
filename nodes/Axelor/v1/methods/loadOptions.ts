@@ -115,8 +115,15 @@ export async function loadMetaFields(this: ILoadOptionsFunctions): Promise<INode
 		if (respFields.status == -1) {
 			throw new Error(respFields.data?.message || 'Invalid response');
 		}
+		const attrs = ['title', 'autoTitle'];
+		const jsonFields = getJsonFields(respFields?.data.jsonFields, attrs).map((item) => {
+			const { title, autoTitle, attributeValue } = item;
+			return {
+				name: title ? title : autoTitle,
+				value: attributeValue,
+			};
+		});
 
-		const jsonFields = getJsonFields(respFields?.data.jsonFields);
 		const metaField = respFields.data.fields.map((item: any) => ({
 			name: item.title || startCase(toLower(item.name)),
 			value: item.name,

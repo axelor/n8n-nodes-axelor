@@ -20,6 +20,7 @@ export interface AxelorModelFieldSchema {
 	selectionList?: AxelorSelectionOption[];
 	target?: string;
 	targetName?: string;
+	autoTitle?: string;
 }
 
 export interface AxelorRecord {
