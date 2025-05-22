@@ -34,7 +34,7 @@ export const description: INodeProperties[] = [
 			},
 			{
 				name: 'Add Attachment',
-				value: 'addAttachment',
+				value: 'addAttachments',
 				description: 'Attach an existing file to a record',
 				action: 'Add attachment',
 			},
