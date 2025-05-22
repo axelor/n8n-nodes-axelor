@@ -26,7 +26,6 @@ export const properties: INodeProperties[] = [
 				resource: ['record'],
 			},
 		},
-		noDataExpression: true,
 	},
 	{
 		displayName: 'Records Name or ID',
@@ -38,7 +37,6 @@ export const properties: INodeProperties[] = [
 			refreshOn: ['model'],
 		},
 		default: '',
-		noDataExpression: true,
 		description:
 			'Select the record type. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 		required: true,
