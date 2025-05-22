@@ -1,15 +1,18 @@
 import { fromPairs, get, set } from 'lodash';
 import {
+	BINARY_ENCODING,
 	FieldType,
 	IDataObject,
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodePropertyOptions,
 	NodeApiError,
+	NodeOperationError,
 } from 'n8n-workflow';
+import { Readable } from 'stream';
 
 import { AxelorModelFieldSchema } from './interface';
-import { AXELOR_FIELD_TYPE_MAP, AXELOR_SELECTION_FIELDS } from './constants';
+import { AXELOR_FIELD_TYPE_MAP, AXELOR_SELECTION_FIELDS, UPLOAD_CHUNK_SIZE } from './constants';
 
 export const mapAxelorTypeToFieldType = (axelorType: string): FieldType | undefined => {
 	for (const [n8nType, axelorTypes] of Object.entries(AXELOR_FIELD_TYPE_MAP)) {
@@ -132,5 +135,49 @@ export function createCriteria(fieldName: string, operator: string, value: strin
 		fieldName,
 		operator,
 		value,
+	};
+}
+
+export async function getItemBinaryData(
+	this: IExecuteFunctions,
+	inputDataFieldName: string,
+	i: number,
+	chunkSize = UPLOAD_CHUNK_SIZE,
+) {
+	let contentLength: number;
+	let fileContent: Buffer | Readable;
+	let originalFilename: string | undefined;
+	let mimeType;
+
+	if (!inputDataFieldName) {
+		throw new NodeOperationError(
+			this.getNode(),
+			'The name of the input field containing the binary file data must be set',
+			{
+				itemIndex: i,
+			},
+		);
+	}
+	const binaryData = this.helpers.assertBinaryData(i, inputDataFieldName);
+
+	if (binaryData.id) {
+		// Stream data in 256KB chunks, and upload the via the resumable upload api
+		fileContent = await this.helpers.getBinaryStream(binaryData.id, chunkSize);
+		const metadata = await this.helpers.getBinaryMetadata(binaryData.id);
+		contentLength = metadata.fileSize;
+		originalFilename = metadata.fileName;
+		if (metadata.mimeType) mimeType = binaryData.mimeType;
+	} else {
+		fileContent = Buffer.from(binaryData.data, BINARY_ENCODING);
+		contentLength = fileContent.length;
+		originalFilename = binaryData.fileName;
+		mimeType = binaryData.mimeType;
+	}
+
+	return {
+		contentLength,
+		fileContent,
+		originalFilename,
+		mimeType,
 	};
 }

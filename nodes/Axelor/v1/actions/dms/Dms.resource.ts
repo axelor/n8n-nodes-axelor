@@ -3,8 +3,9 @@ import * as listFiles from './listFiles.operation';
 import * as listAttachments from './listAttachments.operation';
 import * as downloadFile from './downloadFile.operation';
 import * as addAttachments from './addAttachments.operation';
+import * as uploadFile from './uploadFile.operation';
 
-export { listFiles, listAttachments, downloadFile, addAttachments };
+export { listFiles, listAttachments, downloadFile, addAttachments, uploadFile };
 
 export const description: INodeProperties[] = [
 	{
@@ -12,13 +13,19 @@ export const description: INodeProperties[] = [
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
-		// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 		options: [
 			{
-				name: 'List File',
-				value: 'listFiles',
-				description: 'List all the files',
-				action: 'File listing',
+				name: 'Add Attachment',
+				value: 'addAttachments',
+				description: 'Attach an existing file to a record',
+				action: 'Add attachment',
+			},
+
+			{
+				name: 'File Downlaod',
+				value: 'downloadFile',
+				description: 'Download file from DMS ID',
+				action: 'File download',
 			},
 			{
 				name: 'List Attachment',
@@ -27,16 +34,17 @@ export const description: INodeProperties[] = [
 				action: 'List attachments',
 			},
 			{
-				name: 'File Downlaod',
-				value: 'downloadFile',
-				description: 'Download file from DMS ID',
-				action: 'File download',
+				name: 'List File',
+				value: 'listFiles',
+				description: 'List all the files',
+				action: 'File listing',
 			},
+
 			{
-				name: 'Add Attachment',
-				value: 'addAttachments',
-				description: 'Attach an existing file to a record',
-				action: 'Add attachment',
+				name: 'Upload File',
+				value: 'uploadFile',
+				description: 'Upload a file to the DMS',
+				action: 'Upload file',
 			},
 		],
 		default: 'listFiles',
@@ -50,4 +58,5 @@ export const description: INodeProperties[] = [
 	...listAttachments.description,
 	...downloadFile.description,
 	...addAttachments.description,
+	...uploadFile.description,
 ];
