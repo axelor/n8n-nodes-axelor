@@ -7,6 +7,7 @@ import {
 
 import { AxelorModelFieldSchema, AxelorRecord } from './interface';
 import { getJsonFields, getNameColoumn, isValidResponse, normalizeKey } from './utils';
+import { MODEL } from './constants';
 
 export async function getOptions(
 	this: ILoadOptionsFunctions,
@@ -223,6 +224,52 @@ export async function getModelCustomFields(
 		});
 		isValidResponse(response);
 		return response.data || [];
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
+	}
+}
+
+export async function getCustomModelFields(
+	this: IExecuteFunctions,
+	model: string,
+	options?: Record<string, any>,
+): Promise<AxelorModelFieldSchema[]> {
+	const credentials = (await this.getCredentials('axelorApi')) as {
+		baseUrl: string;
+		username: string;
+		password: string;
+	};
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	try {
+		const response = await this.helpers.request({
+			method: 'GET',
+			url: `/ws/meta/fields/${MODEL.META_JSON_RECORD}/?jsonModel=${model}`,
+			baseURL: credentials.baseUrl as string,
+			auth: {
+				user: credentials.username,
+				pass: credentials.password,
+			},
+			json: true,
+		});
+
+		const attrs = [
+			'title',
+			'required',
+			'type',
+			'selectionList',
+			'selectionList',
+			'target',
+			'targetName',
+		];
+		const jsonFields = getJsonFields(response?.data.jsonFields, attrs).map((item) => {
+			return { ...item, name: item.attributeValue, type: normalizeKey(item?.type) };
+		}) as AxelorModelFieldSchema[];
+
+		return jsonFields;
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
 	}

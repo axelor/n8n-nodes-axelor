@@ -3,6 +3,7 @@ import { NodeOperationError } from 'n8n-workflow';
 
 import { getJsonFields, getNameColoumn } from '../helpers/utils';
 import { startCase, toLower } from 'lodash';
+import { MODEL } from '../helpers/constants';
 
 export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
@@ -131,5 +132,43 @@ export async function loadMetaFields(this: ILoadOptionsFunctions): Promise<INode
 		return [...metaField, ...jsonFields];
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch Fields', error);
+	}
+}
+
+export async function getMetaJsonModels(
+	this: ILoadOptionsFunctions,
+): Promise<INodePropertyOptions[]> {
+	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
+		baseUrl: string;
+		username: string;
+		password: string;
+	};
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	try {
+		const body = {
+			fields: ['name', 'title'],
+		};
+
+		const response = await this.helpers.request({
+			method: 'POST',
+			url: `/ws/rest/${MODEL.META_JSON_MODEL}/search`,
+			baseURL: baseUrl,
+			auth: { user: username, pass: password },
+			json: true,
+			body,
+		});
+
+		return Array.isArray(response.data)
+			? response.data.map((model: { name: string; title: string }) => ({
+					name: model.title,
+					value: model.name,
+				}))
+			: [];
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
 	}
 }

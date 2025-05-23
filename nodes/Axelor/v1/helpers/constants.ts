@@ -17,6 +17,8 @@ export const AXELOR_FIELD_TYPE_MAP: Readonly<TypesMap> = {
 
 export const MODEL = {
 	CONNECT_DB_WEBHOOK: 'com.axelor.connect.db.Webhook',
+	META_JSON_MODEL: 'com.axelor.meta.db.MetaJsonModel',
+	META_JSON_RECORD: 'com.axelor.meta.db.MetaJsonRecord',
 };
 
 export const ARCHIVED_OPTIONS = [

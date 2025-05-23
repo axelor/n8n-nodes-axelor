@@ -6,8 +6,9 @@ import * as search from './search.operation';
 import * as read from './read.operation';
 import * as deleteOp from './delete.operation';
 import * as update from './update.operation';
+import * as createCustom from './createCustom.operation';
 
-export { find, search, read, create, deleteOp as delete, update };
+export { find, search, read, create, deleteOp as delete, update, createCustom };
 
 export const description: INodeProperties[] = [
 	{
@@ -53,6 +54,12 @@ export const description: INodeProperties[] = [
 				description: 'Update a record',
 				action: 'Update record',
 			},
+			{
+				name: 'Create Custom Record',
+				value: 'createCustom',
+				description: 'Create a Custom record',
+				action: 'Create custom record',
+			},
 		],
 		default: 'create',
 		displayOptions: {
@@ -74,8 +81,26 @@ export const description: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['record'],
+				operation: ['create', 'search', 'read', 'delete', 'update'],
 			},
-		}
+		},
+	},
+	{
+		displayName: 'Custom Model Name or ID',
+		name: 'customModel',
+		type: 'options',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+		typeOptions: { loadOptionsMethod: 'getMetaJsonModels' },
+		placeholder: 'Select Axelor Custom model',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['record'],
+				operation: ['createCustom'],
+			},
+		},
 	},
 	...create.description,
 	...find.description,
@@ -83,4 +108,5 @@ export const description: INodeProperties[] = [
 	...read.description,
 	...deleteOp.description,
 	...update.description,
+	...createCustom.description,
 ];
