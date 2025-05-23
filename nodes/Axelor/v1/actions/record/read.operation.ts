@@ -5,14 +5,13 @@ import {
 	NodeApiError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
-
 import {
 	getSelectedFields,
 	isValidResponse,
 	processAxelorError,
 	wrapData,
 } from '../../helpers/utils';
-import { getMetaFields } from '../../helpers/api-helper';
+import { getFields } from '../../helpers/api-helper';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
 
@@ -70,7 +69,6 @@ export const description = updateDisplayOptions(displayOptions, properties);
 
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]) {
 	const returnData: INodeExecutionData[] = [];
-
 	const metaFieldCache: Record<string, any> = {};
 
 	for (let i = 0; i < items?.length || 0; i++) {
@@ -80,12 +78,14 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const creds = await this.getCredentials('axelorApi');
 			const baseUrl = creds.baseUrl as string;
 
-			let fields = metaFieldCache[model];
-			if (!fields) {
-				fields = await getMetaFields.call(this, model);
-				metaFieldCache[model] = fields;
+			let cacheData = metaFieldCache[model];
+			if (!cacheData) {
+				const data = await getFields.call(this, model);
+				metaFieldCache[model] = data;
+				cacheData = data;
 			}
 
+			const fields = [...(cacheData?.metaFields || []), ...(cacheData?.jsonFields || [])];
 			const fieldNames = fields.map((f: { name: string }) => f.name);
 
 			const recordId = this.getNodeParameter('records', i) as string;
@@ -121,6 +121,5 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			throw error;
 		}
 	}
-
 	return returnData;
 }

@@ -15,7 +15,7 @@ import {
 	processAxelorError,
 	wrapData,
 } from '../../helpers/utils';
-import { getMetaFields } from '../../helpers/api-helper';
+import { getFields } from '../../helpers/api-helper';
 import { ARCHIVED_OPTIONS, SORT_BY_OPTIONS } from '../../helpers/constants';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
@@ -159,12 +159,13 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
 			const limit = this.getNodeParameter('limit', i, enableAdvancedSettings ? 50 : 10) as number;
 
-			let fields = metaFieldCache[model];
-			if (!fields) {
-				fields = await getMetaFields.call(this, model);
-				metaFieldCache[model] = fields;
+			let cacheData = metaFieldCache[model];
+			if (!cacheData) {
+				const data = await getFields.call(this, model);
+				metaFieldCache[model] = data;
+				cacheData = data;
 			}
-
+			const fields = [...(cacheData?.metaFields || []), ...(cacheData?.jsonFields || [])];
 			const fieldNames = fields.map((f: { name: string }) => f.name);
 
 			const data: Record<string, any> = {};
