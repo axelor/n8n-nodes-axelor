@@ -3,6 +3,7 @@ import { type INodeTypeDescription } from 'n8n-workflow';
 
 import * as record from './record/Record.resource';
 import * as dms from './dms/Dms.resource';
+import * as generic from './generic/Generic.resource';
 
 export const versionDescription: INodeTypeDescription = {
 	displayName: 'Axelor',
@@ -40,10 +41,15 @@ export const versionDescription: INodeTypeDescription = {
 					name: 'DMS',
 					value: 'dms',
 				},
+				{
+					name: 'Generic',
+					value: 'generic',
+				},
 			],
 			default: 'record',
 		},
 		...record.description,
 		...dms.description,
+		...generic.description,
 	],
 } as INodeTypeDescription;

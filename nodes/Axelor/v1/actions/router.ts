@@ -1,6 +1,8 @@
 import { IExecuteFunctions, INodeExecutionData, NodeOperationError } from 'n8n-workflow';
+
 import * as record from './record/Record.resource';
 import * as dms from './dms/Dms.resource';
+import * as generic from './generic/Generic.resource';
 
 import type { AxelorType } from '../types/node.type';
 
@@ -22,6 +24,9 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 				break;
 			case 'dms':
 				returnData = await dms[axelorNodeData.operation].execute.call(this, items);
+				break;
+			case 'generic':
+				returnData = await generic[axelorNodeData.operation].execute.call(this, items);
 				break;
 			default:
 				throw new NodeOperationError(
