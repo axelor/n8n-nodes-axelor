@@ -81,7 +81,7 @@ export const description: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['record'],
-				operation: ['create', 'search', 'read', 'delete', 'update'],
+				operation: ['create', 'search', 'read', 'delete', 'update', 'find'],
 			},
 		},
 	},

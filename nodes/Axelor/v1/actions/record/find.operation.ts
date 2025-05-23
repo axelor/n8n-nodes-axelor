@@ -67,7 +67,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				metaFieldCache[model] = data;
 				cacheData = data;
 			}
-			const fields = [...(cacheData?.metaFields || [])];
+			const fields = [...(cacheData?.fields || [])];
 			const fieldNames = fields.map((f: { name: string }) => f.name);
 
 			const url = findById

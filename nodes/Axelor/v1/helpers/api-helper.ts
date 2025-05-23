@@ -222,7 +222,6 @@ export async function getFields(
 		const jsonFields = getJsonFields(respFields?.data.jsonFields, FIELD_ATTRIBUTES).map((item) => {
 			return { ...item, name: item.attributeValue, type: normalizeKey(item?.type) };
 		}) as AxelorModelFieldSchema[];
-		this.logger.info('metaField', { metaFields });
 		return {
 			fields,
 			metaFields,
