@@ -1,4 +1,4 @@
-import { fromPairs, get, set } from 'lodash';
+import { fromPairs, get, isEqual, set } from 'lodash';
 import {
 	BINARY_ENCODING,
 	FieldType,
@@ -98,7 +98,7 @@ export function buildRequestData(
 	keys: string[],
 	mapping: any,
 	fields: any[],
-	customFields: string[] = [],
+	metaJsonFields: AxelorModelFieldSchema[],
 ): Record<string, any> {
 	const data: Record<string, any> = {};
 	const validFieldNames = new Set(fields.map((f: any) => f.name));
@@ -114,7 +114,7 @@ export function buildRequestData(
 		if (!fieldMeta) continue;
 
 		const [_, prefix, name] = key.match(/^([^_]+)_(.+)$/) || [];
-		if (prefix && customFields.includes(prefix)) {
+		if (prefix && metaJsonFields.find((f) => isEqual(f.name, prefix))) {
 			customFieldData[prefix] = {
 				...(customFieldData[prefix] || {}),
 				[name]: AXELOR_SELECTION_FIELDS.includes(fieldMeta.type) ? { id: value } : value,
@@ -230,9 +230,10 @@ export function getJsonFields(jsonFields: Record<string, any>, fieldNames: Array
 export function manageCustomFieldData(
 	data: Record<string, any>,
 	record: Record<string, any>,
-	customFields: string[] = [],
+	metaJsonFields: AxelorModelFieldSchema[],
 ) {
-	for (const field of customFields) {
+	const fieldName = metaJsonFields.map((f) => f.name);
+	for (const field of fieldName) {
 		if (!data[field]) continue;
 		const updated = JSON.parse(data[field] || '{}');
 		const original = JSON.parse(record[field] || '{}');
@@ -240,4 +241,18 @@ export function manageCustomFieldData(
 		data[field] = JSON.stringify(merged);
 	}
 	return data;
+}
+
+export function filterFieldsByJson(fields: AxelorModelFieldSchema[]) {
+	const { metaFields, metaJsonFields } = fields.reduce(
+		(acc, field) => {
+			(field.json ? acc.metaJsonFields : acc.metaFields).push(field);
+			return acc;
+		},
+		{ metaFields: [], metaJsonFields: [] } as {
+			metaFields: AxelorModelFieldSchema[];
+			metaJsonFields: AxelorModelFieldSchema[];
+		},
+	);
+	return { metaFields, metaJsonFields };
 }

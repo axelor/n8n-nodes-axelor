@@ -1,25 +1,20 @@
 import type {
+	IDataObject,
+	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
-	IExecuteFunctions,
-	IDataObject,
 	NodeApiError,
 } from 'n8n-workflow';
 import { updateDisplayOptions } from 'n8n-workflow';
-
+import { getFields, getMetaModelFieldRecord } from '../../helpers/api-helper';
 import {
 	buildRequestData,
 	getChangedFieldNames,
 	isValidResponse,
+	manageCustomFieldData,
 	processAxelorError,
 	wrapData,
-	manageCustomFieldData,
 } from '../../helpers/utils';
-import {
-	getMetaFields,
-	getMetaModelFieldRecord,
-	getModelCustomFields,
-} from '../../helpers/api-helper';
 
 const properties: INodeProperties[] = [
 	{
@@ -100,22 +95,24 @@ export async function execute(
 
 		try {
 			const mapping = this.getNodeParameter('fields', i, {}) as any;
-
-			let fields = metaFieldCache[model];
-			if (!fields) {
-				fields = await getMetaFields.call(this, model);
-				metaFieldCache[model] = fields;
+			let cacheData = metaFieldCache[model];
+			if (!cacheData) {
+				const data = await getFields.call(this, model);
+				metaFieldCache[model] = data;
+				cacheData = data;
 			}
-			const customFields = (await getModelCustomFields.call(this, model)).map(
-				(field) => field.name,
-			);
+
+			const metaFields = cacheData?.metaFields || [];
+			const jsonFields = cacheData?.jsonFields || [];
+			const metaJsonFields = cacheData?.metaJsonFields || [];
+			const fields = [...metaFields, ...jsonFields];
 
 			// Extract changed field keys using schema info
 			const changedKeys = getChangedFieldNames(mapping);
 
 			// Build request payload with only changed fields
-			let data = buildRequestData(changedKeys, mapping, fields, customFields);
-			data = manageCustomFieldData(data, record, customFields);
+			let data = buildRequestData(changedKeys, mapping, fields, metaJsonFields);
+			data = manageCustomFieldData(data, record, metaJsonFields);
 
 			data.id = recordId;
 			data.version = record.version;

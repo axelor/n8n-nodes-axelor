@@ -13,7 +13,7 @@ import {
 	processAxelorError,
 	wrapData,
 } from '../../helpers/utils';
-import { getCustomModelFields } from '../../helpers/api-helper';
+import { getFields } from '../../helpers/api-helper';
 import { MODEL } from '../../helpers/constants';
 
 const properties: INodeProperties[] = [
@@ -64,13 +64,14 @@ export async function execute(
 			const mapping = this.getNodeParameter('fields', i, {}) as any;
 
 			const model = this.getNodeParameter('customModel', i) as string;
-			const fields = await getCustomModelFields.call(this, model, { jsonMetaFields: true });
-
+			const { jsonFields, metaJsonFields } = await getFields.call(this, model, {
+				isCustomModel: true,
+			});
 			// Extract only the field names that have actually changed (not removed)
 			const changedKeys = getChangedFieldNames(mapping);
 
 			// Build the final data payload using the changed keys only
-			const data = buildRequestData(changedKeys, mapping, fields, ['attrs']);
+			const data = buildRequestData(changedKeys, mapping, jsonFields, metaJsonFields);
 			data.jsonModel = model;
 			const responseData = await this.helpers.request!({
 				method: 'POST',
