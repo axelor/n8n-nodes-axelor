@@ -1,37 +1,27 @@
-# Use the official n8n image as the base
-FROM n8nio/n8n:latest
+FROM localhost/n8n-icon:local
 
-# Declare volume to persist workflows and credentials
+# Persist workflows & credentials
 VOLUME ["/home/node/.n8n"]
 
-# Switch to root to install dependencies and adjust permissions
+# Install custom nodes
 USER root
-
-# Create a directory for custom node development
-RUN mkdir -p /home/n8n-node && chown -R node:node /home/n8n-node
+RUN mkdir -p /home/n8n-node && chown node:node /home/n8n-node
 WORKDIR /home/n8n-node
-
-# Copy package files and install dependencies as root
-COPY package.json .
-COPY package-lock.json .
+COPY package*.json ./
+ENV NODE_ENV=development
 RUN npm ci
+COPY . .
+RUN npm run build && npm link
 
-# Copy the custom node source code and build it
-COPY ./ ./
-RUN npm run build
-RUN npm link
-
-# Prepare the custom extensions directory and set ownership
-RUN mkdir -p /home/custom && chown -R node:node /home/custom
-ENV N8N_CUSTOM_EXTENSIONS="/home/custom"
+# Configure custom extensions
+RUN mkdir -p /home/custom && chown node:node /home/custom
+ENV N8N_CUSTOM_EXTENSIONS=/home/custom
 WORKDIR /home/custom
+RUN npm init -y && npm link axelor-n8n
 
-# Create a fresh Node.js project and link the custom package
-RUN npm init -y
-RUN npm link axelor-n8n
+# Restore permissions and switch user
+RUN chown -R node:node /home/node /home/n8n-node /home/custom
 
-# Set ownership again (npm may create files as root)
-RUN chown -R node:node /home/node /home/custom /home/n8n-node
-
-# Drop back to non-root user for running the container securely
+# Switch back to non-root user and set production mode
 USER node
+ENV NODE_ENV=production
