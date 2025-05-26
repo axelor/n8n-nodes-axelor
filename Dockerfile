@@ -1,4 +1,5 @@
-FROM localhost/n8n-icon:local
+# Use the official n8n image as the base
+FROM n8nio/n8n:latest
 
 # Persist workflows & credentials
 VOLUME ["/home/node/.n8n"]
