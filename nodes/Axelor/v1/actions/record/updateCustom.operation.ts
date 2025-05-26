@@ -74,6 +74,8 @@ export async function execute(
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
 
+	const metaFieldCache: Record<string, any> = {};
+
 	const creds = await this.getCredentials('axelorApi');
 	const baseUrl = creds.baseUrl as string;
 
@@ -96,9 +98,15 @@ export async function execute(
 		try {
 			const mapping = this.getNodeParameter('fields', i, {}) as any;
 
-			const { jsonFields, metaJsonFields } = await getFields.call(this, model, {
-				isCustomModel: true,
-			});
+			let cacheData = metaFieldCache[model];
+			if (!cacheData) {
+				const data = await getFields.call(this, model, { isCustomModel: true });
+				metaFieldCache[model] = data;
+				cacheData = data;
+			}
+			const jsonFields = cacheData?.jsonFields || [];
+			const metaJsonFields = cacheData?.metaJsonFields || [];
+
 			// Extract only the field names that have actually changed (not removed)
 			const changedKeys = getChangedFieldNames(mapping);
 

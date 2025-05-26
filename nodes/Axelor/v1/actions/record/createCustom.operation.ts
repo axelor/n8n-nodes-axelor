@@ -59,19 +59,28 @@ export async function execute(
 	const creds = await this.getCredentials('axelorApi');
 	const baseUrl = creds.baseUrl as string;
 
+	const metaFieldCache: Record<string, any> = {};
+
 	for (let i = 0; i < items.length; i++) {
 		try {
+			const model = this.getNodeParameter('customModel', i) as string;
 			const mapping = this.getNodeParameter('fields', i, {}) as any;
 
-			const model = this.getNodeParameter('customModel', i) as string;
-			const { jsonFields, metaJsonFields } = await getFields.call(this, model, {
-				isCustomModel: true,
-			});
+			let cacheData = metaFieldCache[model];
+			if (!cacheData) {
+				const data = await getFields.call(this, model, { isCustomModel: true });
+				metaFieldCache[model] = data;
+				cacheData = data;
+			}
+			const jsonFields = cacheData?.jsonFields || [];
+			const metaJsonFields = cacheData?.metaJsonFields || [];
+
 			// Extract only the field names that have actually changed (not removed)
 			const changedKeys = getChangedFieldNames(mapping);
 
 			// Build the final data payload using the changed keys only
 			const data = buildRequestData(changedKeys, mapping, jsonFields, metaJsonFields);
+
 			data.jsonModel = model;
 			const responseData = await this.helpers.request!({
 				method: 'POST',
