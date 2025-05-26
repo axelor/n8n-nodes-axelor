@@ -106,6 +106,7 @@ export async function getMetaModelFieldRecord(
 	this: IExecuteFunctions,
 	model: string,
 	recordId: number,
+	options?: Record<string, any>,
 ): Promise<AxelorRecord | null> {
 	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
 		baseUrl: string;
@@ -124,10 +125,14 @@ export async function getMetaModelFieldRecord(
 		throw new Error('Request helper not available');
 	}
 
+	const url = options?.isCustomModel
+		? `/ws/rest/${MODEL.META_JSON_RECORD}/${encodeURIComponent(recordId)}/fetch`
+		: `/ws/rest/${encodeURIComponent(model)}/${encodeURIComponent(recordId)}/fetch`;
+
 	try {
 		const response = await this.helpers.request!({
 			method: 'POST',
-			url: `/ws/rest/${encodeURIComponent(model)}/${encodeURIComponent(recordId)}/fetch`,
+			url,
 			baseURL: baseUrl,
 			auth: { user: username, pass: password },
 			json: true,

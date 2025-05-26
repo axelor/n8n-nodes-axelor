@@ -7,8 +7,9 @@ import * as read from './read.operation';
 import * as deleteOp from './delete.operation';
 import * as update from './update.operation';
 import * as createCustom from './createCustom.operation';
+import * as updateCustom from './updateCustom.operation';
 
-export { find, search, read, create, deleteOp as delete, update, createCustom };
+export { find, search, read, create, deleteOp as delete, update, createCustom, updateCustom };
 
 export const description: INodeProperties[] = [
 	{
@@ -60,6 +61,12 @@ export const description: INodeProperties[] = [
 				description: 'Create a Custom record',
 				action: 'Create custom record',
 			},
+			{
+				name: 'Update Custom Record',
+				value: 'updateCustom',
+				description: 'Update a Custom record',
+				action: 'Update custom record',
+			},
 		],
 		default: 'create',
 		displayOptions: {
@@ -98,7 +105,7 @@ export const description: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['record'],
-				operation: ['createCustom'],
+				operation: ['createCustom', 'updateCustom'],
 			},
 		},
 	},
@@ -109,4 +116,5 @@ export const description: INodeProperties[] = [
 	...deleteOp.description,
 	...update.description,
 	...createCustom.description,
+	...updateCustom.description,
 ];

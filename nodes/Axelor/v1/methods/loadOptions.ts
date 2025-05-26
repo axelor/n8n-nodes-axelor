@@ -1,7 +1,7 @@
 import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { getJsonFields, getNameColoumn } from '../helpers/utils';
+import { getJsonFields, getNameColoumn, isValidResponse } from '../helpers/utils';
 import { startCase, toLower } from 'lodash';
 import { MODEL } from '../helpers/constants';
 
@@ -170,5 +170,56 @@ export async function getMetaJsonModels(
 			: [];
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
+	}
+}
+
+export async function getMetaJsonRecords(
+	this: ILoadOptionsFunctions,
+): Promise<INodePropertyOptions[]> {
+	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
+		baseUrl: string;
+		username: string;
+		password: string;
+	};
+	const selectedModel = this.getCurrentNodeParameter('customModel') as string;
+
+	if (!selectedModel) return [];
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	try {
+		const data = {
+			_domain: 'self.jsonModel = :jsonModel',
+			_domainContext: {
+				jsonModel: selectedModel,
+			},
+		};
+		const response = await this.helpers.request!({
+			method: 'POST',
+			url: `/ws/rest/${MODEL.META_JSON_RECORD}/search`,
+			baseURL: baseUrl,
+			auth: { user: username as string, pass: password as string },
+			body: { fields: ['attrs'], data },
+			json: true,
+		});
+
+		isValidResponse(response);
+
+		const records = response.data?.map((item: any) => {
+			const properties = JSON.parse(item.attrs || '{}');
+			return {
+				id: item.id,
+				...properties,
+			};
+		});
+
+		return records.map((item: any) => ({
+			name: item?.name || item?.id,
+			value: item.id!,
+		}));
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch records', error);
 	}
 }
