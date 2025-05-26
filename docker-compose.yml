@@ -24,8 +24,11 @@ services:
       - "5678:5678"
     env_file:
       - .env
+    volumes:
+      - n8n_data:/home/node/.n8n
     depends_on:
       - postgres
 
 volumes:
   pgdata:
+  n8n_data:
