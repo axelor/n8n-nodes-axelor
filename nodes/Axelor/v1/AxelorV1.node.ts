@@ -16,6 +16,7 @@ export class AxelorV1 implements INodeType {
 		this.description = {
 			...baseDescription,
 			...versionDescription,
+			usableAsTool: true,
 		};
 	}
 	methods = {

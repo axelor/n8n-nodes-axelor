@@ -30,7 +30,7 @@ export const properties: INodeProperties[] = [
 	},
 	{
 		displayName: 'File Name',
-		name: 'name',
+		name: 'fileName',
 		type: 'string',
 		default: '',
 		placeholder: 'e.g. My New File',
@@ -66,7 +66,7 @@ export async function execute(
 			i,
 		);
 
-		const name = (this.getNodeParameter('name', i) as string) || originalFilename;
+		const name = (this.getNodeParameter('fileName', i) as string) || originalFilename;
 
 		if (!Buffer.isBuffer(fileContent)) {
 			throw new NodeOperationError(this.getNode(), 'Invalid file content. Expected a Buffer.');
