@@ -256,3 +256,40 @@ export function filterFieldsByJson(fields: AxelorModelFieldSchema[]) {
 	);
 	return { metaFields, metaJsonFields };
 }
+
+export function processSelectedFields(selectedFields: Array<String>) {
+	const metaFields: Array<String> = [];
+	const jsonFields = new Set();
+
+	selectedFields.forEach((field) => {
+		const [_, prefix] = field.match(/^([^_]+)_(.+)$/) || [];
+		if (prefix) {
+			jsonFields.add(prefix);
+		} else {
+			metaFields.push(field);
+		}
+	});
+	return { fields: [...metaFields, ...Array.from(jsonFields)], jsonFields: Array.from(jsonFields) };
+}
+
+export function processCustomFieldResponse(
+	record: Record<string, any>,
+	selectedFields: Array<string>,
+	jsonFields: Array<string> = [],
+) {
+	const result = { ...record };
+	const customData: Record<string, any> = {};
+	jsonFields.forEach((field) => {
+		customData[field] = {};
+	});
+
+	selectedFields.forEach((field) => {
+		const [_, prefix, name] = field.match(/^([^_]+)_(.+)$/) || [];
+		if (prefix && jsonFields.includes(prefix)) {
+			const data = JSON.parse(record[prefix] || '{}');
+			customData[prefix][name] = data[name] || null;
+		}
+	});
+
+	return { ...result, ...customData };
+}
