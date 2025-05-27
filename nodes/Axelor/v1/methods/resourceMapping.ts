@@ -4,7 +4,6 @@ import {
 	ResourceMapperFields,
 	NodeOperationError,
 } from 'n8n-workflow';
-import { isEqual } from 'lodash';
 import type { FieldType, INodePropertyOptions } from 'n8n-workflow';
 
 import { AxelorModelFieldSchema } from '../helpers/interface';
