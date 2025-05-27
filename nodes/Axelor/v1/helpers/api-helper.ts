@@ -27,7 +27,7 @@ export async function getOptions(
 	};
 
 	const body = {
-		data: {},
+		data: field.domain ? { _domain: field.domain } : {},
 		fields: [targetName ?? 'id'],
 	};
 

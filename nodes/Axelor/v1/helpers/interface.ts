@@ -24,6 +24,8 @@ export interface AxelorModelFieldSchema {
 	autoTitle?: string;
 	selection?: string;
 	json?: boolean;
+	domain?: string;
+	enumType?: string;
 }
 
 export interface AxelorRecord {

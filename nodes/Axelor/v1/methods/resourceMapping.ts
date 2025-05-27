@@ -5,6 +5,7 @@ import {
 	NodeOperationError,
 } from 'n8n-workflow';
 import { isEqual } from 'lodash';
+import type { FieldType, INodePropertyOptions } from 'n8n-workflow';
 
 import { AxelorModelFieldSchema } from '../helpers/interface';
 import {
@@ -13,7 +14,7 @@ import {
 	mapAxelorTypeToFieldType,
 	normalizeKey,
 } from '../helpers/utils';
-import { AXELOR_SELECTION_FIELDS, MODEL } from '../helpers/constants';
+import { AXELOR_SELECTION_FIELDS, FIELD_TYPE, MODEL } from '../helpers/constants';
 import { getOptions } from '../helpers/api-helper';
 
 export async function getMetaModelFields(
@@ -48,6 +49,8 @@ export async function getMetaModelFields(
 			'target',
 			'targetName',
 			'autoTitle',
+			'domain',
+			'enumType',
 		];
 		const $jsonFields = getJsonFields(response?.data.jsonFields, attrs).map((item) => {
 			return { name: item.attributeValue, ...item };
@@ -57,13 +60,17 @@ export async function getMetaModelFields(
 			[...$fields, ...$jsonFields].map(async (field) => {
 				field['type'] = normalizeKey(field.type);
 
-				const isIntegerWithoutSelection = isEqual(field.type, 'INTEGER') && !field.selection;
-				const type = !isIntegerWithoutSelection ? mapAxelorTypeToFieldType(field.type) : 'number';
-				const relationFieldsResponse = await getOptions.call(this, field);
-
-				const options = AXELOR_SELECTION_FIELDS.includes(field.type)
-					? relationFieldsResponse
-					: constructOptions(field);
+				let type: FieldType;
+				let options: INodePropertyOptions[];
+				if (field.selectionList) {
+					type = FIELD_TYPE.OPTIONS as FieldType;
+					options = constructOptions(field);
+				} else {
+					type = mapAxelorTypeToFieldType(field.type) || (FIELD_TYPE.STRING as FieldType);
+					options = AXELOR_SELECTION_FIELDS.includes(field.type)
+						? await getOptions.call(this, field)
+						: [];
+				}
 
 				return {
 					id: field.name,
@@ -116,6 +123,8 @@ export async function getMetaJsonModelFields(
 			'target',
 			'targetName',
 			'autoTitle',
+			'domain',
+			'enumType',
 		];
 		const $jsonFields = getJsonFields(response?.data.jsonFields, attrs).map((item) => {
 			return { name: item.attributeValue, ...item };
@@ -125,13 +134,17 @@ export async function getMetaJsonModelFields(
 			$jsonFields.map(async (field) => {
 				field['type'] = normalizeKey(field.type);
 
-				const isIntegerWithoutSelection = isEqual(field.type, 'INTEGER') && !field.selection;
-				const type = !isIntegerWithoutSelection ? mapAxelorTypeToFieldType(field.type) : 'number';
-				const relationFieldsResponse = await getOptions.call(this, field);
-
-				const options = AXELOR_SELECTION_FIELDS.includes(field.type)
-					? relationFieldsResponse
-					: constructOptions(field);
+				let type: FieldType;
+				let options: INodePropertyOptions[];
+				if (field.selectionList) {
+					type = FIELD_TYPE.OPTIONS as FieldType;
+					options = constructOptions(field);
+				} else {
+					type = mapAxelorTypeToFieldType(field.type) || (FIELD_TYPE.STRING as FieldType);
+					options = AXELOR_SELECTION_FIELDS.includes(field.type)
+						? await getOptions.call(this, field)
+						: [];
+				}
 
 				return {
 					id: field.name,
