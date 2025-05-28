@@ -9,6 +9,7 @@ import type { FieldType, INodePropertyOptions } from 'n8n-workflow';
 import { AxelorModelFieldSchema } from '../helpers/interface';
 import {
 	constructOptions,
+	excludeNonInputFields,
 	getJsonFields,
 	mapAxelorTypeToFieldType,
 	normalizeKey,
@@ -51,9 +52,9 @@ export async function getMetaModelFields(
 			'domain',
 			'enumType',
 		];
-		const $jsonFields = getJsonFields(response?.data.jsonFields, attrs).map((item) => {
-			return { name: item.attributeValue, ...item };
-		}) as AxelorModelFieldSchema[];
+		const $jsonFields = getJsonFields(response?.data.jsonFields, attrs)
+			.map((item) => ({ name: item.attributeValue, ...item }))
+			.filter(excludeNonInputFields) as AxelorModelFieldSchema[];
 
 		const mappedFields: ResourceMapperField[] = await Promise.all(
 			[...$fields, ...$jsonFields].map(async (field) => {
@@ -125,9 +126,9 @@ export async function getMetaJsonModelFields(
 			'domain',
 			'enumType',
 		];
-		const $jsonFields = getJsonFields(response?.data.jsonFields, attrs).map((item) => {
-			return { name: item.attributeValue, ...item };
-		}) as AxelorModelFieldSchema[];
+		const $jsonFields = getJsonFields(response?.data.jsonFields, attrs)
+			.map((item) => ({ name: item.attributeValue, ...item }))
+			.filter(excludeNonInputFields) as AxelorModelFieldSchema[];
 
 		const mappedFields: ResourceMapperField[] = await Promise.all(
 			$jsonFields.map(async (field) => {

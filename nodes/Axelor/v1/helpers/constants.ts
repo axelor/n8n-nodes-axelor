@@ -73,3 +73,5 @@ export const FIELD_TYPE = {
 	OPTIONS: 'options',
 	STRING: 'string',
 };
+
+export const NON_INPUT_FIELDS = ['button', 'panel', 'label', 'spacer', 'separator'];

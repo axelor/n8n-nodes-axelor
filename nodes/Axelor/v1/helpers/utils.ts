@@ -12,7 +12,12 @@ import {
 import { Readable } from 'stream';
 
 import { AxelorModelFieldSchema } from './interface';
-import { AXELOR_FIELD_TYPE_MAP, AXELOR_SELECTION_FIELDS, UPLOAD_CHUNK_SIZE } from './constants';
+import {
+	AXELOR_FIELD_TYPE_MAP,
+	AXELOR_SELECTION_FIELDS,
+	NON_INPUT_FIELDS,
+	UPLOAD_CHUNK_SIZE,
+} from './constants';
 
 export function normalizeKey(input: string) {
 	if (input && !input.trim()) return input;
@@ -293,3 +298,7 @@ export function processCustomFieldResponse(
 
 	return { ...result, ...customData };
 }
+
+export const excludeNonInputFields = (field: any) => {
+	return !NON_INPUT_FIELDS.includes(field?.type);
+};
