@@ -13,9 +13,11 @@ import {
 	getSortByFields,
 	isValidResponse,
 	processAxelorError,
+	processCustomFieldResponse,
+	processSelectedFields,
 	wrapData,
 } from '../../helpers/utils';
-import { getMetaFields } from '../../helpers/api-helper';
+import { getFields } from '../../helpers/api-helper';
 import { ARCHIVED_OPTIONS, SORT_BY_OPTIONS } from '../../helpers/constants';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
@@ -159,12 +161,13 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
 			const limit = this.getNodeParameter('limit', i, enableAdvancedSettings ? 50 : 10) as number;
 
-			let fields = metaFieldCache[model];
-			if (!fields) {
-				fields = await getMetaFields.call(this, model);
-				metaFieldCache[model] = fields;
+			let cacheData = metaFieldCache[model];
+			if (!cacheData) {
+				const data = await getFields.call(this, model);
+				metaFieldCache[model] = data;
+				cacheData = data;
 			}
-
+			const fields = [...(cacheData?.metaFields || []), ...(cacheData?.jsonFields || [])];
 			const fieldNames = fields.map((f: { name: string }) => f.name);
 
 			const data: Record<string, any> = {};
@@ -174,15 +177,19 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			if (query) {
 				data._domain = query;
 			}
+			let jsonFields: Array<string> | undefined;
+			let selectedFields: Array<string> | undefined;
 
 			if (enableAdvancedSettings) {
 				body.sortBy = getSortByFields.call(this, i);
-				const selectedFiels = getSelectedFields.call(this, i);
+				selectedFields = getSelectedFields.call(this, i) as Array<string>;
 				const domainContext = getContextFields.call(this, i);
 				const archived = this.getNodeParameter('archived', i, false) as boolean | string;
 
-				if (selectedFiels.length > 0) {
-					body.fields = selectedFiels;
+				if (selectedFields.length > 0) {
+					const processedFields = processSelectedFields(selectedFields);
+					body.fields = processedFields.fields;
+					jsonFields = processedFields.jsonFields as Array<string>;
 				}
 				if (!isEmpty(domainContext)) {
 					data._domainContext = domainContext;
@@ -200,9 +207,12 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				json: true,
 			});
 
-			if (isValidResponse(resp)) {
-				returnData.push(...wrapData(resp.data || []));
+			isValidResponse(resp);
+			let result = (resp.data && resp.data[0]) || {};
+			if (jsonFields && jsonFields.length > 0) {
+				result = processCustomFieldResponse(result, selectedFields!, jsonFields);
 			}
+			returnData.push(...wrapData(result || []));
 		} catch (error) {
 			error = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {

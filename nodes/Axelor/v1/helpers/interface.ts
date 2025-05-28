@@ -1,6 +1,7 @@
 import { FieldType } from 'n8n-workflow';
 
 export type TypesMap = Partial<Record<FieldType, string[]>>;
+export type FieldCategory = 'fields' | 'metaFields' | 'metaJsonFields' | 'jsonFields';
 
 export interface AxelorSelectionOption {
 	value: string;
@@ -20,6 +21,11 @@ export interface AxelorModelFieldSchema {
 	selectionList?: AxelorSelectionOption[];
 	target?: string;
 	targetName?: string;
+	autoTitle?: string;
+	selection?: string;
+	json?: boolean;
+	domain?: string;
+	enumType?: string;
 }
 
 export interface AxelorRecord {

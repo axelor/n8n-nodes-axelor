@@ -4,19 +4,21 @@ import { TypesMap } from './interface';
 export const AXELOR_SELECTION_FIELDS = ['ONE_TO_ONE', 'MANY_TO_ONE', 'MANY_TO_MANY', 'ONE_TO_MANY'];
 
 export const AXELOR_FIELD_TYPE_MAP: Readonly<TypesMap> = {
-	string: ['TEXT', 'STRING'],
-	number: ['DECIMAL'],
+	string: ['TEXT', 'STRING', 'ENUM'],
+	number: ['DECIMAL', 'INTEGER'],
 	boolean: ['BOOLEAN'],
-	dateTime: ['DATE'],
+	dateTime: ['DATE', 'DATETIME'],
 	time: [],
 	object: [],
-	options: ['MANY_TO_ONE', 'INTEGER', 'ONE_TO_ONE'],
+	options: ['MANY_TO_ONE', 'ONE_TO_ONE'],
 	// We are not able to see the field array values
 	array: ['ONE_TO_MANY', 'MANY_TO_MANY'],
 };
 
 export const MODEL = {
 	CONNECT_DB_WEBHOOK: 'com.axelor.connect.db.Webhook',
+	META_JSON_MODEL: 'com.axelor.meta.db.MetaJsonModel',
+	META_JSON_RECORD: 'com.axelor.meta.db.MetaJsonRecord',
 };
 
 export const ARCHIVED_OPTIONS = [
@@ -56,3 +58,20 @@ export const START_OPTIONS = [
 ];
 
 export const UPLOAD_CHUNK_SIZE = 256 * 1024;
+
+export const FIELD_ATTRIBUTES = [
+	'title',
+	'required',
+	'type',
+	'selectionList',
+	'selectionList',
+	'target',
+	'targetName',
+];
+
+export const FIELD_TYPE = {
+	OPTIONS: 'options',
+	STRING: 'string',
+};
+
+export const NON_INPUT_FIELDS = ['button', 'panel', 'label', 'spacer', 'separator'];

@@ -1,12 +1,12 @@
 import {
+	IExecuteFunctions,
 	ILoadOptionsFunctions,
 	INodePropertyOptions,
-	IExecuteFunctions,
 	NodeOperationError,
 } from 'n8n-workflow';
-
-import { AxelorModelFieldSchema, AxelorRecord } from './interface';
-import { getNameColoumn } from './utils';
+import { FIELD_ATTRIBUTES, MODEL } from './constants';
+import { AxelorModelFieldSchema, AxelorRecord, FieldCategory } from './interface';
+import { filterFieldsByJson, getJsonFields, getNameColoumn, normalizeKey } from './utils';
 
 export async function getOptions(
 	this: ILoadOptionsFunctions,
@@ -27,7 +27,7 @@ export async function getOptions(
 	};
 
 	const body = {
-		data: {},
+		data: field.domain ? { _domain: field.domain } : {},
 		fields: [targetName ?? 'id'],
 	};
 
@@ -58,6 +58,7 @@ export async function getOptions(
 export async function getMetaFields(
 	this: IExecuteFunctions,
 	model: string,
+	options?: Record<string, any>,
 ): Promise<AxelorModelFieldSchema[]> {
 	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
 		baseUrl: string;
@@ -78,7 +79,24 @@ export async function getMetaFields(
 			json: true,
 		});
 		const fields: AxelorModelFieldSchema[] = respFields.data?.fields || [];
-		return fields;
+
+		if (!options?.jsonMetaFields) {
+			return fields;
+		}
+		const attrs = [
+			'title',
+			'required',
+			'type',
+			'selectionList',
+			'selectionList',
+			'target',
+			'targetName',
+		];
+		const jsonFields = getJsonFields(respFields?.data.jsonFields, attrs).map((item) => {
+			return { ...item, name: item.attributeValue, type: normalizeKey(item?.type) };
+		}) as AxelorModelFieldSchema[];
+
+		return [...fields, ...jsonFields];
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
 	}
@@ -88,6 +106,7 @@ export async function getMetaModelFieldRecord(
 	this: IExecuteFunctions,
 	model: string,
 	recordId: number,
+	options?: Record<string, any>,
 ): Promise<AxelorRecord | null> {
 	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
 		baseUrl: string;
@@ -106,10 +125,14 @@ export async function getMetaModelFieldRecord(
 		throw new Error('Request helper not available');
 	}
 
+	const url = options?.isCustomModel
+		? `/ws/rest/${MODEL.META_JSON_RECORD}/${encodeURIComponent(recordId)}/fetch`
+		: `/ws/rest/${encodeURIComponent(model)}/${encodeURIComponent(recordId)}/fetch`;
+
 	try {
 		const response = await this.helpers.request!({
 			method: 'POST',
-			url: `/ws/rest/${encodeURIComponent(model)}/${encodeURIComponent(recordId)}/fetch`,
+			url,
 			baseURL: baseUrl,
 			auth: { user: username, pass: password },
 			json: true,
@@ -167,5 +190,50 @@ export async function getMetaModelRecords(
 			: [];
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch records', error);
+	}
+}
+
+export async function getFields(
+	this: IExecuteFunctions,
+	model: string,
+	options?: Record<string, any>,
+): Promise<Record<FieldCategory, AxelorModelFieldSchema[]>> {
+	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
+		baseUrl: string;
+		username: string;
+		password: string;
+	};
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	const url = options?.isCustomModel
+		? `/ws/meta/fields/${MODEL.META_JSON_RECORD}/?jsonModel=${model}`
+		: `/ws/meta/fields/${encodeURIComponent(model)}`;
+
+	try {
+		const respFields = await this.helpers.request!({
+			method: 'GET',
+			url,
+			baseURL: baseUrl,
+			auth: { user: username as string, pass: password as string },
+			json: true,
+		});
+		const fields: AxelorModelFieldSchema[] = respFields.data?.fields || [];
+
+		const { metaFields, metaJsonFields } = filterFieldsByJson(fields);
+
+		const jsonFields = getJsonFields(respFields?.data.jsonFields, FIELD_ATTRIBUTES).map((item) => {
+			return { ...item, name: item.attributeValue, type: normalizeKey(item?.type) };
+		}) as AxelorModelFieldSchema[];
+		return {
+			fields,
+			metaFields,
+			metaJsonFields,
+			jsonFields,
+		};
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
 	}
 }

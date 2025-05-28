@@ -5,14 +5,14 @@ import {
 	NodeApiError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
-
 import {
-	getSelectedFields,
 	isValidResponse,
 	processAxelorError,
+	processCustomFieldResponse,
+	processSelectedFields,
 	wrapData,
 } from '../../helpers/utils';
-import { getMetaFields } from '../../helpers/api-helper';
+import { getFields } from '../../helpers/api-helper';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
 
@@ -70,7 +70,6 @@ export const description = updateDisplayOptions(displayOptions, properties);
 
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]) {
 	const returnData: INodeExecutionData[] = [];
-
 	const metaFieldCache: Record<string, any> = {};
 
 	for (let i = 0; i < items?.length || 0; i++) {
@@ -80,23 +79,29 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const creds = await this.getCredentials('axelorApi');
 			const baseUrl = creds.baseUrl as string;
 
-			let fields = metaFieldCache[model];
-			if (!fields) {
-				fields = await getMetaFields.call(this, model);
-				metaFieldCache[model] = fields;
+			let cacheData = metaFieldCache[model];
+			if (!cacheData) {
+				const data = await getFields.call(this, model);
+				metaFieldCache[model] = data;
+				cacheData = data;
 			}
 
+			const fields = [...(cacheData?.metaFields || []), ...(cacheData?.jsonFields || [])];
 			const fieldNames = fields.map((f: { name: string }) => f.name);
 
 			const recordId = this.getNodeParameter('records', i) as string;
 			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
 
 			const body: any = { fields: fieldNames, data: {} };
+			let jsonFields: Array<string> | undefined;
+			let selectedFields: Array<string> | undefined;
 
 			if (enableAdvancedSettings) {
-				const selectedFiels = getSelectedFields.call(this, i);
-				if (selectedFiels.length > 0) {
-					body.fields = selectedFiels;
+				selectedFields = this.getNodeParameter('fields', i, []) as Array<string>;
+				if (selectedFields.length > 0) {
+					const processedFields = processSelectedFields(selectedFields);
+					body.fields = processedFields.fields;
+					jsonFields = processedFields.jsonFields as Array<string>;
 				}
 			}
 
@@ -109,9 +114,14 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				json: true,
 			});
 
-			if (isValidResponse(resp)) {
-				returnData.push(...wrapData(resp.data || []));
+			isValidResponse(resp);
+
+			let result = (resp.data && resp.data[0]) || {};
+			if (jsonFields && jsonFields.length > 0) {
+				result = processCustomFieldResponse(result, selectedFields!, jsonFields);
 			}
+
+			returnData.push(...wrapData(result || []));
 		} catch (error) {
 			error = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {
@@ -121,6 +131,5 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			throw error;
 		}
 	}
-
 	return returnData;
 }

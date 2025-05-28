@@ -5,9 +5,8 @@ import {
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
-
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
-import { getMetaFields } from '../../helpers/api-helper';
+import { getFields } from '../../helpers/api-helper';
 
 export const properties: INodeProperties[] = [
 	{
@@ -62,11 +61,13 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const recordId = this.getNodeParameter('recordId', i, null) as string;
 			const limit = this.getNodeParameter('limit', i, 10) as number;
 
-			let fields = metaFieldCache[model];
-			if (!fields) {
-				fields = await getMetaFields.call(this, model);
-				metaFieldCache[model] = fields;
+			let cacheData = metaFieldCache[model];
+			if (!cacheData) {
+				const data = await getFields.call(this, model);
+				metaFieldCache[model] = data;
+				cacheData = data;
 			}
+			const fields = [...(cacheData?.fields || [])];
 			const fieldNames = fields.map((f: { name: string }) => f.name);
 
 			const url = findById

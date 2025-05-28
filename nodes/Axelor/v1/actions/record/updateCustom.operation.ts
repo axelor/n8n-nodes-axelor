@@ -3,10 +3,9 @@ import type {
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
-	NodeApiError,
 } from 'n8n-workflow';
-import { updateDisplayOptions } from 'n8n-workflow';
-import { getFields, getMetaModelFieldRecord } from '../../helpers/api-helper';
+import { NodeApiError, updateDisplayOptions } from 'n8n-workflow';
+
 import {
 	buildRequestData,
 	getChangedFieldNames,
@@ -15,6 +14,8 @@ import {
 	processAxelorError,
 	wrapData,
 } from '../../helpers/utils';
+import { getFields, getMetaModelFieldRecord } from '../../helpers/api-helper';
+import { MODEL } from '../../helpers/constants';
 
 const properties: INodeProperties[] = [
 	{
@@ -22,9 +23,9 @@ const properties: INodeProperties[] = [
 		name: 'records',
 		type: 'options',
 		typeOptions: {
-			loadOptionsMethod: 'getMetaModelRecords',
-			loadOptionsDependsOn: ['model'],
-			refreshOn: ['model'],
+			loadOptionsMethod: 'getMetaJsonRecords',
+			loadOptionsDependsOn: ['customModel'],
+			refreshOn: ['customModel'],
 		},
 		default: '',
 		description:
@@ -36,22 +37,20 @@ const properties: INodeProperties[] = [
 		name: 'fields',
 		type: 'resourceMapper',
 		required: true,
-		noDataExpression: true,
 		default: { mappingMode: 'defineBelow', value: null },
 		typeOptions: {
 			resourceMapper: {
-				resourceMapperMethod: 'getMetaModelFields',
-				// TODO: Check the mode with "update"
+				resourceMapperMethod: 'getMetaJsonModelFields',
 				mode: 'add',
 				fieldWords: { singular: 'field', plural: 'fields' },
 				addAllFields: false,
 			},
-			loadOptionsDependsOn: ['model'],
-			refreshOn: ['model'],
+			loadOptionsDependsOn: ['customModel'],
+			refreshOn: ['customModel'],
 		},
 		displayOptions: {
 			hide: {
-				model: [''],
+				model: ['customModel'],
 			},
 		},
 	},
@@ -59,10 +58,11 @@ const properties: INodeProperties[] = [
 
 const displayOptions = {
 	show: {
-		operation: ['update'],
+		resource: ['record'],
+		operation: ['updateCustom'],
 	},
 	hide: {
-		model: [''],
+		customModel: [''],
 	},
 };
 
@@ -80,10 +80,12 @@ export async function execute(
 	const baseUrl = creds.baseUrl as string;
 
 	for (let i = 0; i < items.length; i++) {
-		const model = this.getNodeParameter('model', i) as string;
+		const model = this.getNodeParameter('customModel', i) as string;
 		const recordId = this.getNodeParameter('records', i) as number;
 
-		const record = await getMetaModelFieldRecord.call(this, model, recordId);
+		const record = await getMetaModelFieldRecord.call(this, model, recordId, {
+			isCustomModel: true,
+		});
 		if (!record) {
 			const error = new Error(`No record found with ID ${recordId} for model ${model}`);
 			if (this.continueOnFail()) {
@@ -95,31 +97,30 @@ export async function execute(
 
 		try {
 			const mapping = this.getNodeParameter('fields', i, {}) as any;
+
 			let cacheData = metaFieldCache[model];
 			if (!cacheData) {
-				const data = await getFields.call(this, model);
+				const data = await getFields.call(this, model, { isCustomModel: true });
 				metaFieldCache[model] = data;
 				cacheData = data;
 			}
-
-			const metaFields = cacheData?.metaFields || [];
 			const jsonFields = cacheData?.jsonFields || [];
 			const metaJsonFields = cacheData?.metaJsonFields || [];
-			const fields = [...metaFields, ...jsonFields];
 
-			// Extract changed field keys using schema info
+			// Extract only the field names that have actually changed (not removed)
 			const changedKeys = getChangedFieldNames(mapping);
 
-			// Build request payload with only changed fields
-			let data = buildRequestData(changedKeys, mapping, fields, metaJsonFields);
+			// Build the final data payload using the changed keys only
+			let data = buildRequestData(changedKeys, mapping, jsonFields, metaJsonFields);
 			data = manageCustomFieldData(data, record, metaJsonFields);
 
-			data.id = recordId;
+			data.jsonModel = model;
+			data.id = record.id;
 			data.version = record.version;
 
 			const responseData = await this.helpers.request!({
 				method: 'POST',
-				url: `/ws/rest/${encodeURIComponent(model)}`,
+				url: `/ws/rest/${MODEL.META_JSON_RECORD}`,
 				baseURL: baseUrl,
 				auth: { user: creds.username as string, pass: creds.password as string },
 				body: { data },
