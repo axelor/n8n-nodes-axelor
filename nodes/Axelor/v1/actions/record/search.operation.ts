@@ -208,9 +208,12 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			});
 
 			isValidResponse(resp);
-			let result = (resp.data && resp.data[0]) || {};
+			let result = (resp.data && resp.data) || [];
 			if (jsonFields && jsonFields.length > 0) {
-				result = processCustomFieldResponse(result, selectedFields!, jsonFields);
+				const processedResponse = result.map((item: any) =>
+					processCustomFieldResponse(item, selectedFields!, jsonFields),
+				);
+				result = processedResponse;
 			}
 			returnData.push(...wrapData(result || []));
 		} catch (error) {
