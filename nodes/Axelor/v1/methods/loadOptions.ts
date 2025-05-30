@@ -1,4 +1,4 @@
-import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
+import type { IDataObject, ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
 import { getJsonFields, getNameColoumn, isValidResponse } from '../helpers/utils';
@@ -132,6 +132,86 @@ export async function loadMetaFields(this: ILoadOptionsFunctions): Promise<INode
 		return [...metaField, ...jsonFields];
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch Fields', error);
+	}
+}
+
+export async function getModules(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
+		baseUrl: string;
+		username: string;
+		password: string;
+	};
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	try {
+		const response = await this.helpers.request({
+			method: 'GET',
+			url: '/ws/connect/connect-tags',
+			baseURL: baseUrl,
+			auth: {
+				user: username,
+				pass: password,
+			},
+			json: true,
+		});
+
+		return Array.isArray(response)
+			? response.map((value: string) => ({
+					name: value,
+					value: value,
+				}))
+			: [];
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
+	}
+}
+
+export async function getActions(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
+		baseUrl: string;
+		username: string;
+		password: string;
+	};
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	const module = this.getNodeParameter('module') as string;
+
+	const qs: IDataObject = {};
+
+	if (module) {
+		qs.tagName = module;
+	}
+
+	try {
+		const response = await this.helpers.request({
+			method: 'GET',
+			url: '/ws/connect/connect-web-services',
+			baseURL: baseUrl,
+			auth: {
+				user: username,
+				pass: password,
+			},
+			json: true,
+			qs,
+		});
+
+		return Array.isArray(response)
+			? response.map((item: { name: string; classFullyQualifiedName: string }) => ({
+					name: item.name,
+					value: JSON.stringify({
+						name: item.name,
+						classFullyQualifiedName: item.classFullyQualifiedName,
+					}),
+				}))
+			: [];
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
 	}
 }
 

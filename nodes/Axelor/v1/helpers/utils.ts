@@ -30,7 +30,7 @@ export const mapAxelorTypeToFieldType = (axelorType: string): FieldType | undefi
 			return n8nType as FieldType;
 		}
 	}
-	return undefined;
+	return 'string';
 };
 
 export const constructOptions = (field: AxelorModelFieldSchema) => {

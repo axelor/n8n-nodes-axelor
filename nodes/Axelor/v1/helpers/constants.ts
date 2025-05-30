@@ -1,18 +1,22 @@
 /* eslint-disable n8n-nodes-base/node-param-display-name-miscased */
-import { TypesMap } from './interface';
+import { FieldType, NodePropertyTypes } from 'n8n-workflow';
 
 export const AXELOR_SELECTION_FIELDS = ['ONE_TO_ONE', 'MANY_TO_ONE', 'MANY_TO_MANY', 'ONE_TO_MANY'];
 
-export const AXELOR_FIELD_TYPE_MAP: Readonly<TypesMap> = {
+type ExtendedFieldType = FieldType | NodePropertyTypes;
+
+export type ExtendedTypesMap = Partial<Record<ExtendedFieldType, string[]>>;
+
+export const AXELOR_FIELD_TYPE_MAP: Readonly<ExtendedTypesMap> = {
 	string: ['TEXT', 'STRING', 'ENUM'],
-	number: ['DECIMAL', 'INTEGER'],
+	number: ['DECIMAL', 'INTEGER', 'NUMBER'],
 	boolean: ['BOOLEAN'],
 	dateTime: ['DATE', 'DATETIME'],
 	time: [],
 	object: [],
 	options: ['MANY_TO_ONE', 'ONE_TO_ONE'],
-	// We are not able to see the field array values
-	array: ['ONE_TO_MANY', 'MANY_TO_MANY'],
+	array: ['ONE_TO_MANY', 'MANY_TO_MANY', 'ARRAY'],
+	fixedCollection: ['COLLECTION'],
 };
 
 export const MODEL = {

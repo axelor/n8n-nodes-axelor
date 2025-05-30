@@ -3,6 +3,7 @@ import {
 	ResourceMapperField,
 	ResourceMapperFields,
 	NodeOperationError,
+	IDataObject,
 } from 'n8n-workflow';
 import type { FieldType, INodePropertyOptions } from 'n8n-workflow';
 
@@ -160,6 +161,72 @@ export async function getMetaJsonModelFields(
 		);
 
 		mappedFields.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+		return { fields: mappedFields };
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch model fields', error);
+	}
+}
+
+export async function loadActionBodyFields(
+	this: ILoadOptionsFunctions,
+): Promise<ResourceMapperFields> {
+	const credentials = await this.getCredentials('axelorApi');
+
+	const module = this.getNodeParameter('module') as string;
+	const actionRaw = this.getCurrentNodeParameter('action') as string;
+	const actionData = JSON.parse(actionRaw);
+
+	const action = actionData.name;
+	const classFullyQualifiedName = actionData.classFullyQualifiedName;
+
+	if (!module || !action) return { fields: [] };
+
+	if (!this.helpers.request) {
+		throw new Error('Request helper not available');
+	}
+
+	const qs: IDataObject = {};
+
+	qs.classFullyQualifiedName = classFullyQualifiedName;
+	qs.name = action;
+
+	try {
+		const response = await this.helpers.request({
+			method: 'GET',
+			url: `/ws/connect/connect-web-service-info`,
+			baseURL: credentials.baseUrl as string,
+			auth: {
+				user: credentials.username as string,
+				pass: credentials.password as string,
+			},
+			json: true,
+			qs,
+		});
+
+		const $fields: AxelorModelFieldSchema[] = response.requestBody?.bodyParameters || [];
+
+		const mappedFields: ResourceMapperField[] = await Promise.all(
+			$fields.map(async (field) => {
+				const type = mapAxelorTypeToFieldType(field.type.toUpperCase());
+				const relationFieldsResponse = await getOptions.call(this, field);
+
+				const options = AXELOR_SELECTION_FIELDS.includes(field.type.toUpperCase())
+					? relationFieldsResponse
+					: constructOptions(field);
+
+				return {
+					id: field.name,
+					displayName: field.title || field.name,
+					defaultMatch: false,
+					required: field.required === true,
+					display: true,
+					removed: field.required === false,
+					type,
+					options,
+				};
+			}),
+		);
 
 		return { fields: mappedFields };
 	} catch (error) {
