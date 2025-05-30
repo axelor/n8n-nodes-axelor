@@ -58,7 +58,7 @@ export const properties: INodeProperties[] = [
 		options: [
 			{
 				name: 'values',
-				displayName: 'O2M Field',
+				displayName: 'Values',
 				values: [
 					{
 						displayName: 'ID',
