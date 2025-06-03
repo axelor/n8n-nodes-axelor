@@ -16,6 +16,7 @@ import {
 	getJsonFields,
 	mapAxelorTypeToFieldType,
 	normalizeKey,
+	processCollectionFields,
 } from '../helpers/utils';
 import { AXELOR_SELECTION_FIELDS, FIELD_TYPE, MODEL, PARAMETER } from '../helpers/constants';
 import { getOptions } from '../helpers/api-helper';
@@ -206,7 +207,10 @@ export async function loadActionBodyFields(
 			qs,
 		});
 
-		const $fields: AxelorModelFieldSchema[] = response.requestBody?.bodyParameters || [];
+		let $fields: AxelorModelFieldSchema[] = response.requestBody?.bodyParameters || [];
+
+		$fields = processCollectionFields($fields);
+
 		const headerParams =
 			response.headers
 				?.filter((item: any) => isNull(item.value))

@@ -26,6 +26,7 @@ export interface AxelorModelFieldSchema {
 	json?: boolean;
 	domain?: string;
 	enumType?: string;
+	subParameters?: AxelorModelFieldSchema[];
 }
 
 export interface AxelorRecord {

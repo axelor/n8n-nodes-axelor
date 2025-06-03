@@ -7,8 +7,8 @@ import {
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import {
+	buildBuisnessAPIRequestData,
 	buildRequest,
-	buildRequestData,
 	getChangedFieldNames,
 	processAxelorError,
 	wrapData,
@@ -102,7 +102,6 @@ export async function execute(
 		const classFullyQualifiedName = actionData.classFullyQualifiedName;
 
 		if (!module || !action) {
-			// Return empty array if module or action is missing
 			return returnData;
 		}
 
@@ -132,23 +131,22 @@ export async function execute(
 
 			const mapping = this.getNodeParameter('parameters', i, {}) as any;
 
-			// Extract only the field names that have actually changed (not removed)
 			const changedKeys = getChangedFieldNames(mapping);
 
-			this.logger.info('changedkey', { changedKeys });
-			this.logger.info('mapping', { mapping });
-			this.logger.info('fields', { fields });
-
-			this.logger.info('mapping', mapping);
+			// this.logger.info('changedkey', { changedKeys });
+			// this.logger.info('mapping', { mapping });
+			// this.logger.info('fields', { fields });
+			// this.logger.info('mapping', mapping);
 
 			const requestBody = buildRequest({
 				serviceInfo: response,
 				credentials: creds,
 				values: mapping.value,
 			});
-			this.logger.info('requestBody', { requestBody });
+			// this.logger.info('requestBody', { requestBody });
 			if (requestBody.method === 'POST') {
-				const data = buildRequestData(changedKeys, mapping, fields, []);
+				const data = buildBuisnessAPIRequestData(changedKeys, mapping.value, fields);
+				// this.logger.info('data', { data });
 				requestBody.body = { data };
 			}
 			const buisnessCallResponse = await this.helpers.request(requestBody);

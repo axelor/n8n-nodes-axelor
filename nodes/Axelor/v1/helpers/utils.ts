@@ -322,6 +322,7 @@ export const buildRequest = ({
 		baseURL: credentials.baseUrl,
 		headers: {
 			Accept: '*/*',
+			'Content-Type': 'application/json',
 			...headerParamerters,
 		},
 		auth: {
@@ -333,6 +334,7 @@ export const buildRequest = ({
 
 	return request;
 };
+
 const processUrl = (url: string, value: Object) => {
 	let processedUrl = replaceUrlParams(url, value, PARAMETER.path);
 	processedUrl = replaceUrlParams(processedUrl, value, PARAMETER.query);
@@ -363,7 +365,6 @@ export const buildResourceField = (
 };
 
 export const getHeaderParameter = (values: Record<string, string> = {}) => {
-	// Check if values is defined before trying to use Object.entries
 	if (!values) return {};
 
 	const headerParameters = Object.fromEntries(
@@ -374,3 +375,69 @@ export const getHeaderParameter = (values: Record<string, string> = {}) => {
 
 	return headerParameters;
 };
+
+export const processCollectionFields = (fields: AxelorModelFieldSchema[]) => {
+	const $fields = fields.reduce((acc, curr) => {
+		if (curr.type === 'collection') {
+			const subParameters = curr?.subParameters || [];
+			subParameters.forEach((item) => {
+				acc.push({
+					...item,
+					name: join([curr.name, item.name], '_'),
+					title: `${curr.name}'s ${item.name}`,
+				});
+			});
+		} else {
+			acc.push(curr);
+		}
+		return acc;
+	}, [] as AxelorModelFieldSchema[]);
+	return $fields;
+};
+
+export function buildBuisnessAPIRequestData(
+	keys: string[],
+	values: Record<string, any>,
+	fields: any[],
+): Record<string, any> {
+	const data = Object.fromEntries(
+		Object.entries(values || {}).filter(
+			([key]) =>
+				!key.startsWith(PARAMETER.header) &&
+				!key.startsWith(PARAMETER.path) &&
+				!key.startsWith(PARAMETER.query),
+		),
+	);
+
+	const result: Record<string, any> = fields.reduce((acc, curr) => {
+		if (curr.type === 'collection') {
+			acc[curr.name] = {};
+		}
+		if (curr.type === 'array') {
+			acc[curr.name] = [];
+		}
+		return acc;
+	}, {});
+
+	const prefixMap: Record<string, string[]> = {};
+
+	for (const key of keys) {
+		const match = key.match(/^([^_]+)_(.+)$/);
+		if (match) {
+			const [_, prefix, field] = match;
+			if (!prefixMap[prefix]) prefixMap[prefix] = [];
+			prefixMap[prefix].push(field);
+		} else {
+			result[key] = data?.[key];
+		}
+	}
+
+	for (const prefix in prefixMap) {
+		result[prefix] = {};
+		for (const field of prefixMap[prefix]) {
+			result[prefix][field] = data?.[`${prefix}_${field}`];
+		}
+	}
+
+	return result;
+}
