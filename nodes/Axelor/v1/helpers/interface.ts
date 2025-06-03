@@ -39,3 +39,14 @@ export interface AxelorApiCredentials {
 	username: string;
 	password: string;
 }
+
+export interface WebServiceInfo {
+	target: string;
+	httpMethod: string;
+}
+
+export interface WorkflowCredentials {
+	baseUrl: string;
+	username: string;
+	password: string;
+}

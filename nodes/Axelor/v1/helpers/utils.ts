@@ -1,4 +1,4 @@
-import { fromPairs, get, isEqual, set } from 'lodash';
+import { fromPairs, get, isEqual, join, set } from 'lodash';
 import {
 	BINARY_ENCODING,
 	FieldType,
@@ -6,18 +6,20 @@ import {
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodePropertyOptions,
+	IRequestOptions,
 	NodeApiError,
 	NodeOperationError,
 } from 'n8n-workflow';
 import { Readable } from 'stream';
 
-import { AxelorModelFieldSchema } from './interface';
 import {
 	AXELOR_FIELD_TYPE_MAP,
 	AXELOR_SELECTION_FIELDS,
 	NON_INPUT_FIELDS,
+	PARAMETER,
 	UPLOAD_CHUNK_SIZE,
 } from './constants';
+import { AxelorModelFieldSchema, WebServiceInfo, WorkflowCredentials } from './interface';
 
 export function normalizeKey(input: string) {
 	if (input && !input.trim()) return input;
@@ -301,4 +303,74 @@ export function processCustomFieldResponse(
 
 export const excludeNonInputFields = (field: any) => {
 	return !NON_INPUT_FIELDS.includes(field?.type);
+};
+
+export const buildRequest = ({
+	serviceInfo,
+	credentials,
+	values = {},
+}: {
+	serviceInfo: WebServiceInfo;
+	credentials: WorkflowCredentials;
+	values: Record<string, string>;
+}) => {
+	const url = processUrl(serviceInfo.target, values);
+	const headerParamerters = getHeaderParameter(values);
+	const request: IRequestOptions = {
+		method: serviceInfo.httpMethod as IRequestOptions,
+		url,
+		baseURL: credentials.baseUrl,
+		headers: {
+			Accept: '*/*',
+			...headerParamerters,
+		},
+		auth: {
+			user: credentials.username,
+			pass: credentials.password,
+		},
+		json: true,
+	};
+
+	return request;
+};
+const processUrl = (url: string, value: Object) => {
+	let processedUrl = replaceUrlParams(url, value, PARAMETER.path);
+	processedUrl = replaceUrlParams(processedUrl, value, PARAMETER.query);
+
+	return `ws${processedUrl}`;
+};
+function replaceUrlParams(url: string, values: Record<string, any>, prefix: string) {
+	const filteredValues = Object.fromEntries(
+		Object.entries(values)
+			.filter(([key]) => key.startsWith(prefix))
+			.map(([key, value]) => [key.slice(prefix.length + 1), value]),
+	);
+	return url.replace(/{(\w+)}/g, (_, key) => {
+		return filteredValues[key] !== undefined ? filteredValues[key] : `{${key}}`;
+	});
+}
+
+export const buildResourceField = (
+	fields: AxelorModelFieldSchema[],
+	type: string,
+): AxelorModelFieldSchema[] => {
+	return fields?.map((field) => ({
+		name: join([type, field.name], '_'),
+		type: normalizeKey(field.type),
+		title: `${field.name.toUpperCase()}-${type}`,
+		required: true,
+	}));
+};
+
+export const getHeaderParameter = (values: Record<string, string> = {}) => {
+	// Check if values is defined before trying to use Object.entries
+	if (!values) return {};
+
+	const headerParameters = Object.fromEntries(
+		Object.entries(values)
+			.filter(([key]) => key.startsWith(PARAMETER.header))
+			.map(([key, value]) => [key.slice(PARAMETER.header.length + 1), value]),
+	);
+
+	return headerParameters;
 };

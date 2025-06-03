@@ -6,16 +6,18 @@ import {
 	IDataObject,
 } from 'n8n-workflow';
 import type { FieldType, INodePropertyOptions } from 'n8n-workflow';
+import { isNull } from 'lodash';
 
 import { AxelorModelFieldSchema } from '../helpers/interface';
 import {
+	buildResourceField,
 	constructOptions,
 	excludeNonInputFields,
 	getJsonFields,
 	mapAxelorTypeToFieldType,
 	normalizeKey,
 } from '../helpers/utils';
-import { AXELOR_SELECTION_FIELDS, FIELD_TYPE, MODEL } from '../helpers/constants';
+import { AXELOR_SELECTION_FIELDS, FIELD_TYPE, MODEL, PARAMETER } from '../helpers/constants';
 import { getOptions } from '../helpers/api-helper';
 
 export async function getMetaModelFields(
@@ -205,27 +207,42 @@ export async function loadActionBodyFields(
 		});
 
 		const $fields: AxelorModelFieldSchema[] = response.requestBody?.bodyParameters || [];
+		const headerParams =
+			response.headers
+				?.filter((item: any) => isNull(item.value))
+				?.map((item: any) => ({ name: item.name, type: 'string' })) || [];
+
+		const $headerParameterField: AxelorModelFieldSchema[] = buildResourceField(
+			headerParams,
+			PARAMETER.header,
+		);
+		const $pathParameterField: AxelorModelFieldSchema[] =
+			buildResourceField(response.pathParameters, PARAMETER.path) || [];
+		const $queryParameterField =
+			buildResourceField(response.queryParameters, PARAMETER.query) || [];
 
 		const mappedFields: ResourceMapperField[] = await Promise.all(
-			$fields.map(async (field) => {
-				const type = mapAxelorTypeToFieldType(field.type.toUpperCase());
-				const relationFieldsResponse = await getOptions.call(this, field);
+			[...$headerParameterField, ...$pathParameterField, ...$queryParameterField, ...$fields].map(
+				async (field) => {
+					const type = mapAxelorTypeToFieldType(field.type.toUpperCase());
+					const relationFieldsResponse = await getOptions.call(this, field);
 
-				const options = AXELOR_SELECTION_FIELDS.includes(field.type.toUpperCase())
-					? relationFieldsResponse
-					: constructOptions(field);
+					const options = AXELOR_SELECTION_FIELDS.includes(field.type.toUpperCase())
+						? relationFieldsResponse
+						: constructOptions(field);
 
-				return {
-					id: field.name,
-					displayName: field.title || field.name,
-					defaultMatch: false,
-					required: field.required === true,
-					display: true,
-					removed: field.required === false,
-					type,
-					options,
-				};
-			}),
+					return {
+						id: field.name,
+						displayName: field.title || field.name,
+						defaultMatch: false,
+						required: field.required === true,
+						display: true,
+						removed: field.required === false,
+						type,
+						options,
+					};
+				},
+			),
 		);
 
 		return { fields: mappedFields };

@@ -79,3 +79,11 @@ export const FIELD_TYPE = {
 };
 
 export const NON_INPUT_FIELDS = ['button', 'panel', 'label', 'spacer', 'separator'];
+
+// BusinessCall Parameter
+export const PARAMETER = {
+	path: 'pathParameter',
+	query: 'queryParameter',
+	header: 'headerParameter',
+	body: 'bodyParameter',
+};
