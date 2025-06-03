@@ -209,7 +209,7 @@ export async function loadActionBodyFields(
 
 		let $fields: AxelorModelFieldSchema[] = response.requestBody?.bodyParameters || [];
 
-		$fields = processCollectionFields($fields);
+		$fields = processCollectionFields($fields).filter((item) => item.name !== 'id');
 
 		const headerParams =
 			response.headers

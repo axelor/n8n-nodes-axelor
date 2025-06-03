@@ -339,7 +339,7 @@ const processUrl = (url: string, value: Object) => {
 	let processedUrl = replaceUrlParams(url, value, PARAMETER.path);
 	processedUrl = replaceUrlParams(processedUrl, value, PARAMETER.query);
 
-	return `ws${processedUrl}`;
+	return `/ws${processedUrl}`;
 };
 function replaceUrlParams(url: string, values: Record<string, any>, prefix: string) {
 	const filteredValues = Object.fromEntries(
