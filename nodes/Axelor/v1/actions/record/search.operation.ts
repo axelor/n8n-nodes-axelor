@@ -6,7 +6,6 @@ import {
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
-import { isEmpty } from 'lodash';
 
 import {
 	getContextFields,
@@ -20,6 +19,7 @@ import {
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
 import { ARCHIVED_OPTIONS, SORT_BY_OPTIONS } from '../../helpers/constants';
+import { isEmpty } from '../../helpers/lodash';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
 

@@ -15,7 +15,7 @@ import {
 } from '../../helpers/utils';
 import { WorkflowCredentials } from '../../helpers/interface';
 import { WEB_SERVICE } from '../../helpers/constants';
-import { join } from 'lodash';
+import { join } from '../../helpers/lodash';
 
 export const properties: INodeProperties[] = [
 	{

@@ -7,7 +7,7 @@ import {
 	NodeOperationError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
-import { fromPairs } from 'lodash';
+import { fromPairs } from '../../helpers/lodash';
 
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { AxelorApiCredentials } from '../../helpers/interface';

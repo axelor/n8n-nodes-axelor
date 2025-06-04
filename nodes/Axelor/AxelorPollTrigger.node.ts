@@ -8,7 +8,7 @@ import {
 	NodeOperationError,
 } from 'n8n-workflow';
 import moment from 'moment-timezone';
-import { isEqual } from 'lodash';
+import { isEqual } from './v1/helpers/lodash';
 import { loadOptions } from './v1/methods';
 import { START_OPTIONS } from './v1/helpers/constants';
 import { createCriteria } from './v1/helpers/utils';

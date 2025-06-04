@@ -6,7 +6,7 @@ import {
 	IDataObject,
 } from 'n8n-workflow';
 import type { FieldType, INodePropertyOptions } from 'n8n-workflow';
-import { isNull, startCase } from 'lodash';
+import { isNull, startCase } from '../helpers/lodash';
 
 import {
 	buildResourceField,

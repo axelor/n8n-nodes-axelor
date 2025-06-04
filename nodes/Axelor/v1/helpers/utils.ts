@@ -1,4 +1,4 @@
-import { fromPairs, get, isEqual, join, set, startCase } from 'lodash';
+import { fromPairs, get, isEqual, join, set, startCase } from './lodash';
 import {
 	BINARY_ENCODING,
 	FieldType,
@@ -145,7 +145,7 @@ export function getSortByFields(this: IExecuteFunctions, i: number): Array<Strin
 	};
 	const sortByArray = get(sortByValues, 'sortBy', []);
 	return sortByArray.length > 0
-		? sortByArray.map((sort) => (sort.rule === 'desc' ? `-${sort.field}` : sort.field))
+		? sortByArray.map((sort: any) => (sort.rule === 'desc' ? `-${sort.field}` : sort.field))
 		: [];
 }
 
@@ -154,7 +154,7 @@ export function getContextFields(this: IExecuteFunctions, i: number): Object {
 		context: { key: string; value: string }[];
 	};
 	const contextArray = get(contextValues, 'context', []);
-	return fromPairs(contextArray.map((c) => [c.key, c.value]));
+	return fromPairs(contextArray.map((c: any) => [c.key, c.value]));
 }
 
 export function getSelectedFields(this: IExecuteFunctions, i: number): Array<String> {

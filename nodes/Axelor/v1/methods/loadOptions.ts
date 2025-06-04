@@ -2,7 +2,8 @@ import type { IDataObject, ILoadOptionsFunctions, INodePropertyOptions } from 'n
 import { NodeOperationError } from 'n8n-workflow';
 
 import { getJsonFields, getNameColoumn, isValidResponse } from '../helpers/utils';
-import { startCase, toLower } from 'lodash';
+import { startCase, toLower } from '../helpers/lodash';
+
 import { MODEL } from '../helpers/constants';
 
 export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
