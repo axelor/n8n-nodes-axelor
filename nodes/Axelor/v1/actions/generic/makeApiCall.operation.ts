@@ -17,7 +17,7 @@ export const properties: INodeProperties[] = [
 		required: true,
 		default: '',
 		description: 'The URL to make the API call to',
-		hint: 'Enter a relative path. Example: /ws/integromat/getRecord',
+		hint: 'Enter a relative path. Example: /ws/axelor/getRecord',
 	},
 	{
 		displayName: 'Method',

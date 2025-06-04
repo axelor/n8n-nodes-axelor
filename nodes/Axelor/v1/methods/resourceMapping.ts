@@ -248,6 +248,8 @@ export async function loadActionBodyFields(
 				},
 			),
 		);
+		if (!mappedFields || mappedFields.length === 0)
+			return { fields: [], emptyFieldsNotice: 'No Fields found in Axelor' };
 		return { fields: mappedFields };
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch model fields', error);
