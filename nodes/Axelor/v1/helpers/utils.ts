@@ -316,7 +316,9 @@ export const buildRequest = ({
 	values: Record<string, string>;
 }) => {
 	const url = processUrl(serviceInfo.target, values);
-	const headerParamerters = getHeaderParameter(values);
+	const headerParamerters = getParameter(values, PARAMETER.header);
+	const qs = getParameter(values, PARAMETER.query);
+
 	const request: IRequestOptions = {
 		method: serviceInfo.httpMethod as IHttpRequestMethods,
 		url,
@@ -331,6 +333,7 @@ export const buildRequest = ({
 			pass: credentials.password,
 		},
 		json: true,
+		qs,
 	};
 
 	return request;
@@ -338,7 +341,6 @@ export const buildRequest = ({
 
 const processUrl = (url: string, value: Object) => {
 	let processedUrl = replaceUrlParams(url, value, PARAMETER.path);
-	processedUrl = replaceUrlParams(processedUrl, value, PARAMETER.query);
 	return `/ws${processedUrl}`;
 };
 
@@ -365,16 +367,16 @@ export const buildResourceField = (
 	}));
 };
 
-export const getHeaderParameter = (values: Record<string, string> = {}) => {
+export const getParameter = (values: Record<string, string> = {}, prefix: string) => {
 	if (!values) return {};
 
-	const headerParameters = Object.fromEntries(
+	const parameter = Object.fromEntries(
 		Object.entries(values)
-			.filter(([key]) => key.startsWith(PARAMETER.header))
-			.map(([key, value]) => [key.slice(PARAMETER.header.length + 1), value]),
+			.filter(([key]) => key.startsWith(prefix))
+			.map(([key, value]) => [key.slice(prefix.length + 1), value]),
 	);
 
-	return headerParameters;
+	return parameter;
 };
 
 export const processCollectionFields = (fields: AxelorModelFieldSchema[]) => {
