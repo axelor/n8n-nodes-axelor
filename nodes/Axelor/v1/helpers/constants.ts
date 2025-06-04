@@ -87,3 +87,26 @@ export const PARAMETER = {
 	header: 'headerParameter',
 	body: 'bodyParameter',
 };
+
+export const HTTP_METHOD_OPTIONS = [
+	{
+		name: 'GET',
+		value: 'GET',
+	},
+	{
+		name: 'POST',
+		value: 'POST',
+	},
+	{
+		name: 'PUT',
+		value: 'PUT',
+	},
+	{
+		name: 'DELETE',
+		value: 'DELETE',
+	},
+	{
+		name: 'PATCH',
+		value: 'PATCH',
+	},
+];

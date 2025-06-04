@@ -11,7 +11,7 @@ type NodeMap = {
 		| 'createCustom'
 		| 'updateCustom';
 	dms: 'listFiles' | 'listAttachments' | 'downloadFile' | 'addAttachments' | 'uploadFile';
-	generic: 'runAction' | 'businessServiceCall';
+	generic: 'runAction' | 'businessServiceCall' | 'makeApiCall';
 };
 
 export type AxelorType = AllEntities<NodeMap>;
