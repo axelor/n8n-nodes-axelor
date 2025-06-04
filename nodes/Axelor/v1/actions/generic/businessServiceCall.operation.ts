@@ -15,6 +15,7 @@ import {
 } from '../../helpers/utils';
 import { WorkflowCredentials } from '../../helpers/interface';
 import { WEB_SERVICE } from '../../helpers/constants';
+import { join } from 'lodash';
 
 export const properties: INodeProperties[] = [
 	{
@@ -93,6 +94,9 @@ export async function execute(
 	items: INodeExecutionData[],
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
+
+	const infoCache: Record<string, any> = {};
+
 	for (let i = 0; i < items.length; i++) {
 		const creds = (await this.getCredentials('axelorApi')) as WorkflowCredentials;
 
@@ -111,18 +115,26 @@ export async function execute(
 		qs.classFullyQualifiedName = classFullyQualifiedName;
 		qs.name = action;
 
+		const key = join([module, action], '_');
+		let cacheData = infoCache[key];
+		let response: any = {};
 		try {
-			const response = await this.helpers.request({
-				method: 'GET',
-				url: WEB_SERVICE.CONNECT_WS_INFO,
-				baseURL: creds.baseUrl,
-				auth: {
-					user: creds.username,
-					pass: creds.password,
-				},
-				json: true,
-				qs,
-			});
+			if (!cacheData) {
+				response = await this.helpers.request({
+					method: 'GET',
+					url: WEB_SERVICE.CONNECT_WS_INFO,
+					baseURL: creds.baseUrl,
+					auth: {
+						user: creds.username,
+						pass: creds.password,
+					},
+					json: true,
+					qs,
+				});
+				infoCache[key] = response;
+				cacheData = response;
+			}
+			response = cacheData;
 
 			const fields = response.requestBody?.bodyParameters || [];
 
