@@ -16,6 +16,7 @@ import { Readable } from 'stream';
 import {
 	AXELOR_FIELD_TYPE_MAP,
 	AXELOR_SELECTION_FIELDS,
+	FIELD_TYPE,
 	NON_INPUT_FIELDS,
 	PARAMETER,
 	UPLOAD_CHUNK_SIZE,
@@ -361,7 +362,7 @@ export const buildResourceField = (
 ): AxelorModelFieldSchema[] => {
 	return fields?.map((field) => ({
 		name: join([type, field.name], '_'),
-		type: normalizeKey(field.type),
+		type: isEqual(field.type, FIELD_TYPE.COLLECTION) ? FIELD_TYPE.STRING : field.type,
 		title: `${startCase(field.name)}   -${type}`,
 		required: true,
 	}));

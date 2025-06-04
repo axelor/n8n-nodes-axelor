@@ -228,10 +228,11 @@ export async function loadActionBodyFields(
 		const mappedFields: ResourceMapperField[] = await Promise.all(
 			[...$headerParameterField, ...$pathParameterField, ...$queryParameterField, ...$fields].map(
 				async (field) => {
-					const type = mapAxelorTypeToFieldType(field.type.toUpperCase());
+					field['type'] = normalizeKey(field.type);
+					const type = mapAxelorTypeToFieldType(field.type);
 					const relationFieldsResponse = await getOptions.call(this, field);
 
-					const options = AXELOR_SELECTION_FIELDS.includes(field.type.toUpperCase())
+					const options = AXELOR_SELECTION_FIELDS.includes(field.type)
 						? relationFieldsResponse
 						: constructOptions(field);
 

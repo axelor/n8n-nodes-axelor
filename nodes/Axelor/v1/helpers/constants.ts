@@ -25,6 +25,10 @@ export const MODEL = {
 	META_JSON_RECORD: 'com.axelor.meta.db.MetaJsonRecord',
 };
 
+export const WEB_SERVICE = {
+	CONNECT_WS_INFO: '/ws/connect/connect-web-service-info',
+};
+
 export const ARCHIVED_OPTIONS = [
 	{
 		name: 'Yes',
@@ -76,7 +80,12 @@ export const FIELD_ATTRIBUTES = [
 export const FIELD_TYPE = {
 	OPTIONS: 'options',
 	STRING: 'string',
-};
+	COLLECTION: 'collection',
+	BOOLEAN: 'boolean',
+	NUMBER: 'number',
+	DATE: 'date',
+	ARRAY: 'array',
+} as const;
 
 export const NON_INPUT_FIELDS = ['button', 'panel', 'label', 'spacer', 'separator'];
 

@@ -14,6 +14,7 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { WorkflowCredentials } from '../../helpers/interface';
+import { WEB_SERVICE } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
@@ -113,7 +114,7 @@ export async function execute(
 		try {
 			const response = await this.helpers.request({
 				method: 'GET',
-				url: `/ws/connect/connect-web-service-info`,
+				url: WEB_SERVICE.CONNECT_WS_INFO,
 				baseURL: creds.baseUrl,
 				auth: {
 					user: creds.username,
