@@ -4,6 +4,7 @@ import {
 	FieldType,
 	IDataObject,
 	IExecuteFunctions,
+	IHttpRequestMethods,
 	INodeExecutionData,
 	INodePropertyOptions,
 	IRequestOptions,
@@ -317,7 +318,7 @@ export const buildRequest = ({
 	const url = processUrl(serviceInfo.target, values);
 	const headerParamerters = getHeaderParameter(values);
 	const request: IRequestOptions = {
-		method: serviceInfo.httpMethod as IRequestOptions,
+		method: serviceInfo.httpMethod as IHttpRequestMethods,
 		url,
 		baseURL: credentials.baseUrl,
 		headers: {
