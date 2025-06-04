@@ -101,13 +101,9 @@ export async function execute(
 		const action = actionData.name;
 		const classFullyQualifiedName = actionData.classFullyQualifiedName;
 
-		if (!module || !action) {
-			return returnData;
-		}
+		if (!module || !action) return returnData;
 
-		if (!this.helpers.request) {
-			throw new Error('Request helper not available');
-		}
+		if (!this.helpers.request) throw new Error('Request helper not available');
 
 		const qs: IDataObject = {};
 
@@ -136,7 +132,7 @@ export async function execute(
 			const requestBody = buildRequest({
 				serviceInfo: response,
 				credentials: creds,
-				values: mapping.value,
+				values: mapping?.value || {},
 			});
 			if (requestBody.method === 'POST') {
 				const data = buildBuisnessAPIRequestData(changedKeys, mapping.value, fields);

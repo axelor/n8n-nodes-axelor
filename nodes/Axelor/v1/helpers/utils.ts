@@ -1,4 +1,4 @@
-import { fromPairs, get, isEqual, join, set } from 'lodash';
+import { fromPairs, get, isEqual, join, set, startCase } from 'lodash';
 import {
 	BINARY_ENCODING,
 	FieldType,
@@ -338,9 +338,9 @@ export const buildRequest = ({
 const processUrl = (url: string, value: Object) => {
 	let processedUrl = replaceUrlParams(url, value, PARAMETER.path);
 	processedUrl = replaceUrlParams(processedUrl, value, PARAMETER.query);
-
 	return `/ws${processedUrl}`;
 };
+
 function replaceUrlParams(url: string, values: Record<string, any>, prefix: string) {
 	const filteredValues = Object.fromEntries(
 		Object.entries(values)
@@ -359,7 +359,7 @@ export const buildResourceField = (
 	return fields?.map((field) => ({
 		name: join([type, field.name], '_'),
 		type: normalizeKey(field.type),
-		title: `${field.name.toUpperCase()}-${type}`,
+		title: `${startCase(field.name)}   -${type}`,
 		required: true,
 	}));
 };

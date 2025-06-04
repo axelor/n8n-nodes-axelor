@@ -6,9 +6,8 @@ import {
 	IDataObject,
 } from 'n8n-workflow';
 import type { FieldType, INodePropertyOptions } from 'n8n-workflow';
-import { isNull } from 'lodash';
+import { isNull, startCase } from 'lodash';
 
-import { AxelorModelFieldSchema } from '../helpers/interface';
 import {
 	buildResourceField,
 	constructOptions,
@@ -18,8 +17,9 @@ import {
 	normalizeKey,
 	processCollectionFields,
 } from '../helpers/utils';
-import { AXELOR_SELECTION_FIELDS, FIELD_TYPE, MODEL, PARAMETER } from '../helpers/constants';
+import { AxelorModelFieldSchema } from '../helpers/interface';
 import { getOptions } from '../helpers/api-helper';
+import { AXELOR_SELECTION_FIELDS, FIELD_TYPE, MODEL, PARAMETER } from '../helpers/constants';
 
 export async function getMetaModelFields(
 	this: ILoadOptionsFunctions,
@@ -237,7 +237,7 @@ export async function loadActionBodyFields(
 
 					return {
 						id: field.name,
-						displayName: field.title || field.name,
+						displayName: field.title || startCase(field.name),
 						defaultMatch: false,
 						required: field.required === true,
 						display: true,
@@ -248,7 +248,6 @@ export async function loadActionBodyFields(
 				},
 			),
 		);
-
 		return { fields: mappedFields };
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch model fields', error);
