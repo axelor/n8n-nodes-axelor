@@ -1,4 +1,5 @@
 import {
+	IDataObject,
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
@@ -120,8 +121,12 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			if (jsonFields && jsonFields.length > 0) {
 				result = processCustomFieldResponse(result, selectedFields!, jsonFields);
 			}
+			const executionData = this.helpers.constructExecutionMetaData(
+				wrapData(result as IDataObject[]),
+				{ itemData: { item: i } },
+			);
 
-			returnData.push(...wrapData(result || []));
+			returnData.push(...executionData);
 		} catch (error) {
 			error = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {

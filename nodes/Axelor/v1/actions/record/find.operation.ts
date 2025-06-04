@@ -1,4 +1,5 @@
 import {
+	IDataObject,
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
@@ -91,9 +92,13 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				json: true,
 			});
 
-			if (isValidResponse(resp)) {
-				returnData.push(...wrapData(resp.data || []));
-			}
+			isValidResponse(resp);
+
+			const executionData = this.helpers.constructExecutionMetaData(
+				wrapData((resp.data as IDataObject[]) || []),
+				{ itemData: { item: i } },
+			);
+			returnData.push(...executionData);
 		} catch (error) {
 			error = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {

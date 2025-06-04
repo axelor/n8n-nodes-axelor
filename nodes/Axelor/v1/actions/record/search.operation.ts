@@ -1,4 +1,5 @@
 import {
+	IDataObject,
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
@@ -208,6 +209,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			});
 
 			isValidResponse(resp);
+
 			let result = (resp.data && resp.data) || [];
 			if (jsonFields && jsonFields.length > 0) {
 				const processedResponse = result.map((item: any) =>
@@ -215,7 +217,13 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				);
 				result = processedResponse;
 			}
-			returnData.push(...wrapData(result || []));
+
+			const executionData = this.helpers.constructExecutionMetaData(
+				wrapData(result as IDataObject[]),
+				{ itemData: { item: i } },
+			);
+
+			returnData.push(...executionData);
 		} catch (error) {
 			error = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {

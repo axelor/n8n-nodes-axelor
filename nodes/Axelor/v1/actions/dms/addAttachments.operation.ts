@@ -6,7 +6,6 @@ import {
 	NodeApiError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
-
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { AxelorApiCredentials } from '../../helpers/interface';
 

@@ -4,7 +4,6 @@ import {
 	IWebhookFunctions,
 	IWebhookResponseData,
 } from 'n8n-workflow';
-
 import { loadOptions } from './v1/methods';
 import { webhookMethods } from './v1/triggers/webhook-methods';
 import { triggerDescription } from './v1/triggers/trigger-description';
