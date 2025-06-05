@@ -7,11 +7,11 @@ import {
 	NodeConnectionType,
 	NodeOperationError,
 } from 'n8n-workflow';
-import moment from 'moment-timezone';
 import { isEqual } from './v1/helpers/lodash';
 import { loadOptions } from './v1/methods';
 import { START_OPTIONS } from './v1/helpers/constants';
 import { createCriteria } from './v1/helpers/utils';
+import { toUTCISOStringFromTZ } from './v1/helpers/dateUtils';
 
 const ENABLED_ON = { show: { triggerOn: ['recordCreate', 'recordUpdate'] } };
 
@@ -86,7 +86,7 @@ export class AxelorPollTrigger implements INodeType {
 					name: 'startPreference',
 					type: 'options',
 					options: START_OPTIONS,
-					default: 'fromNowOn',
+					default: 'all',
 					description: 'Whether the item is archived',
 					displayOptions: ENABLED_ON,
 					required: true,
@@ -127,9 +127,9 @@ export class AxelorPollTrigger implements INodeType {
 		if (startPreference === 'sinceSpecificDate') {
 			const startTime = this.getNodeParameter('startTime', '') as string;
 
-			initialTimeStamp = moment.tz(startTime, timezone).utc().format();
+			initialTimeStamp = toUTCISOStringFromTZ(startTime, timezone);
 		} else if (startPreference === 'all') {
-			initialTimeStamp = moment(0).utc().toISOString();
+			initialTimeStamp = new Date(0).toISOString();
 		}
 
 		const webhookData = this.getWorkflowStaticData('node');
@@ -145,7 +145,7 @@ export class AxelorPollTrigger implements INodeType {
 		try {
 			const { baseUrl, username, password } = await this.getCredentials('axelorApi');
 
-			const now = moment().utc().format();
+			const now = new Date().toISOString();
 			const lastTimeStamp = (webhookData.lastTimeChecked as string) || (initialTimeStamp as string);
 			const currentTimeStamp = now;
 
