@@ -13,8 +13,8 @@ import {
 	processAxelorError,
 	wrapData,
 } from '../../helpers/utils';
-import { WorkflowCredentials } from '../../helpers/interface';
-import { WEB_SERVICE } from '../../helpers/constants';
+import { AxelorApiCredentials } from '../../helpers/interface';
+import { HTTP, WEB_SERVICE } from '../../helpers/constants';
 import { join } from '../../helpers/lodash';
 
 export const properties: INodeProperties[] = [
@@ -98,7 +98,7 @@ export async function execute(
 	const infoCache: Record<string, any> = {};
 
 	for (let i = 0; i < items.length; i++) {
-		const creds = (await this.getCredentials('axelorApi')) as WorkflowCredentials;
+		const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
 
 		const actionRaw = this.getNodeParameter('action', i) as string;
 		const actionData = JSON.parse(actionRaw);
@@ -124,10 +124,7 @@ export async function execute(
 					method: 'GET',
 					url: WEB_SERVICE.CONNECT_WS_INFO,
 					baseURL: creds.baseUrl,
-					auth: {
-						user: creds.username,
-						pass: creds.password,
-					},
+					auth: { user: creds.username, pass: creds.password },
 					json: true,
 					qs,
 				});
@@ -147,7 +144,7 @@ export async function execute(
 				credentials: creds,
 				values: mapping?.value || {},
 			});
-			if (requestBody.method === 'POST') {
+			if (requestBody.method === HTTP.POST) {
 				const data = buildBuisnessAPIRequestData(changedKeys, mapping.value, fields);
 				requestBody.body = data;
 			}

@@ -18,8 +18,9 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
-import { ARCHIVED_OPTIONS, SORT_BY_OPTIONS } from '../../helpers/constants';
+import { ARCHIVED_OPTIONS, HTTP, SORT_BY_OPTIONS } from '../../helpers/constants';
 import { isEmpty } from '../../helpers/lodash';
+import { AxelorApiCredentials } from '../../helpers/interface';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
 
@@ -157,8 +158,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		const model = this.getNodeParameter('model', i) as string;
 
 		try {
-			const creds = await this.getCredentials('axelorApi');
-			const baseUrl = creds.baseUrl as string;
+			const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
 			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
 			const limit = this.getNodeParameter('limit', i, enableAdvancedSettings ? 50 : 10) as number;
 
@@ -200,10 +200,10 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			}
 
 			const resp = await this.helpers.request!({
-				method: 'POST',
+				method: HTTP.POST,
 				url: `/ws/rest/${encodeURIComponent(model)}/search`,
-				baseURL: baseUrl,
-				auth: { user: creds.username as string, pass: creds.password as string },
+				baseURL: creds.baseUrl,
+				auth: { user: creds.username, pass: creds.password },
 				body,
 				json: true,
 			});

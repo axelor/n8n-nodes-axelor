@@ -6,7 +6,7 @@ import {
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
-import { WorkflowCredentials } from '../../helpers/interface';
+import { AxelorApiCredentials } from '../../helpers/interface';
 import { HTTP_METHOD_OPTIONS } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
@@ -122,7 +122,7 @@ export async function execute(
 	const returnData: INodeExecutionData[] = [];
 
 	for (let i = 0; i < items.length; i++) {
-		const creds = (await this.getCredentials('axelorApi')) as WorkflowCredentials;
+		const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
 
 		try {
 			const url = this.getNodeParameter('url', i) as string;
@@ -162,14 +162,8 @@ export async function execute(
 				method,
 				url,
 				baseURL: creds.baseUrl,
-				headers: {
-					Accept: '*/*',
-					...headers,
-				},
-				auth: {
-					user: creds.username,
-					pass: creds.password,
-				},
+				headers: { Accept: '*/*', ...headers },
+				auth: { user: creds.username, pass: creds.password },
 				json: true,
 				qs,
 			};

@@ -8,6 +8,7 @@ import {
 } from 'n8n-workflow';
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { AxelorApiCredentials } from '../../helpers/interface';
+import { HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
@@ -102,7 +103,7 @@ export async function execute(
 			const uploadIds = this.getNodeParameter('uploadIds.values', i, []) as IDataObject[];
 
 			const responseData = await this.helpers.request!({
-				method: 'PUT',
+				method: HTTP.PUT,
 				url: `/ws/dms/attachments/${encodeURIComponent(model)}/${recordId}`,
 				baseURL: baseUrl,
 				auth: { user: username, pass: password },

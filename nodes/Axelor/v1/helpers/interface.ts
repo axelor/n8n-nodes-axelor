@@ -45,9 +45,3 @@ export interface WebServiceInfo {
 	target: string;
 	httpMethod: string;
 }
-
-export interface WorkflowCredentials {
-	baseUrl: string;
-	username: string;
-	password: string;
-}

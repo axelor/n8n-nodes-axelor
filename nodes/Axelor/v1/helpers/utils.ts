@@ -12,7 +12,6 @@ import {
 	NodeOperationError,
 } from 'n8n-workflow';
 import { Readable } from 'stream';
-
 import {
 	AXELOR_FIELD_TYPE_MAP,
 	AXELOR_SELECTION_FIELDS,
@@ -21,7 +20,7 @@ import {
 	PARAMETER,
 	UPLOAD_CHUNK_SIZE,
 } from './constants';
-import { AxelorModelFieldSchema, WebServiceInfo, WorkflowCredentials } from './interface';
+import { AxelorApiCredentials, AxelorModelFieldSchema, WebServiceInfo } from './interface';
 
 export function normalizeKey(input: string) {
 	if (input && !input.trim()) return input;
@@ -313,7 +312,7 @@ export const buildRequest = ({
 	values = {},
 }: {
 	serviceInfo: WebServiceInfo;
-	credentials: WorkflowCredentials;
+	credentials: AxelorApiCredentials;
 	values: Record<string, string>;
 }) => {
 	const url = processUrl(serviceInfo.target, values);

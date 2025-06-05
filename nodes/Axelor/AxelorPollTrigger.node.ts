@@ -9,7 +9,7 @@ import {
 } from 'n8n-workflow';
 import { isEqual } from './v1/helpers/lodash';
 import { loadOptions } from './v1/methods';
-import { START_OPTIONS } from './v1/helpers/constants';
+import { HTTP, START_OPTIONS } from './v1/helpers/constants';
 import { createCriteria } from './v1/helpers/utils';
 import { toUTCISOStringFromTZ } from './v1/helpers/dateUtils';
 
@@ -164,7 +164,7 @@ export class AxelorPollTrigger implements INodeType {
 			}
 
 			const response = await this.helpers.request({
-				method: 'POST',
+				method: HTTP.POST,
 				url: `/ws/rest/${encodeURIComponent(model)}/search`,
 				baseURL: baseUrl as string,
 				auth: {

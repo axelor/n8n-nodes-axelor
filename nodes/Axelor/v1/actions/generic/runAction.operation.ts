@@ -11,6 +11,7 @@ import { fromPairs } from '../../helpers/lodash';
 
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { AxelorApiCredentials } from '../../helpers/interface';
+import { HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
@@ -126,7 +127,7 @@ export async function execute(
 			};
 
 			const responseData = await this.helpers.request!({
-				method: 'POST',
+				method: HTTP.POST,
 				url: '/ws/action/',
 				baseURL: baseUrl,
 				auth: { user: username, pass: password },

@@ -1,5 +1,5 @@
 /* eslint-disable n8n-nodes-base/node-param-display-name-miscased */
-import { FieldType, NodePropertyTypes } from 'n8n-workflow';
+import { FieldType, IHttpRequestMethods, NodePropertyTypes } from 'n8n-workflow';
 
 export const AXELOR_SELECTION_FIELDS = ['ONE_TO_ONE', 'MANY_TO_ONE', 'MANY_TO_MANY', 'ONE_TO_MANY'];
 
@@ -119,3 +119,12 @@ export const HTTP_METHOD_OPTIONS = [
 		value: 'PATCH',
 	},
 ];
+
+export const HTTP: Record<IHttpRequestMethods, IHttpRequestMethods> = {
+	HEAD: 'HEAD',
+	GET: 'GET',
+	POST: 'POST',
+	PUT: 'PUT',
+	DELETE: 'DELETE',
+	PATCH: 'PATCH',
+};

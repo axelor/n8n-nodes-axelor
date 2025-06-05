@@ -15,6 +15,7 @@ import {
 	getItemBinaryData,
 	wrapData,
 } from '../../helpers/utils';
+import { HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
@@ -74,7 +75,7 @@ export async function execute(
 
 		try {
 			const responseData = await this.helpers.request!({
-				method: 'POST',
+				method: HTTP.POST,
 				url: `/ws/files/upload`,
 				baseURL: baseUrl,
 				auth: { user: username, pass: password },

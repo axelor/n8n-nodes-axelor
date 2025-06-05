@@ -5,7 +5,6 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 import { NodeApiError, updateDisplayOptions } from 'n8n-workflow';
-import { getFields } from '../../helpers/api-helper';
 import {
 	buildRequestData,
 	getChangedFieldNames,
@@ -13,6 +12,9 @@ import {
 	processAxelorError,
 	wrapData,
 } from '../../helpers/utils';
+import { getFields } from '../../helpers/api-helper';
+import { AxelorApiCredentials } from '../../helpers/interface';
+import { HTTP } from '../../helpers/constants';
 
 const properties: INodeProperties[] = [
 	{
@@ -53,8 +55,7 @@ export async function execute(
 	items: INodeExecutionData[],
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
-	const creds = await this.getCredentials('axelorApi');
-	const baseUrl = creds.baseUrl as string;
+	const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
 
 	const metaFieldCache: Record<string, any> = {};
 
@@ -83,10 +84,10 @@ export async function execute(
 			const data = buildRequestData(changedKeys, mapping, fields, metaJsonFields);
 
 			const responseData = await this.helpers.request!({
-				method: 'POST',
+				method: HTTP.POST,
 				url: `/ws/rest/${encodeURIComponent(model)}`,
-				baseURL: baseUrl,
-				auth: { user: creds.username as string, pass: creds.password as string },
+				baseURL: creds.baseUrl,
+				auth: { user: creds.username, pass: creds.password },
 				body: { data },
 				json: true,
 			});
