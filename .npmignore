@@ -1,2 +1,36 @@
+# Development files
+.git/
+.github/
+.vscode/
+.editorconfig
+.eslintrc.js
+.eslintrc.prepublish.js
+.prettierrc.js
 .DS_Store
 *.tsbuildinfo
+tsconfig.json
+gulpfile.js
+
+# Environment and configuration
+.env
+.env.*
+docker-compose.yml
+Dockerfile
+
+# Build and test files
+node_modules/
+coverage/
+.tmp/
+tmp/
+test/
+*.spec.ts
+*.test.ts
+
+# Documentation and examples
+
+*.md
+!README.md
+!LICENSE.md
+
+# Source files (only dist is needed)
+src/
