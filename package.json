@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-axelor-connect",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Axelor nodes for n8n",
 	"keywords": [
 		"n8n",
@@ -40,7 +40,9 @@
 			"dist/credentials/AxelorApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/Axelor/Axelor.node.js"
+			"dist/nodes/Axelor/Axelor.node.js",
+			"dist/nodes/Axelor/AxelorTrigger.node.js",
+			"dist/nodes/Axelor/AxelorPollTrigger.node.js"
 		]
 	},
 	"devDependencies": {
