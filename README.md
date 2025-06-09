@@ -31,7 +31,7 @@ Before using any Axelor node, you need to set up authentication:
 2. Run the install command:
 
    ```bash
-   npm install n8n-nodes-axelor
+   npm install n8n-nodes-axelor-connect
    ```
 
 3. **Restart n8n**
