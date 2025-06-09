@@ -4,7 +4,7 @@ Connect your [Axelor ERP](https://docs.axelor.com) applications with [n8n](https
 
 ## 📚 Overview
 
-The **n8n-nodes-axelor** integration allows you to connect your Axelor ERP applications with n8n workflows. This integration provides comprehensive access to Axelor's data and functionality through three main resource categories:
+The **n8n-nodes-axelor-connect** integration allows you to connect your Axelor ERP applications with n8n workflows. This integration provides comprehensive access to Axelor's data and functionality through three main resource categories:
 
 - **Record**: Core CRUD operations for Axelor models
 - **DMS**: Document Management System operations
@@ -61,7 +61,7 @@ Before using any Axelor node, you need to set up authentication:
 ### Generic Operations
 
 - **Run Action**: Executes a predefined action using custom parameters
-  **Business Service Call**: Calls a specific business service in Axelor
+- **Business Service Call**: Calls a specific business service in Axelor
 - **Make API Call**: Makes a custom API call to the Axelor REST API
 
 ### Triggers
@@ -77,7 +77,6 @@ Before using any Axelor node, you need to set up authentication:
 ## Limitations
 
 - **No Support for OneToMany Fields (v0.1.0)**: The integration currently does not support OneToMany relationships
-- **No Related Field Support**: Fields that reference related entities cannot be properly handled in the current version
 
 ## 🛠️ Best Practices
 
@@ -113,7 +112,7 @@ Before using any Axelor node, you need to set up authentication:
 
 | Version | Date       | Highlights                                                                     |
 | ------- | ---------- | ------------------------------------------------------------------------------ |
-| 0.1.0   | 2025-06-01 | Initial release: CRUD operations + DMS + Generic opeations + Delete Trigger 🚀 |
+| 0.1.0   | 2025-06-09 | Initial release: CRUD operations + DMS + Generic opeations + Delete Trigger 🚀 |
 
 ---
 
