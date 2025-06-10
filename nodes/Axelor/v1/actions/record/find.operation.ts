@@ -8,7 +8,7 @@ import {
 import { NodeApiError } from 'n8n-workflow';
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
-import { AxelorApiCredentials } from '../../helpers/interface';
+import { apiRequest } from '../../transport';
 import { HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
@@ -58,7 +58,6 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		const model = this.getNodeParameter('model', i) as string;
 
 		try {
-			const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
 			const findById = this.getNodeParameter('findById', i, false) as boolean;
 			const recordId = this.getNodeParameter('recordId', i, null) as string;
 			const limit = this.getNodeParameter('limit', i, 10) as number;
@@ -76,7 +75,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				? `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`
 				: `/ws/rest/${encodeURIComponent(model)}/search`;
 
-			const body: any = {
+			const body: IDataObject = {
 				offset: 0,
 				limit,
 				fields: fieldNames,
@@ -84,14 +83,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				data: {},
 			};
 
-			const resp = await this.helpers.request!({
-				method: HTTP.POST,
-				url,
-				baseURL: creds.baseUrl,
-				auth: { user: creds.username, pass: creds.password },
-				body,
-				json: true,
-			});
+			const resp = await apiRequest.call(this, HTTP.POST, url, body);
 
 			isValidResponse(resp);
 

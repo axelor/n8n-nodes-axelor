@@ -4,14 +4,10 @@ import {
 	INodePropertyOptions,
 	NodeOperationError,
 } from 'n8n-workflow';
-import {
-	AxelorApiCredentials,
-	AxelorModelFieldSchema,
-	AxelorRecord,
-	FieldCategory,
-} from './interface';
+import { AxelorModelFieldSchema, AxelorRecord, FieldCategory } from './interface';
 import { filterFieldsByJson, getJsonFields, getNameColoumn, normalizeKey } from './utils';
 import { FIELD_ATTRIBUTES, HTTP, MODEL } from './constants';
+import { apiRequest } from '../transport';
 
 export async function getOptions(
 	this: ILoadOptionsFunctions,
@@ -21,29 +17,14 @@ export async function getOptions(
 
 	if (!target) return [];
 
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
-	const credentials = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
-
 	const body = {
 		data: field.domain ? { _domain: field.domain } : {},
 		fields: [targetName ?? 'id'],
 	};
 
 	try {
-		const response = await this.helpers.request({
-			method: HTTP.POST,
-			url: `/ws/rest/${target}/search`,
-			baseURL: credentials.baseUrl,
-			auth: {
-				user: credentials.username,
-				pass: credentials.password,
-			},
-			json: true,
-			body,
-		});
+		const url = `/ws/rest/${target}/search`;
+		const response = await apiRequest.call(this, HTTP.POST, url, body);
 
 		const records = Array.isArray(response.data) ? response.data : [];
 
@@ -61,22 +42,10 @@ export async function getMetaFields(
 	model: string,
 	options?: Record<string, any>,
 ): Promise<AxelorModelFieldSchema[]> {
-	const { baseUrl, username, password } = (await this.getCredentials(
-		'axelorApi',
-	)) as AxelorApiCredentials;
-
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	try {
-		const respFields = await this.helpers.request!({
-			method: HTTP.GET,
-			url: `/ws/meta/fields/${encodeURIComponent(model)}`,
-			baseURL: baseUrl,
-			auth: { user: username, pass: password },
-			json: true,
-		});
+		const url = `/ws/meta/fields/${encodeURIComponent(model)}`;
+		const respFields = await apiRequest.call(this, HTTP.GET, url);
+
 		const fields: AxelorModelFieldSchema[] = respFields.data?.fields || [];
 
 		if (!options?.jsonMetaFields) {
@@ -107,10 +76,6 @@ export async function getMetaModelFieldRecord(
 	recordId: number,
 	options?: Record<string, any>,
 ): Promise<AxelorRecord | null> {
-	const { baseUrl, username, password } = (await this.getCredentials(
-		'axelorApi',
-	)) as AxelorApiCredentials;
-
 	if (!model || !recordId) {
 		throw new NodeOperationError(
 			this.getNode(),
@@ -118,23 +83,12 @@ export async function getMetaModelFieldRecord(
 		);
 	}
 
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	const url = options?.isCustomModel
 		? `/ws/rest/${MODEL.META_JSON_RECORD}/${encodeURIComponent(recordId)}/fetch`
 		: `/ws/rest/${encodeURIComponent(model)}/${encodeURIComponent(recordId)}/fetch`;
 
 	try {
-		const response = await this.helpers.request!({
-			method: HTTP.POST,
-			url,
-			baseURL: baseUrl,
-			auth: { user: username, pass: password },
-			json: true,
-			body: {},
-		});
+		const response = await apiRequest.call(this, HTTP.POST, url);
 
 		return response.data?.[0] || {};
 	} catch (error) {
@@ -145,37 +99,21 @@ export async function getMetaModelFieldRecord(
 export async function getMetaModelRecords(
 	this: ILoadOptionsFunctions,
 ): Promise<INodePropertyOptions[]> {
-	const { baseUrl, username, password } = (await this.getCredentials(
-		'axelorApi',
-	)) as AxelorApiCredentials;
 	const selectedModel = this.getCurrentNodeParameter('model') as string;
 
 	if (!selectedModel) return [];
 
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	try {
-		const respFields = await this.helpers.request!({
-			method: HTTP.GET,
-			url: `/ws/meta/fields/${encodeURIComponent(selectedModel)}`,
-			baseURL: baseUrl,
-			auth: { user: username, pass: password },
-			json: true,
-		});
+		const fieldsUrl = `/ws/meta/fields/${encodeURIComponent(selectedModel)}`;
+		const respFields = await apiRequest.call(this, HTTP.GET, fieldsUrl);
 
 		const nameColumn = getNameColoumn(respFields?.data);
+
 		const fields = nameColumn && nameColumn !== 'id' ? ['id', nameColumn] : ['id'];
 
-		const result = await this.helpers.request!({
-			method: HTTP.POST,
-			url: `/ws/rest/${encodeURIComponent(selectedModel)}/search`,
-			baseURL: baseUrl,
-			auth: { user: username, pass: password },
-			body: { fields },
-			json: true,
-		});
+		const searchUrl = `/ws/rest/${encodeURIComponent(selectedModel)}/search`;
+		const body = { fields };
+		const result = await apiRequest.call(this, HTTP.POST, searchUrl, body);
 
 		return Array.isArray(result.data)
 			? result.data.map((item: any) => ({
@@ -193,26 +131,13 @@ export async function getFields(
 	model: string,
 	options?: Record<string, any>,
 ): Promise<Record<FieldCategory, AxelorModelFieldSchema[]>> {
-	const { baseUrl, username, password } = (await this.getCredentials(
-		'axelorApi',
-	)) as AxelorApiCredentials;
-
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	const url = options?.isCustomModel
 		? `/ws/meta/fields/${MODEL.META_JSON_RECORD}/?jsonModel=${model}`
 		: `/ws/meta/fields/${encodeURIComponent(model)}`;
 
 	try {
-		const respFields = await this.helpers.request!({
-			method: HTTP.GET,
-			url,
-			baseURL: baseUrl,
-			auth: { user: username as string, pass: password as string },
-			json: true,
-		});
+		const respFields = await apiRequest.call(this, HTTP.GET, url);
+
 		const fields: AxelorModelFieldSchema[] = respFields.data?.fields || [];
 
 		const { metaFields, metaJsonFields } = filterFieldsByJson(fields);

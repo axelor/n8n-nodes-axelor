@@ -12,6 +12,7 @@ import { loadOptions } from './v1/methods';
 import { HTTP, START_OPTIONS } from './v1/helpers/constants';
 import { createCriteria } from './v1/helpers/utils';
 import { toUTCISOStringFromTZ } from './v1/helpers/dateUtils';
+import { apiRequest } from './v1/transport';
 
 const ENABLED_ON = { show: { triggerOn: ['recordCreate', 'recordUpdate'] } };
 
@@ -143,8 +144,6 @@ export class AxelorPollTrigger implements INodeType {
 		}
 
 		try {
-			const { baseUrl, username, password } = await this.getCredentials('axelorApi');
-
 			const now = new Date().toISOString();
 			const lastTimeStamp = (webhookData.lastTimeChecked as string) || (initialTimeStamp as string);
 			const currentTimeStamp = now;
@@ -163,17 +162,9 @@ export class AxelorPollTrigger implements INodeType {
 				});
 			}
 
-			const response = await this.helpers.request({
-				method: HTTP.POST,
-				url: `/ws/rest/${encodeURIComponent(model)}/search`,
-				baseURL: baseUrl as string,
-				auth: {
-					user: username as string,
-					pass: password as string,
-				},
-				json: true,
-				body: { limit, data },
-			});
+			const url = `/ws/rest/${encodeURIComponent(model)}/search`;
+			const body = { limit, data };
+			const response = await apiRequest.call(this, HTTP.POST, url, body);
 
 			webhookData.lastTimeChecked = currentTimeStamp;
 

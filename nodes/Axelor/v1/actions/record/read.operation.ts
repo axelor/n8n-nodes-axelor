@@ -14,8 +14,8 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
-import { AxelorApiCredentials } from '../../helpers/interface';
 import { HTTP } from '../../helpers/constants';
+import { apiRequest } from '../../transport';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
 
@@ -79,8 +79,6 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		const model = this.getNodeParameter('model', i) as string;
 
 		try {
-			const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
-
 			let cacheData = metaFieldCache[model];
 			if (!cacheData) {
 				const data = await getFields.call(this, model);
@@ -107,14 +105,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				}
 			}
 
-			const resp = await this.helpers.request!({
-				method: HTTP.POST,
-				url: `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`,
-				baseURL: creds.baseUrl,
-				auth: { user: creds.username, pass: creds.password },
-				body,
-				json: true,
-			});
+			const url = `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`;
+			const resp = await apiRequest.call(this, HTTP.POST, url, body);
 
 			isValidResponse(resp);
 

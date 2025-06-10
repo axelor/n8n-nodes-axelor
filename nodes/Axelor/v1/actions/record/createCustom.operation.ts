@@ -14,7 +14,7 @@ import {
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
 import { HTTP, MODEL } from '../../helpers/constants';
-import { AxelorApiCredentials } from '../../helpers/interface';
+import { apiRequest } from '../../transport';
 
 const properties: INodeProperties[] = [
 	{
@@ -56,9 +56,6 @@ export async function execute(
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
 
-	const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
-	const baseUrl = creds.baseUrl as string;
-
 	const metaFieldCache: Record<string, any> = {};
 
 	for (let i = 0; i < items.length; i++) {
@@ -82,14 +79,9 @@ export async function execute(
 			const data = buildRequestData(changedKeys, mapping, jsonFields, metaJsonFields);
 
 			data.jsonModel = model;
-			const responseData = await this.helpers.request!({
-				method: HTTP.POST,
-				url: `/ws/rest/${MODEL.META_JSON_RECORD}`,
-				baseURL: baseUrl,
-				auth: { user: creds.username, pass: creds.password },
-				body: { data },
-				json: true,
-			});
+
+			const url = `/ws/rest/${MODEL.META_JSON_RECORD}`;
+			const responseData = await apiRequest.call(this, HTTP.POST, url, { data });
 
 			isValidResponse(responseData);
 

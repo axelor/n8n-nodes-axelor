@@ -6,8 +6,6 @@ import {
 	IDataObject,
 } from 'n8n-workflow';
 import type { FieldType, INodePropertyOptions } from 'n8n-workflow';
-import { isNull, startCase } from '../helpers/lodash';
-
 import {
 	buildResourceField,
 	constructOptions,
@@ -18,29 +16,28 @@ import {
 	processCollectionFields,
 } from '../helpers/utils';
 import { AxelorModelFieldSchema } from '../helpers/interface';
+import { isNull, startCase } from '../helpers/lodash';
 import { getOptions } from '../helpers/api-helper';
-import { AXELOR_SELECTION_FIELDS, FIELD_TYPE, MODEL, PARAMETER } from '../helpers/constants';
+import { apiRequest } from '../transport';
+import {
+	AXELOR_SELECTION_FIELDS,
+	FIELD_TYPE,
+	HTTP,
+	MODEL,
+	PARAMETER,
+	WEB_SERVICE,
+} from '../helpers/constants';
 
 export async function getMetaModelFields(
 	this: ILoadOptionsFunctions,
 ): Promise<ResourceMapperFields> {
-	const credentials = await this.getCredentials('axelorApi');
 	const selectedModel = this.getCurrentNodeParameter('model') as string;
 
 	if (!selectedModel) return { fields: [] };
 
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	try {
-		const response = await this.helpers.request({
-			method: 'GET',
-			url: `/ws/meta/fields/${encodeURIComponent(selectedModel)}`,
-			baseURL: credentials.baseUrl as string,
-			auth: { user: credentials.username as string, pass: credentials.password as string },
-			json: true,
-		});
+		const url = `/ws/meta/fields/${encodeURIComponent(selectedModel)}`;
+		const response = await apiRequest.call(this, HTTP.GET, url);
 
 		const $fields: AxelorModelFieldSchema[] = response.data?.fields || [];
 
@@ -100,23 +97,13 @@ export async function getMetaModelFields(
 export async function getMetaJsonModelFields(
 	this: ILoadOptionsFunctions,
 ): Promise<ResourceMapperFields> {
-	const credentials = await this.getCredentials('axelorApi');
 	const selectedModel = this.getCurrentNodeParameter('customModel') as string;
 
 	if (!selectedModel) return { fields: [] };
 
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	try {
-		const response = await this.helpers.request({
-			method: 'GET',
-			url: `/ws/meta/fields/${MODEL.META_JSON_RECORD}/?jsonModel=${selectedModel}`,
-			baseURL: credentials.baseUrl as string,
-			auth: { user: credentials.username as string, pass: credentials.password as string },
-			json: true,
-		});
+		const url = `/ws/meta/fields/${MODEL.META_JSON_RECORD}/?jsonModel=${selectedModel}`;
+		const response = await apiRequest.call(this, HTTP.GET, url);
 
 		const attrs = [
 			'title',
@@ -174,8 +161,6 @@ export async function getMetaJsonModelFields(
 export async function loadActionBodyFields(
 	this: ILoadOptionsFunctions,
 ): Promise<ResourceMapperFields> {
-	const credentials = await this.getCredentials('axelorApi');
-
 	const module = this.getNodeParameter('module') as string;
 	const actionRaw = this.getCurrentNodeParameter('action') as string;
 	const actionData = JSON.parse(actionRaw);
@@ -185,27 +170,14 @@ export async function loadActionBodyFields(
 
 	if (!module || !action) return { fields: [] };
 
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	const qs: IDataObject = {};
 
 	qs.classFullyQualifiedName = classFullyQualifiedName;
 	qs.name = action;
 
 	try {
-		const response = await this.helpers.request({
-			method: 'GET',
-			url: `/ws/connect/connect-web-service-info`,
-			baseURL: credentials.baseUrl as string,
-			auth: {
-				user: credentials.username as string,
-				pass: credentials.password as string,
-			},
-			json: true,
-			qs,
-		});
+		const url = WEB_SERVICE.CONNECT_WS_INFO;
+		const response = await apiRequest.call(this, HTTP.GET, url, {}, qs);
 
 		let $fields: AxelorModelFieldSchema[] = response.requestBody?.bodyParameters || [];
 

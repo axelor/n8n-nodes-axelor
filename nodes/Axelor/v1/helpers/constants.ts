@@ -27,6 +27,7 @@ export const MODEL = {
 
 export const WEB_SERVICE = {
 	CONNECT_WS_INFO: '/ws/connect/connect-web-service-info',
+	CONNECT_WS: '/ws/connect/connect-web-services',
 };
 
 export const ARCHIVED_OPTIONS = [

@@ -7,7 +7,7 @@ import {
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
-import { AxelorApiCredentials } from '../../helpers/interface';
+import { apiRequest } from '../../transport';
 import { HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
@@ -92,9 +92,6 @@ export async function execute(
 	items: INodeExecutionData[],
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
-	const { baseUrl, username, password } = (await this.getCredentials(
-		'axelorApi',
-	)) as AxelorApiCredentials;
 
 	for (let i = 0; i < items.length; i++) {
 		try {
@@ -102,14 +99,9 @@ export async function execute(
 			const recordId = this.getNodeParameter('records', i) as number;
 			const uploadIds = this.getNodeParameter('uploadIds.values', i, []) as IDataObject[];
 
-			const responseData = await this.helpers.request!({
-				method: HTTP.PUT,
-				url: `/ws/dms/attachments/${encodeURIComponent(model)}/${recordId}`,
-				baseURL: baseUrl,
-				auth: { user: username, pass: password },
-				body: { records: uploadIds },
-				json: true,
-			});
+			const url = `/ws/dms/attachments/${encodeURIComponent(model)}/${recordId}`;
+
+			const responseData = await apiRequest.call(this, HTTP.PUT, url, { records: uploadIds });
 
 			isValidResponse(responseData);
 

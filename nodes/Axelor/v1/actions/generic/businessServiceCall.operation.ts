@@ -16,6 +16,7 @@ import {
 import { AxelorApiCredentials } from '../../helpers/interface';
 import { HTTP, WEB_SERVICE } from '../../helpers/constants';
 import { join } from '../../helpers/lodash';
+import { apiRequest } from '../../transport';
 
 export const properties: INodeProperties[] = [
 	{
@@ -120,14 +121,10 @@ export async function execute(
 		let response: any = {};
 		try {
 			if (!cacheData) {
-				response = await this.helpers.request({
-					method: 'GET',
-					url: WEB_SERVICE.CONNECT_WS_INFO,
-					baseURL: creds.baseUrl,
-					auth: { user: creds.username, pass: creds.password },
-					json: true,
-					qs,
-				});
+				const url = WEB_SERVICE.CONNECT_WS_INFO;
+				const data: IDataObject = {};
+				response = await apiRequest.call(this, HTTP.GET, url, data, qs);
+
 				infoCache[key] = response;
 				cacheData = response;
 			}

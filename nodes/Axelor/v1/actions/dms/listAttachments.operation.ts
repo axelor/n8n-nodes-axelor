@@ -8,7 +8,7 @@ import {
 } from 'n8n-workflow';
 
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
-import { AxelorApiCredentials } from '../../helpers/interface';
+import { apiRequest } from '../../transport';
 import { HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
@@ -63,25 +63,14 @@ export async function execute(
 	items: INodeExecutionData[],
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
-	const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
-
-	const auth = {
-		user: creds.username,
-		pass: creds.password,
-	};
 
 	for (let i = 0; i < items.length; i++) {
 		const model = this.getNodeParameter('model', i) as string;
 		const recordId = this.getNodeParameter('records', i) as number;
 
 		try {
-			const responseData = await this.helpers.request!({
-				method: HTTP.GET,
-				baseURL: creds.baseUrl,
-				url: `/ws/dms/attachments/${model}/${recordId}`,
-				auth,
-				json: true,
-			});
+			const url = `/ws/dms/attachments/${model}/${recordId}`;
+			const responseData = await apiRequest.call(this, HTTP.GET, url);
 
 			isValidResponse(responseData);
 

@@ -20,7 +20,7 @@ import {
 import { getFields } from '../../helpers/api-helper';
 import { ARCHIVED_OPTIONS, HTTP, SORT_BY_OPTIONS } from '../../helpers/constants';
 import { isEmpty } from '../../helpers/lodash';
-import { AxelorApiCredentials } from '../../helpers/interface';
+import { apiRequest } from '../../transport';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
 
@@ -158,7 +158,6 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		const model = this.getNodeParameter('model', i) as string;
 
 		try {
-			const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
 			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
 			const limit = this.getNodeParameter('limit', i, enableAdvancedSettings ? 50 : 10) as number;
 
@@ -199,14 +198,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				typeof archived === 'boolean' ? (data._archived = archived) : delete data._archived;
 			}
 
-			const resp = await this.helpers.request!({
-				method: HTTP.POST,
-				url: `/ws/rest/${encodeURIComponent(model)}/search`,
-				baseURL: creds.baseUrl,
-				auth: { user: creds.username, pass: creds.password },
-				body,
-				json: true,
-			});
+			const url = `/ws/rest/${encodeURIComponent(model)}/search`;
+			const resp = await apiRequest.call(this, HTTP.POST, url, body);
 
 			isValidResponse(resp);
 

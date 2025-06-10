@@ -7,8 +7,6 @@ import {
 	NodeOperationError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
-
-import { AxelorApiCredentials } from '../../helpers/interface';
 import {
 	isValidResponse,
 	processAxelorError,
@@ -16,6 +14,7 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { HTTP } from '../../helpers/constants';
+import { apiRequest } from '../../transport';
 
 export const properties: INodeProperties[] = [
 	{
@@ -54,10 +53,6 @@ export async function execute(
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
 
-	const { baseUrl, username, password } = (await this.getCredentials(
-		'axelorApi',
-	)) as AxelorApiCredentials;
-
 	for (let i = 0; i < items.length; i++) {
 		const inputDataFieldName = this.getNodeParameter('inputDataFieldName', i) as string;
 
@@ -74,21 +69,17 @@ export async function execute(
 		}
 
 		try {
-			const responseData = await this.helpers.request!({
-				method: HTTP.POST,
-				url: `/ws/files/upload`,
-				baseURL: baseUrl,
-				auth: { user: username, pass: password },
-				body: fileContent,
-				headers: {
-					'X-File-Name': name,
-					'X-File-Type': mimeType,
-					'X-File-Size': contentLength,
-					'X-File-Offset': 0,
-					'Content-Type': 'application/octet-stream',
-				},
-				json: true,
-			});
+			const headers = {
+				'X-File-Name': name,
+				'X-File-Type': mimeType,
+				'X-File-Size': contentLength,
+				'X-File-Offset': 0,
+				'Content-Type': 'application/octet-stream',
+			};
+			const url = `/ws/files/upload`;
+			const qs: IDataObject = {};
+
+			const responseData = await apiRequest.call(this, HTTP.POST, url, fileContent, qs, headers);
 
 			isValidResponse(responseData);
 			const executionData = this.helpers.constructExecutionMetaData(
