@@ -83,8 +83,6 @@ describe('Test Axelor, delete operation', () => {
 		(transport.apiRequest as jest.Mock).mockResolvedValue(mockApiResponse);
 		const result = await deleteOp.execute.call(mockExecuteFunction, items);
 
-		console.log(result);
-
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('deleteMultiple', 0, false);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('recordIds', 0);
