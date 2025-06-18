@@ -1,34 +1,17 @@
-import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
+import type { IDataObject, ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-
 import { getJsonFields, getNameColoumn, isValidResponse } from '../helpers/utils';
-import { startCase, toLower } from 'lodash';
-import { MODEL } from '../helpers/constants';
+import { startCase, toLower } from '../helpers/lodash';
+import { HTTP, MODEL, WEB_SERVICE } from '../helpers/constants';
+import { apiRequest } from '../transport';
 
 export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
-		baseUrl: string;
-		username: string;
-		password: string;
-	};
-
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	try {
 		const body = {
 			fields: ['name', 'fullName'],
 		};
-
-		const response = await this.helpers.request({
-			method: 'POST',
-			url: '/ws/rest/com.axelor.meta.db.MetaModel/search',
-			baseURL: baseUrl,
-			auth: { user: username, pass: password },
-			json: true,
-			body,
-		});
+		const url = '/ws/rest/com.axelor.meta.db.MetaModel/search';
+		const response = await apiRequest.call(this, HTTP.POST, url, body);
 
 		return Array.isArray(response.data)
 			? response.data.map((model: { name: string; fullName: string }) => ({
@@ -44,39 +27,19 @@ export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodeP
 export async function getMetaModelRecords(
 	this: ILoadOptionsFunctions,
 ): Promise<INodePropertyOptions[]> {
-	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
-		baseUrl: string;
-		username: string;
-		password: string;
-	};
 	const selectedModel = this.getCurrentNodeParameter('model') as string;
 
 	if (!selectedModel) return [];
 
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	try {
-		const respFields = await this.helpers.request!({
-			method: 'GET',
-			url: `/ws/meta/fields/${encodeURIComponent(selectedModel)}`,
-			baseURL: baseUrl,
-			auth: { user: username as string, pass: password as string },
-			json: true,
-		});
+		const fieldsUrl = `/ws/meta/fields/${encodeURIComponent(selectedModel)}`;
+		const respFields = await apiRequest.call(this, HTTP.GET, fieldsUrl);
 
 		const nameColumn = getNameColoumn(respFields?.data);
 		const fields = nameColumn && nameColumn !== 'id' ? ['id', nameColumn] : ['id'];
 
-		const result = await this.helpers.request!({
-			method: 'POST',
-			url: `/ws/rest/${encodeURIComponent(selectedModel)}/search`,
-			baseURL: baseUrl,
-			auth: { user: username as string, pass: password as string },
-			body: { fields },
-			json: true,
-		});
+		const url = `/ws/rest/${encodeURIComponent(selectedModel)}/search`;
+		const result = await apiRequest.call(this, HTTP.POST, url, { fields });
 
 		return Array.isArray(result.data)
 			? result.data.map((item: any) => ({
@@ -90,28 +53,13 @@ export async function getMetaModelRecords(
 }
 
 export async function loadMetaFields(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
-		baseUrl: string;
-		username: string;
-		password: string;
-	};
-
 	const selectedModel = this.getCurrentNodeParameter('model') as string;
 
 	if (!selectedModel) return [];
 
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	try {
-		const respFields = await this.helpers.request!({
-			method: 'GET',
-			url: `/ws/meta/fields/${encodeURIComponent(selectedModel)}`,
-			baseURL: baseUrl,
-			auth: { user: username as string, pass: password as string },
-			json: true,
-		});
+		const url = `/ws/meta/fields/${encodeURIComponent(selectedModel)}`;
+		const respFields = await apiRequest.call(this, HTTP.GET, url);
 
 		if (respFields.status == -1) {
 			throw new Error(respFields.data?.message || 'Invalid response');
@@ -135,32 +83,61 @@ export async function loadMetaFields(this: ILoadOptionsFunctions): Promise<INode
 	}
 }
 
+export async function getModules(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+	try {
+		const url = '/ws/connect/connect-tags';
+		const response = await apiRequest.call(this, HTTP.GET, url);
+
+		return Array.isArray(response)
+			? response.map((value: string) => ({
+					name: value,
+					value: value,
+				}))
+			: [];
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
+	}
+}
+
+export async function getActions(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+	const module = this.getNodeParameter('module') as string;
+
+	const qs: IDataObject = {};
+
+	if (module) {
+		qs.tagName = module;
+	}
+
+	try {
+		const url = WEB_SERVICE.CONNECT_WS;
+		const body: IDataObject = {};
+		const response = await apiRequest.call(this, HTTP.GET, url, body, qs);
+
+		return Array.isArray(response)
+			? response.map((item: { name: string; classFullyQualifiedName: string }) => ({
+					name: item.name,
+					value: JSON.stringify({
+						name: item.name,
+						classFullyQualifiedName: item.classFullyQualifiedName,
+					}),
+				}))
+			: [];
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch models', error);
+	}
+}
+
 export async function getMetaJsonModels(
 	this: ILoadOptionsFunctions,
 ): Promise<INodePropertyOptions[]> {
-	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
-		baseUrl: string;
-		username: string;
-		password: string;
-	};
-
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	try {
 		const body = {
 			fields: ['name', 'title'],
 		};
 
-		const response = await this.helpers.request({
-			method: 'POST',
-			url: `/ws/rest/${MODEL.META_JSON_MODEL}/search`,
-			baseURL: baseUrl,
-			auth: { user: username, pass: password },
-			json: true,
-			body,
-		});
+		const url = `/ws/rest/${MODEL.META_JSON_MODEL}/search`;
+
+		const response = await apiRequest.call(this, HTTP.POST, url, body);
 
 		return Array.isArray(response.data)
 			? response.data.map((model: { name: string; title: string }) => ({
@@ -176,18 +153,9 @@ export async function getMetaJsonModels(
 export async function getMetaJsonRecords(
 	this: ILoadOptionsFunctions,
 ): Promise<INodePropertyOptions[]> {
-	const { baseUrl, username, password } = (await this.getCredentials('axelorApi')) as {
-		baseUrl: string;
-		username: string;
-		password: string;
-	};
 	const selectedModel = this.getCurrentNodeParameter('customModel') as string;
 
 	if (!selectedModel) return [];
-
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
 
 	try {
 		const data = {
@@ -196,14 +164,9 @@ export async function getMetaJsonRecords(
 				jsonModel: selectedModel,
 			},
 		};
-		const response = await this.helpers.request!({
-			method: 'POST',
-			url: `/ws/rest/${MODEL.META_JSON_RECORD}/search`,
-			baseURL: baseUrl,
-			auth: { user: username as string, pass: password as string },
-			body: { fields: ['attrs'], data },
-			json: true,
-		});
+		const body = { fields: ['attrs'], data };
+		const url = `/ws/rest/${MODEL.META_JSON_RECORD}/search`;
+		const response = await apiRequest.call(this, HTTP.POST, url, body);
 
 		isValidResponse(response);
 

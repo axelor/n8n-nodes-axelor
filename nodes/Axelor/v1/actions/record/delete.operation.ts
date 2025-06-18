@@ -5,8 +5,9 @@ import {
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
-
 import { isValidResponse, processAxelorError } from '../../helpers/utils';
+import { apiRequest } from '../../transport';
+import { HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
@@ -75,9 +76,6 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		const deleteMultiple = this.getNodeParameter('deleteMultiple', i, false) as boolean;
 
 		try {
-			const creds = await this.getCredentials('axelorApi');
-			const baseUrl = creds.baseUrl as string;
-
 			let recordIds = [];
 
 			if (deleteMultiple) {
@@ -88,24 +86,20 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				recordIds.push({ id: selectedRecordId });
 			}
 
-			const resp = await this.helpers.request!({
-				method: 'POST',
-				url: `/ws/rest/${encodeURIComponent(model)}/removeAll`,
-				baseURL: baseUrl,
-				auth: { user: creds.username as string, pass: creds.password as string },
-				body: { records: recordIds },
-				json: true,
-			});
+			const url = `/ws/rest/${encodeURIComponent(model)}/removeAll`;
+			const body = { records: recordIds };
 
-			if (isValidResponse(resp)) {
-				returnData.push({
-					json: {
-						success: true,
-						message: `Successfully deleted ${recordIds.length} record(s)`,
-						deletedIds: recordIds,
-					},
-				});
-			}
+			const resp = await apiRequest.call(this, HTTP.POST, url, body);
+
+			isValidResponse(resp);
+
+			returnData.push({
+				json: {
+					success: true,
+					message: `Successfully deleted ${recordIds.length} record(s)`,
+					deletedIds: recordIds,
+				},
+			});
 		} catch (error) {
 			error = processAxelorError(error as NodeApiError, undefined, i);
 			if (this.continueOnFail()) {

@@ -1,4 +1,5 @@
 import {
+	IDataObject,
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
@@ -13,6 +14,8 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
+import { HTTP } from '../../helpers/constants';
+import { apiRequest } from '../../transport';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
 
@@ -76,9 +79,6 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		const model = this.getNodeParameter('model', i) as string;
 
 		try {
-			const creds = await this.getCredentials('axelorApi');
-			const baseUrl = creds.baseUrl as string;
-
 			let cacheData = metaFieldCache[model];
 			if (!cacheData) {
 				const data = await getFields.call(this, model);
@@ -105,14 +105,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				}
 			}
 
-			const resp = await this.helpers.request!({
-				method: 'POST',
-				url: `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`,
-				baseURL: baseUrl,
-				auth: { user: creds.username as string, pass: creds.password as string },
-				body,
-				json: true,
-			});
+			const url = `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`;
+			const resp = await apiRequest.call(this, HTTP.POST, url, body);
 
 			isValidResponse(resp);
 
@@ -120,8 +114,12 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			if (jsonFields && jsonFields.length > 0) {
 				result = processCustomFieldResponse(result, selectedFields!, jsonFields);
 			}
+			const executionData = this.helpers.constructExecutionMetaData(
+				wrapData(result as IDataObject[]),
+				{ itemData: { item: i } },
+			);
 
-			returnData.push(...wrapData(result || []));
+			returnData.push(...executionData);
 		} catch (error) {
 			error = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {

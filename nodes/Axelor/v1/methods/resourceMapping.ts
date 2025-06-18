@@ -3,40 +3,41 @@ import {
 	ResourceMapperField,
 	ResourceMapperFields,
 	NodeOperationError,
+	IDataObject,
 } from 'n8n-workflow';
 import type { FieldType, INodePropertyOptions } from 'n8n-workflow';
-
-import { AxelorModelFieldSchema } from '../helpers/interface';
 import {
+	buildResourceField,
 	constructOptions,
 	excludeNonInputFields,
 	getJsonFields,
 	mapAxelorTypeToFieldType,
 	normalizeKey,
+	processCollectionFields,
 } from '../helpers/utils';
-import { AXELOR_SELECTION_FIELDS, FIELD_TYPE, MODEL } from '../helpers/constants';
+import { AxelorModelFieldSchema } from '../helpers/interface';
+import { isNull, startCase } from '../helpers/lodash';
 import { getOptions } from '../helpers/api-helper';
+import { apiRequest } from '../transport';
+import {
+	AXELOR_SELECTION_FIELDS,
+	FIELD_TYPE,
+	HTTP,
+	MODEL,
+	PARAMETER,
+	WEB_SERVICE,
+} from '../helpers/constants';
 
 export async function getMetaModelFields(
 	this: ILoadOptionsFunctions,
 ): Promise<ResourceMapperFields> {
-	const credentials = await this.getCredentials('axelorApi');
 	const selectedModel = this.getCurrentNodeParameter('model') as string;
 
 	if (!selectedModel) return { fields: [] };
 
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	try {
-		const response = await this.helpers.request({
-			method: 'GET',
-			url: `/ws/meta/fields/${encodeURIComponent(selectedModel)}`,
-			baseURL: credentials.baseUrl as string,
-			auth: { user: credentials.username as string, pass: credentials.password as string },
-			json: true,
-		});
+		const url = `/ws/meta/fields/${encodeURIComponent(selectedModel)}`;
+		const response = await apiRequest.call(this, HTTP.GET, url);
 
 		const $fields: AxelorModelFieldSchema[] = response.data?.fields || [];
 
@@ -96,23 +97,13 @@ export async function getMetaModelFields(
 export async function getMetaJsonModelFields(
 	this: ILoadOptionsFunctions,
 ): Promise<ResourceMapperFields> {
-	const credentials = await this.getCredentials('axelorApi');
 	const selectedModel = this.getCurrentNodeParameter('customModel') as string;
 
 	if (!selectedModel) return { fields: [] };
 
-	if (!this.helpers.request) {
-		throw new Error('Request helper not available');
-	}
-
 	try {
-		const response = await this.helpers.request({
-			method: 'GET',
-			url: `/ws/meta/fields/${MODEL.META_JSON_RECORD}/?jsonModel=${selectedModel}`,
-			baseURL: credentials.baseUrl as string,
-			auth: { user: credentials.username as string, pass: credentials.password as string },
-			json: true,
-		});
+		const url = `/ws/meta/fields/${MODEL.META_JSON_RECORD}/?jsonModel=${selectedModel}`;
+		const response = await apiRequest.call(this, HTTP.GET, url);
 
 		const attrs = [
 			'title',
@@ -161,6 +152,77 @@ export async function getMetaJsonModelFields(
 
 		mappedFields.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
+		return { fields: mappedFields };
+	} catch (error) {
+		throw new NodeOperationError(this.getNode(), 'Failed to fetch model fields', error);
+	}
+}
+
+export async function loadActionBodyFields(
+	this: ILoadOptionsFunctions,
+): Promise<ResourceMapperFields> {
+	const module = this.getNodeParameter('module') as string;
+	const actionRaw = this.getCurrentNodeParameter('action') as string;
+	const actionData = JSON.parse(actionRaw);
+
+	const action = actionData.name;
+	const classFullyQualifiedName = actionData.classFullyQualifiedName;
+
+	if (!module || !action) return { fields: [] };
+
+	const qs: IDataObject = {};
+
+	qs.classFullyQualifiedName = classFullyQualifiedName;
+	qs.name = action;
+
+	try {
+		const url = WEB_SERVICE.CONNECT_WS_INFO;
+		const response = await apiRequest.call(this, HTTP.GET, url, {}, qs);
+
+		let $fields: AxelorModelFieldSchema[] = response.requestBody?.bodyParameters || [];
+
+		$fields = processCollectionFields($fields).filter((item) => item.name !== 'id');
+
+		const headerParams =
+			response.headers
+				?.filter((item: any) => isNull(item.value))
+				?.map((item: any) => ({ name: item.name, type: 'string' })) || [];
+
+		const $headerParameterField: AxelorModelFieldSchema[] = buildResourceField(
+			headerParams,
+			PARAMETER.header,
+		);
+		const $pathParameterField: AxelorModelFieldSchema[] =
+			buildResourceField(response.pathParameters, PARAMETER.path) || [];
+		const $queryParameterField =
+			buildResourceField(response.queryParameters, PARAMETER.query) || [];
+
+		const mappedFields: ResourceMapperField[] = await Promise.all(
+			[...$headerParameterField, ...$pathParameterField, ...$queryParameterField, ...$fields].map(
+				async (field) => {
+					field['type'] = normalizeKey(field.type);
+					const type = mapAxelorTypeToFieldType(field.type);
+					const relationFieldsResponse = await getOptions.call(this, field);
+
+					const options = AXELOR_SELECTION_FIELDS.includes(field.type)
+						? relationFieldsResponse
+						: constructOptions(field);
+
+					return {
+						id: field.name,
+						displayName: field.title || startCase(field.name),
+						defaultMatch: false,
+						required: field.required === true,
+						display: true,
+						removed: field.required === false,
+						type,
+						options,
+					};
+				},
+			),
+		);
+		if (!mappedFields || mappedFields.length === 0)
+			return { fields: [], emptyFieldsNotice: 'No Fields found in Axelor' };
 		return { fields: mappedFields };
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch model fields', error);

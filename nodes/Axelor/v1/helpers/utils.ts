@@ -1,23 +1,26 @@
-import { fromPairs, get, isEqual, set } from 'lodash';
+import { fromPairs, get, isEqual, join, set, startCase } from './lodash';
 import {
 	BINARY_ENCODING,
 	FieldType,
 	IDataObject,
 	IExecuteFunctions,
+	IHttpRequestMethods,
 	INodeExecutionData,
 	INodePropertyOptions,
+	IRequestOptions,
 	NodeApiError,
 	NodeOperationError,
 } from 'n8n-workflow';
 import { Readable } from 'stream';
-
-import { AxelorModelFieldSchema } from './interface';
 import {
 	AXELOR_FIELD_TYPE_MAP,
 	AXELOR_SELECTION_FIELDS,
+	FIELD_TYPE,
 	NON_INPUT_FIELDS,
+	PARAMETER,
 	UPLOAD_CHUNK_SIZE,
 } from './constants';
+import { AxelorApiCredentials, AxelorModelFieldSchema, WebServiceInfo } from './interface';
 
 export function normalizeKey(input: string) {
 	if (input && !input.trim()) return input;
@@ -30,7 +33,7 @@ export const mapAxelorTypeToFieldType = (axelorType: string): FieldType | undefi
 			return n8nType as FieldType;
 		}
 	}
-	return undefined;
+	return 'string';
 };
 
 export const constructOptions = (field: AxelorModelFieldSchema) => {
@@ -141,7 +144,7 @@ export function getSortByFields(this: IExecuteFunctions, i: number): Array<Strin
 	};
 	const sortByArray = get(sortByValues, 'sortBy', []);
 	return sortByArray.length > 0
-		? sortByArray.map((sort) => (sort.rule === 'desc' ? `-${sort.field}` : sort.field))
+		? sortByArray.map((sort: any) => (sort.rule === 'desc' ? `-${sort.field}` : sort.field))
 		: [];
 }
 
@@ -150,7 +153,7 @@ export function getContextFields(this: IExecuteFunctions, i: number): Object {
 		context: { key: string; value: string }[];
 	};
 	const contextArray = get(contextValues, 'context', []);
-	return fromPairs(contextArray.map((c) => [c.key, c.value]));
+	return fromPairs(contextArray.map((c: any) => [c.key, c.value]));
 }
 
 export function getSelectedFields(this: IExecuteFunctions, i: number): Array<String> {
@@ -302,3 +305,142 @@ export function processCustomFieldResponse(
 export const excludeNonInputFields = (field: any) => {
 	return !NON_INPUT_FIELDS.includes(field?.type);
 };
+
+export const buildRequest = ({
+	serviceInfo,
+	credentials,
+	values = {},
+}: {
+	serviceInfo: WebServiceInfo;
+	credentials: AxelorApiCredentials;
+	values: Record<string, string>;
+}) => {
+	const url = processUrl(serviceInfo.target, values);
+	const headerParamerters = getParameter(values, PARAMETER.header);
+	const qs = getParameter(values, PARAMETER.query);
+
+	const request: IRequestOptions = {
+		method: serviceInfo.httpMethod as IHttpRequestMethods,
+		url,
+		baseURL: credentials.baseUrl,
+		headers: {
+			Accept: '*/*',
+			'Content-Type': 'application/json',
+			...headerParamerters,
+		},
+		auth: {
+			user: credentials.username,
+			pass: credentials.password,
+		},
+		json: true,
+		qs,
+	};
+
+	return request;
+};
+
+const processUrl = (url: string, value: Object) => {
+	let processedUrl = replaceUrlParams(url, value, PARAMETER.path);
+	return `/ws${processedUrl}`;
+};
+
+function replaceUrlParams(url: string, values: Record<string, any>, prefix: string) {
+	const filteredValues = Object.fromEntries(
+		Object.entries(values)
+			.filter(([key]) => key.startsWith(prefix))
+			.map(([key, value]) => [key.slice(prefix.length + 1), value]),
+	);
+	return url.replace(/{(\w+)}/g, (_, key) => {
+		return filteredValues[key] !== undefined ? filteredValues[key] : `{${key}}`;
+	});
+}
+
+export const buildResourceField = (
+	fields: AxelorModelFieldSchema[],
+	type: string,
+): AxelorModelFieldSchema[] => {
+	return fields?.map((field) => ({
+		name: join([type, field.name], '_'),
+		type: isEqual(field.type, FIELD_TYPE.COLLECTION) ? FIELD_TYPE.STRING : field.type,
+		title: `${startCase(field.name)}   -${type}`,
+		required: true,
+	}));
+};
+
+export const getParameter = (values: Record<string, string> = {}, prefix: string) => {
+	if (!values) return {};
+
+	const parameter = Object.fromEntries(
+		Object.entries(values)
+			.filter(([key]) => key.startsWith(prefix))
+			.map(([key, value]) => [key.slice(prefix.length + 1), value]),
+	);
+
+	return parameter;
+};
+
+export const processCollectionFields = (fields: AxelorModelFieldSchema[]) => {
+	const $fields = fields.reduce((acc, curr) => {
+		if (curr.type === 'collection') {
+			const subParameters = curr?.subParameters || [];
+			subParameters.forEach((item) => {
+				acc.push({
+					...item,
+					name: join([curr.name, item.name], '_'),
+					title: `${curr.name}'s ${item.name}`,
+				});
+			});
+		} else {
+			acc.push(curr);
+		}
+		return acc;
+	}, [] as AxelorModelFieldSchema[]);
+	return $fields;
+};
+
+export function buildBuisnessAPIRequestData(
+	keys: string[],
+	values: Record<string, any>,
+	fields: any[],
+): Record<string, any> {
+	const data = Object.fromEntries(
+		Object.entries(values || {}).filter(
+			([key]) =>
+				!key.startsWith(PARAMETER.header) &&
+				!key.startsWith(PARAMETER.path) &&
+				!key.startsWith(PARAMETER.query),
+		),
+	);
+
+	const result: Record<string, any> = fields.reduce((acc, curr) => {
+		if (curr.type === 'collection') {
+			acc[curr.name] = {};
+		}
+		if (curr.type === 'array') {
+			acc[curr.name] = [];
+		}
+		return acc;
+	}, {});
+
+	const prefixMap: Record<string, string[]> = {};
+
+	for (const key of keys) {
+		const match = key.match(/^([^_]+)_(.+)$/);
+		if (match) {
+			const [_, prefix, field] = match;
+			if (!prefixMap[prefix]) prefixMap[prefix] = [];
+			prefixMap[prefix].push(field);
+		} else {
+			result[key] = data?.[key];
+		}
+	}
+
+	for (const prefix in prefixMap) {
+		result[prefix] = {};
+		for (const field of prefixMap[prefix]) {
+			result[prefix][field] = data?.[`${prefix}_${field}`];
+		}
+	}
+
+	return result;
+}

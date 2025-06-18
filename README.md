@@ -1,6 +1,29 @@
-## 🚀 Introduction
+# Axelor n8n Integration
 
-Welcome to the **n8n-nodes-axelor** community node! This integration allows you to seamlessly connect your [Axelor ERP](https://docs.axelor.com) applications with your [n8n](https://n8n.io/) workflows, enabling powerful automation.
+Connect your [Axelor ERP](https://docs.axelor.com) applications with [n8n](https://n8n.io/) workflows, enabling powerful automation capabilities.
+
+## 📚 Overview
+
+The **n8n-nodes-axelor-connect** integration allows you to connect your Axelor ERP applications with n8n workflows. This integration provides comprehensive access to Axelor's data and functionality through three main resource categories:
+
+- **Record**: Core CRUD operations for Axelor models
+- **DMS**: Document Management System operations
+- **Generic**: Custom actions and operations
+
+## 🔑 Authentication
+
+Before using any Axelor node, you need to set up authentication:
+
+1. **Create Axelor API credentials** in n8n:
+
+   - **Base URL**: Your Axelor instance URL (e.g., `https://your-axelor-instance.com`)
+   - **Authentication**: Basic Auth (username & password)
+   - **Username**: Your Axelor username
+   - **Password**: Your Axelor password
+
+2. **Enable API Access** in your Axelor instance:
+   - Ensure Basic Auth is properly configured in your Axelor instance
+   - Verify the user has appropriate permissions for the operations you plan to perform
 
 ## 📦 Installation
 
@@ -8,91 +31,88 @@ Welcome to the **n8n-nodes-axelor** community node! This integration allows you 
 2. Run the install command:
 
    ```bash
-   npm install n8n-nodes-axelor
+   npm install n8n-nodes-axelor-connect
    ```
+
 3. **Restart n8n**
 4. Find the new **Axelor** nodes in the node selector.
 
-> Tip: Follow the official [n8n community nodes installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) for more details.
+## 🔄 Available Operations
 
-## 🔧 Operations
+### Record Operations
 
-The Axelor node supports full CRUD and a delete trigger:
+- **Create Record**: Creates a new record in the specified Axelor model
+- **Create Custom Record**: Creates a new record in a custom model
+- **Find Records**: Retrieves records by ID from the specified model
+- **Read Records**: Fetches one or multiple records with related fields
+- **Search Records**: Uses search queries to filter and find records
+- **Update Record**: Updates an existing record with new values
+- **Update Custom Record**: Updates an existing record in a custom model
+- **Delete Record**: Removes a record from the system
 
-### 🆕 Create Record
+### DMS Operations
 
-* **Model**: e.g., `com.axelor.apps.sale.db.SaleOrder`
-* **Fields**: Specify fields to set for the new record.
+- **List Files**: Lists all files in the Axelor Document Management System
+- **List Attachments**: Lists all attachments associated with a specific record
+- **Download File**: Downloads a file from the DMS using its ID
+- **Add Attachment**: Attaches an existing file to a record
+- **Upload File**: Uploads a new file to the Axelor DMS
 
-### 🔍 Find / Read / Search Records
+### Generic Operations
 
-* **Find**: Retrieve by ID.
-* **Read**: Fetch one or multiple records with related fields.
-* **Search**: Use search queries to filter records.
+- **Run Action**: Executes a predefined action using custom parameters
+- **Business Service Call**: Calls a specific business service in Axelor
+- **Make API Call**: Makes a custom API call to the Axelor REST API
 
-### ✏️ Update Record
+### Triggers
 
-* **ID**: Record to update.
-* **Fields**: Specify fields and new values.
-
-### 🗑 Delete Record
-
-* **Model & ID**: Remove the specified record.
-
-### 🚨 Delete Trigger
-
-* **On Record Deletion**: Start workflows when records are deleted.
-
-## 🔐 Credentials
-
-1. **Axelor Instance**: Cloud or self-hosted
-2. **Enable Access**: Configure Basic Auth in Axelor
-
-In n8n, create **Axelor API** credentials:
-
-* **Base URL**: `https://your-axelor-instance.com`
-* **Authentication**: Basic Auth (username & password)
-
-Save credentials before using Axelor nodes.
+- **Axelor Delete Trigger**: Starts a workflow when records are deleted in Axelor
+- **Axelor Poll Trigger**: Triggers when a new item is created or updated
 
 ## ⚙️ Compatibility
 
-* **n8n**: v0.230.0+
-* **Axelor Platform**: v7.x+
+- **n8n**: v0.230.0+
+- **Axelor Platform**: v7.x+
 
-## 🚀 Usage Guide
+## Limitations
 
-1. **Add Credentials**: Test your Axelor API credentials.
-2. **Create Operation**:
+- **No Support for OneToMany Fields (v0.1.0)**: The integration currently does not support OneToMany relationships
 
-   * Drag **Axelor** node, select `Create Record`.
-   * Choose Module and map fields.
-3. **Find / Read / Search**:
+## 🛠️ Best Practices
 
-   * Set appropriate operation and filters.
-4. **Update**:
+- **Error Handling**: Use "Continue on Fail" and error handling nodes for robust workflows
+- **Batching**: Process records in batches for better performance
+- **Credentials**: Store credentials securely and rotate regularly
+- **Testing**: Test workflows with small data sets before production use
+- **Logging**: Add logging nodes to track execution for troubleshooting
+- **Advanced Settings**: Use advanced settings for better control over data retrieval and processing
 
-   * Choose `Update Record`, provide ID and fields.
-5. **Delete**:
+## 🔍 Troubleshooting
 
-   * Use `Delete Record`, specify model & ID.
-6. **Delete Trigger**:
+### Common Issues
 
-   * Add **Axelor Delete Trigger**, select model, chain follow-up nodes.
+- **Authentication Errors**: Verify credentials are correct and check user permissions in Axelor
+- **Model Not Found**: Ensure model name is correct (case-sensitive) and verify the model exists in your Axelor instance
+- **Field Mapping Issues**: Check field names and types, and ensure required fields are provided
+- **File Operations Failing**: Verify file exists, check file size limits, and ensure proper MIME types
 
-> 💡 *Schema Viewer*: Inspect module fields and types at design time.
+### Getting Help
 
-## 📚 Resources
+- Check the [n8n community forum](https://community.n8n.io/)
+- Review [Axelor API documentation](https://docs.axelor.com/adk/latest/dev-guide/web-services/index.html)
+- Examine workflow execution logs for detailed error messages
 
-* [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/) 📝
-* [Axelor Official Docs](https://docs.axelor.com) 📖
-* [Axelor REST API Reference](https://docs.axelor.com/adk/7.4/dev-guide/web-services/index.html) 🌐
+## 📚 Additional Resources
+
+- [n8n Documentation](https://docs.n8n.io/)
+- [Axelor Documentation](https://docs.axelor.com)
+- [n8n Community Nodes](https://docs.n8n.io/integrations/community-nodes/)
 
 ## 📝 Version History
 
-| Version | Date       | Highlights                                           |
-| ------- | ---------- | ---------------------------------------------------- |
-| 0.0.0   | YYYY-MM-DD | Initial release: CRUD operations + Delete Trigger 🚀 |
+| Version | Date       | Highlights                                                                     |
+| ------- | ---------- | ------------------------------------------------------------------------------ |
+| 0.1.0   | 2025-06-09 | Initial release: CRUD operations + DMS + Generic opeations + Delete Trigger 🚀 |
 
 ---
 

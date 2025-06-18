@@ -15,6 +15,8 @@ import {
 	processAxelorError,
 	wrapData,
 } from '../../helpers/utils';
+import { apiRequest } from '../../transport';
+import { HTTP } from '../../helpers/constants';
 
 const properties: INodeProperties[] = [
 	{
@@ -76,9 +78,6 @@ export async function execute(
 
 	const metaFieldCache: Record<string, any> = {};
 
-	const creds = await this.getCredentials('axelorApi');
-	const baseUrl = creds.baseUrl as string;
-
 	for (let i = 0; i < items.length; i++) {
 		const model = this.getNodeParameter('model', i) as string;
 		const recordId = this.getNodeParameter('records', i) as number;
@@ -117,14 +116,8 @@ export async function execute(
 			data.id = recordId;
 			data.version = record.version;
 
-			const responseData = await this.helpers.request!({
-				method: 'POST',
-				url: `/ws/rest/${encodeURIComponent(model)}`,
-				baseURL: baseUrl,
-				auth: { user: creds.username as string, pass: creds.password as string },
-				body: { data },
-				json: true,
-			});
+			const url = `/ws/rest/${encodeURIComponent(model)}`;
+			const responseData = await apiRequest.call(this, HTTP.POST, url, { data });
 
 			isValidResponse(responseData);
 

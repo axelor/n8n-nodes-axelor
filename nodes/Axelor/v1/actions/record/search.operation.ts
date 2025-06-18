@@ -1,11 +1,11 @@
 import {
+	IDataObject,
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
-import { isEmpty } from 'lodash';
 
 import {
 	getContextFields,
@@ -18,7 +18,9 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
-import { ARCHIVED_OPTIONS, SORT_BY_OPTIONS } from '../../helpers/constants';
+import { ARCHIVED_OPTIONS, HTTP, SORT_BY_OPTIONS } from '../../helpers/constants';
+import { isEmpty } from '../../helpers/lodash';
+import { apiRequest } from '../../transport';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
 
@@ -156,8 +158,6 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		const model = this.getNodeParameter('model', i) as string;
 
 		try {
-			const creds = await this.getCredentials('axelorApi');
-			const baseUrl = creds.baseUrl as string;
 			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
 			const limit = this.getNodeParameter('limit', i, enableAdvancedSettings ? 50 : 10) as number;
 
@@ -198,16 +198,11 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				typeof archived === 'boolean' ? (data._archived = archived) : delete data._archived;
 			}
 
-			const resp = await this.helpers.request!({
-				method: 'POST',
-				url: `/ws/rest/${encodeURIComponent(model)}/search`,
-				baseURL: baseUrl,
-				auth: { user: creds.username as string, pass: creds.password as string },
-				body,
-				json: true,
-			});
+			const url = `/ws/rest/${encodeURIComponent(model)}/search`;
+			const resp = await apiRequest.call(this, HTTP.POST, url, body);
 
 			isValidResponse(resp);
+
 			let result = (resp.data && resp.data) || [];
 			if (jsonFields && jsonFields.length > 0) {
 				const processedResponse = result.map((item: any) =>
@@ -215,7 +210,13 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				);
 				result = processedResponse;
 			}
-			returnData.push(...wrapData(result || []));
+
+			const executionData = this.helpers.constructExecutionMetaData(
+				wrapData(result as IDataObject[]),
+				{ itemData: { item: i } },
+			);
+
+			returnData.push(...executionData);
 		} catch (error) {
 			error = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {

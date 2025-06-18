@@ -26,6 +26,7 @@ export interface AxelorModelFieldSchema {
 	json?: boolean;
 	domain?: string;
 	enumType?: string;
+	subParameters?: AxelorModelFieldSchema[];
 }
 
 export interface AxelorRecord {
@@ -38,4 +39,9 @@ export interface AxelorApiCredentials {
 	baseUrl: string;
 	username: string;
 	password: string;
+}
+
+export interface WebServiceInfo {
+	target: string;
+	httpMethod: string;
 }

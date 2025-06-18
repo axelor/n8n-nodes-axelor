@@ -1,24 +1,33 @@
 /* eslint-disable n8n-nodes-base/node-param-display-name-miscased */
-import { TypesMap } from './interface';
+import { FieldType, IHttpRequestMethods, NodePropertyTypes } from 'n8n-workflow';
 
 export const AXELOR_SELECTION_FIELDS = ['ONE_TO_ONE', 'MANY_TO_ONE', 'MANY_TO_MANY', 'ONE_TO_MANY'];
 
-export const AXELOR_FIELD_TYPE_MAP: Readonly<TypesMap> = {
+type ExtendedFieldType = FieldType | NodePropertyTypes;
+
+export type ExtendedTypesMap = Partial<Record<ExtendedFieldType, string[]>>;
+
+export const AXELOR_FIELD_TYPE_MAP: Readonly<ExtendedTypesMap> = {
 	string: ['TEXT', 'STRING', 'ENUM'],
-	number: ['DECIMAL', 'INTEGER'],
+	number: ['DECIMAL', 'INTEGER', 'NUMBER'],
 	boolean: ['BOOLEAN'],
 	dateTime: ['DATE', 'DATETIME'],
 	time: [],
 	object: [],
 	options: ['MANY_TO_ONE', 'ONE_TO_ONE'],
-	// We are not able to see the field array values
-	array: ['ONE_TO_MANY', 'MANY_TO_MANY'],
+	array: ['ONE_TO_MANY', 'MANY_TO_MANY', 'ARRAY'],
+	fixedCollection: ['COLLECTION'],
 };
 
 export const MODEL = {
 	CONNECT_DB_WEBHOOK: 'com.axelor.connect.db.Webhook',
 	META_JSON_MODEL: 'com.axelor.meta.db.MetaJsonModel',
 	META_JSON_RECORD: 'com.axelor.meta.db.MetaJsonRecord',
+};
+
+export const WEB_SERVICE = {
+	CONNECT_WS_INFO: '/ws/connect/connect-web-service-info',
+	CONNECT_WS: '/ws/connect/connect-web-services',
 };
 
 export const ARCHIVED_OPTIONS = [
@@ -72,6 +81,51 @@ export const FIELD_ATTRIBUTES = [
 export const FIELD_TYPE = {
 	OPTIONS: 'options',
 	STRING: 'string',
-};
+	COLLECTION: 'collection',
+	BOOLEAN: 'boolean',
+	NUMBER: 'number',
+	DATE: 'date',
+	ARRAY: 'array',
+} as const;
 
 export const NON_INPUT_FIELDS = ['button', 'panel', 'label', 'spacer', 'separator'];
+
+// BusinessCall Parameter
+export const PARAMETER = {
+	path: 'pathParameter',
+	query: 'queryParameter',
+	header: 'headerParameter',
+	body: 'bodyParameter',
+};
+
+export const HTTP_METHOD_OPTIONS = [
+	{
+		name: 'GET',
+		value: 'GET',
+	},
+	{
+		name: 'POST',
+		value: 'POST',
+	},
+	{
+		name: 'PUT',
+		value: 'PUT',
+	},
+	{
+		name: 'DELETE',
+		value: 'DELETE',
+	},
+	{
+		name: 'PATCH',
+		value: 'PATCH',
+	},
+];
+
+export const HTTP: Record<IHttpRequestMethods, IHttpRequestMethods> = {
+	HEAD: 'HEAD',
+	GET: 'GET',
+	POST: 'POST',
+	PUT: 'PUT',
+	DELETE: 'DELETE',
+	PATCH: 'PATCH',
+};

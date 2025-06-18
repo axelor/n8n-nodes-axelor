@@ -1,4 +1,5 @@
 import {
+	IDataObject,
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
@@ -7,6 +8,8 @@ import {
 import { NodeApiError } from 'n8n-workflow';
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
+import { apiRequest } from '../../transport';
+import { HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
@@ -55,8 +58,6 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		const model = this.getNodeParameter('model', i) as string;
 
 		try {
-			const creds = await this.getCredentials('axelorApi');
-			const baseUrl = creds.baseUrl as string;
 			const findById = this.getNodeParameter('findById', i, false) as boolean;
 			const recordId = this.getNodeParameter('recordId', i, null) as string;
 			const limit = this.getNodeParameter('limit', i, 10) as number;
@@ -74,7 +75,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				? `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`
 				: `/ws/rest/${encodeURIComponent(model)}/search`;
 
-			const body: any = {
+			const body: IDataObject = {
 				offset: 0,
 				limit,
 				fields: fieldNames,
@@ -82,18 +83,15 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				data: {},
 			};
 
-			const resp = await this.helpers.request!({
-				method: 'POST',
-				url,
-				baseURL: baseUrl,
-				auth: { user: creds.username as string, pass: creds.password as string },
-				body,
-				json: true,
-			});
+			const resp = await apiRequest.call(this, HTTP.POST, url, body);
 
-			if (isValidResponse(resp)) {
-				returnData.push(...wrapData(resp.data || []));
-			}
+			isValidResponse(resp);
+
+			const executionData = this.helpers.constructExecutionMetaData(
+				wrapData((resp.data as IDataObject[]) || []),
+				{ itemData: { item: i } },
+			);
+			returnData.push(...executionData);
 		} catch (error) {
 			error = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {

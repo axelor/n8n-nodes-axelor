@@ -18,7 +18,7 @@ RUN npm run build && npm link
 RUN mkdir -p /home/custom && chown node:node /home/custom
 ENV N8N_CUSTOM_EXTENSIONS=/home/custom
 WORKDIR /home/custom
-RUN npm init -y && npm link axelor-n8n
+RUN npm init -y && npm link n8n-nodes-axelor
 
 # Restore permissions and switch user
 RUN chown -R node:node /home/node /home/n8n-node /home/custom

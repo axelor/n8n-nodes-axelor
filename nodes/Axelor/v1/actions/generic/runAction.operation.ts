@@ -7,10 +7,11 @@ import {
 	NodeOperationError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
-import { fromPairs } from 'lodash';
+import { fromPairs } from '../../helpers/lodash';
 
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
-import { AxelorApiCredentials } from '../../helpers/interface';
+import { apiRequest } from '../../transport';
+import { HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
@@ -94,9 +95,6 @@ export async function execute(
 	items: INodeExecutionData[],
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
-	const { baseUrl, username, password } = (await this.getCredentials(
-		'axelorApi',
-	)) as AxelorApiCredentials;
 
 	for (let i = 0; i < items.length; i++) {
 		try {
@@ -125,14 +123,8 @@ export async function execute(
 				},
 			};
 
-			const responseData = await this.helpers.request!({
-				method: 'POST',
-				url: '/ws/action/',
-				baseURL: baseUrl,
-				auth: { user: username, pass: password },
-				body,
-				json: true,
-			});
+			const url = '/ws/action/';
+			const responseData = await apiRequest.call(this, HTTP.POST, url, body);
 
 			isValidResponse(responseData);
 

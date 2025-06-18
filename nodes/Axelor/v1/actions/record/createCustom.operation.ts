@@ -5,7 +5,6 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 import { NodeApiError, updateDisplayOptions } from 'n8n-workflow';
-
 import {
 	buildRequestData,
 	getChangedFieldNames,
@@ -14,7 +13,8 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
-import { MODEL } from '../../helpers/constants';
+import { HTTP, MODEL } from '../../helpers/constants';
+import { apiRequest } from '../../transport';
 
 const properties: INodeProperties[] = [
 	{
@@ -56,9 +56,6 @@ export async function execute(
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
 
-	const creds = await this.getCredentials('axelorApi');
-	const baseUrl = creds.baseUrl as string;
-
 	const metaFieldCache: Record<string, any> = {};
 
 	for (let i = 0; i < items.length; i++) {
@@ -82,14 +79,9 @@ export async function execute(
 			const data = buildRequestData(changedKeys, mapping, jsonFields, metaJsonFields);
 
 			data.jsonModel = model;
-			const responseData = await this.helpers.request!({
-				method: 'POST',
-				url: `/ws/rest/${MODEL.META_JSON_RECORD}`,
-				baseURL: baseUrl,
-				auth: { user: creds.username as string, pass: creds.password as string },
-				body: { data },
-				json: true,
-			});
+
+			const url = `/ws/rest/${MODEL.META_JSON_RECORD}`;
+			const responseData = await apiRequest.call(this, HTTP.POST, url, { data });
 
 			isValidResponse(responseData);
 
