@@ -9,13 +9,13 @@ import {
 
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { apiRequest } from '../../transport';
-import { HTTP } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
 		displayName: 'Parent ID',
 		name: 'parentId',
-		type: 'number',
+		type: FIELD_TYPE.NUMBER,
 		default: '',
 		description: 'ID of the parent folder from which to list files',
 		typeOptions: {
@@ -25,7 +25,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Pattern',
 		name: 'pattern',
-		type: 'string',
+		type: FIELD_TYPE.STRING,
 		default: '',
 		description: 'Pattern to match file names',
 	},

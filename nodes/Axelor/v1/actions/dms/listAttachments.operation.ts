@@ -6,16 +6,15 @@ import {
 	NodeApiError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
-
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { apiRequest } from '../../transport';
-import { HTTP } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
 		displayName: 'Model Name or ID',
 		name: 'model',
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		description:
 			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 		typeOptions: { loadOptionsMethod: 'getMetaModels' },
@@ -31,7 +30,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Records Name or ID',
 		name: 'records',
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		typeOptions: {
 			loadOptionsMethod: 'getMetaModelRecords',
 			loadOptionsDependsOn: ['model'],
@@ -69,7 +68,7 @@ export async function execute(
 		const recordId = this.getNodeParameter('records', i) as number;
 
 		try {
-			const url = `/ws/dms/attachments/${model}/${recordId}`;
+			const url = `/ws/dms/attachments/${encodeURIComponent(model)}/${encodeURIComponent(recordId)}`;
 			const responseData = await apiRequest.call(this, HTTP.GET, url);
 
 			isValidResponse(responseData);

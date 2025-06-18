@@ -8,13 +8,13 @@ import {
 } from 'n8n-workflow';
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { apiRequest } from '../../transport';
-import { HTTP } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
 		displayName: 'Model Name or ID',
 		name: 'model',
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		description:
 			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 		typeOptions: { loadOptionsMethod: 'getMetaModels' },
@@ -30,7 +30,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Records Name or ID',
 		name: 'records',
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		typeOptions: {
 			loadOptionsMethod: 'getMetaModelRecords',
 			loadOptionsDependsOn: ['model'],
@@ -50,7 +50,7 @@ export const properties: INodeProperties[] = [
 		displayName: 'Upload IDs',
 		name: 'uploadIds',
 		placeholder: 'Add Item',
-		type: 'fixedCollection',
+		type: FIELD_TYPE.FIXED_COLLECTION,
 		default: {},
 		typeOptions: {
 			multipleValues: true,
@@ -63,7 +63,7 @@ export const properties: INodeProperties[] = [
 					{
 						displayName: 'ID',
 						name: 'id',
-						type: 'number',
+						type: FIELD_TYPE.NUMBER,
 						description: 'Unique identifier of the file or record to be uploaded',
 						default: '',
 					},

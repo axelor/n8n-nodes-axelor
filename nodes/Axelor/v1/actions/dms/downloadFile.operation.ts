@@ -9,13 +9,13 @@ import {
 
 import { isValidResponse, processAxelorError } from '../../helpers/utils';
 import { AxelorApiCredentials } from '../../helpers/interface';
-import { HTTP } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
 		displayName: 'DMS File Record ID',
 		name: 'fileRecordId',
-		type: 'number',
+		type: FIELD_TYPE.NUMBER,
 		default: 0,
 		required: true,
 		description: 'Record ID of the DMS file to access',

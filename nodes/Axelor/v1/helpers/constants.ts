@@ -23,6 +23,7 @@ export const MODEL = {
 	CONNECT_DB_WEBHOOK: 'com.axelor.connect.db.Webhook',
 	META_JSON_MODEL: 'com.axelor.meta.db.MetaJsonModel',
 	META_JSON_RECORD: 'com.axelor.meta.db.MetaJsonRecord',
+	META_MODEL: 'com.axelor.meta.db.MetaModel',
 };
 
 export const WEB_SERVICE = {
@@ -79,13 +80,27 @@ export const FIELD_ATTRIBUTES = [
 ];
 
 export const FIELD_TYPE = {
+	BOOLEAN: 'boolean',
+	BUTTON: 'button',
+	COLLECTION: 'collection',
+	COLOR: 'color',
+	DATETIME: 'dateTime',
+	FIXED_COLLECTION: 'fixedCollection',
+	HIDDEN: 'hidden',
+	JSON: 'json',
+	NOTICE: 'notice',
+	MULTI_OPTIONS: 'multiOptions',
+	NUMBER: 'number',
 	OPTIONS: 'options',
 	STRING: 'string',
-	COLLECTION: 'collection',
-	BOOLEAN: 'boolean',
-	NUMBER: 'number',
-	DATE: 'date',
-	ARRAY: 'array',
+	CREDENTIALS_SELECT: 'credentialsSelect',
+	RESOURCE_LOCATOR: 'resourceLocator',
+	CURL_IMPORT: 'curlImport',
+	RESOURCE_MAPPER: 'resourceMapper',
+	FILTER: 'filter',
+	ASSIGNMENT_COLLECTION: 'assignmentCollection',
+	CREDENTIALS: 'credentials',
+	WORKFLOW_SELECTOR: 'workflowSelector',
 } as const;
 
 export const NON_INPUT_FIELDS = ['button', 'panel', 'label', 'spacer', 'separator'];

@@ -10,7 +10,7 @@ export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodeP
 		const body = {
 			fields: ['name', 'fullName'],
 		};
-		const url = '/ws/rest/com.axelor.meta.db.MetaModel/search';
+		const url = `/ws/rest/${MODEL.META_MODEL}/search`;
 		const response = await apiRequest.call(this, HTTP.POST, url, body);
 
 		return Array.isArray(response.data)

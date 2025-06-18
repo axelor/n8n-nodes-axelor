@@ -1,5 +1,6 @@
 import {
 	IExecuteFunctions,
+	IHttpRequestMethods,
 	INodeExecutionData,
 	INodeProperties,
 	NodeApiError,
@@ -7,13 +8,15 @@ import {
 } from 'n8n-workflow';
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { AxelorApiCredentials } from '../../helpers/interface';
-import { HTTP_METHOD_OPTIONS } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP, HTTP_METHOD_OPTIONS } from '../../helpers/constants';
+
+const MUTATING_HTTP_METHODS = [HTTP.POST, HTTP.PUT, HTTP.PATCH];
 
 export const properties: INodeProperties[] = [
 	{
 		displayName: 'URL',
 		name: 'url',
-		type: 'string',
+		type: FIELD_TYPE.STRING,
 		required: true,
 		default: '',
 		description: 'The URL to make the API call to',
@@ -22,15 +25,15 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Method',
 		name: 'method',
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		options: HTTP_METHOD_OPTIONS,
-		default: 'GET',
+		default: HTTP.GET,
 		description: 'The HTTP method to use for the API call',
 	},
 	{
 		displayName: 'Headers',
 		name: 'headers',
-		type: 'fixedCollection',
+		type: FIELD_TYPE.FIXED_COLLECTION,
 		typeOptions: {
 			multipleValues: true,
 		},
@@ -45,14 +48,14 @@ export const properties: INodeProperties[] = [
 					{
 						displayName: 'Key',
 						name: 'key',
-						type: 'string',
+						type: FIELD_TYPE.STRING,
 						default: '',
 						description: 'Key of the header parameter',
 					},
 					{
 						displayName: 'Value',
 						name: 'value',
-						type: 'string',
+						type: FIELD_TYPE.STRING,
 						default: '',
 						description: 'Value of the header parameter',
 					},
@@ -63,7 +66,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Query Parameters',
 		name: 'queryParameters',
-		type: 'fixedCollection',
+		type: FIELD_TYPE.FIXED_COLLECTION,
 		typeOptions: {
 			multipleValues: true,
 		},
@@ -77,14 +80,14 @@ export const properties: INodeProperties[] = [
 					{
 						displayName: 'Key',
 						name: 'key',
-						type: 'string',
+						type: FIELD_TYPE.STRING,
 						default: '',
 						description: 'Key of the query parameter',
 					},
 					{
 						displayName: 'Value',
 						name: 'value',
-						type: 'string',
+						type: FIELD_TYPE.STRING,
 						default: '',
 						description: 'Value of the query parameter',
 					},
@@ -95,12 +98,12 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Body',
 		name: 'body',
-		type: 'string',
+		type: FIELD_TYPE.STRING,
 		default: '',
 		description: 'The body of the API call',
 		displayOptions: {
 			show: {
-				method: ['POST', 'PUT', 'PATCH'],
+				method: MUTATING_HTTP_METHODS,
 			},
 		},
 	},
@@ -126,7 +129,7 @@ export async function execute(
 
 		try {
 			const url = this.getNodeParameter('url', i) as string;
-			const method = this.getNodeParameter('method', i) as string;
+			const method = this.getNodeParameter('method', i) as IHttpRequestMethods;
 			const headersCollection = this.getNodeParameter('headers', i, {}) as {
 				parameters?: Array<{ key: string; value: string }>;
 			};
@@ -149,7 +152,7 @@ export async function execute(
 			}
 
 			let body;
-			if (['POST', 'PUT', 'PATCH'].includes(method)) {
+			if (MUTATING_HTTP_METHODS.includes(method)) {
 				const bodyContent = this.getNodeParameter('body', i, '') as string;
 				try {
 					body = JSON.parse(bodyContent);

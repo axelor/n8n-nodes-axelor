@@ -381,7 +381,7 @@ export const getParameter = (values: Record<string, string> = {}, prefix: string
 
 export const processCollectionFields = (fields: AxelorModelFieldSchema[]) => {
 	const $fields = fields.reduce((acc, curr) => {
-		if (curr.type === 'collection') {
+		if (curr.type === FIELD_TYPE.COLLECTION) {
 			const subParameters = curr?.subParameters || [];
 			subParameters.forEach((item) => {
 				acc.push({
@@ -413,7 +413,7 @@ export function buildBuisnessAPIRequestData(
 	);
 
 	const result: Record<string, any> = fields.reduce((acc, curr) => {
-		if (curr.type === 'collection') {
+		if (curr.type === FIELD_TYPE.COLLECTION) {
 			acc[curr.name] = {};
 		}
 		if (curr.type === 'array') {

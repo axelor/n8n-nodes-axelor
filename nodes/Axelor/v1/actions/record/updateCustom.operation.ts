@@ -14,14 +14,14 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { getFields, getMetaModelFieldRecord } from '../../helpers/api-helper';
-import { HTTP, MODEL } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP, MODEL } from '../../helpers/constants';
 import { AxelorApiCredentials } from '../../helpers/interface';
 
 const properties: INodeProperties[] = [
 	{
 		displayName: 'Records Name or ID',
 		name: 'records',
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		typeOptions: {
 			loadOptionsMethod: 'getMetaJsonRecords',
 			loadOptionsDependsOn: ['customModel'],
@@ -35,7 +35,7 @@ const properties: INodeProperties[] = [
 	{
 		displayName: 'Fields',
 		name: 'fields',
-		type: 'resourceMapper',
+		type: FIELD_TYPE.RESOURCE_MAPPER,
 		required: true,
 		default: { mappingMode: 'defineBelow', value: null },
 		typeOptions: {

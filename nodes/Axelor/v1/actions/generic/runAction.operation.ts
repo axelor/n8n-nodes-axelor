@@ -11,13 +11,13 @@ import { fromPairs } from '../../helpers/lodash';
 
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { apiRequest } from '../../transport';
-import { HTTP } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
 		displayName: 'Actions',
 		name: 'actions',
-		type: 'fixedCollection',
+		type: FIELD_TYPE.FIXED_COLLECTION,
 		typeOptions: { multipleValues: true },
 		default: {},
 		placeholder: 'Add item',
@@ -30,7 +30,7 @@ export const properties: INodeProperties[] = [
 					{
 						displayName: 'Item',
 						name: 'item',
-						type: 'string',
+						type: FIELD_TYPE.STRING,
 						default: '',
 						required: true,
 					},
@@ -43,7 +43,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Model Name or ID',
 		name: 'model',
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		description:
 			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 		typeOptions: { loadOptionsMethod: 'getMetaModels' },
@@ -53,7 +53,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Context',
 		name: 'context',
-		type: 'fixedCollection',
+		type: FIELD_TYPE.FIXED_COLLECTION,
 		typeOptions: { multipleValues: true },
 		default: {},
 		placeholder: 'Add item',
@@ -65,14 +65,14 @@ export const properties: INodeProperties[] = [
 					{
 						displayName: 'Key',
 						name: 'key',
-						type: 'string',
+						type: FIELD_TYPE.STRING,
 						default: '',
 						required: true,
 					},
 					{
 						displayName: 'Value',
 						name: 'value',
-						type: 'string',
+						type: FIELD_TYPE.STRING,
 						default: '',
 					},
 				],

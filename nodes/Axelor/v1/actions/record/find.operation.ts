@@ -9,13 +9,13 @@ import { NodeApiError } from 'n8n-workflow';
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
 import { apiRequest } from '../../transport';
-import { HTTP } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
 		displayName: 'Limit',
 		name: 'limit',
-		type: 'number',
+		type: FIELD_TYPE.NUMBER,
 		typeOptions: {
 			minValue: 1,
 		},
@@ -25,14 +25,14 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Find By ID',
 		name: 'findById',
-		type: 'boolean',
+		type: FIELD_TYPE.BOOLEAN,
 		default: false,
 		description: 'Whether to find a record by ID',
 	},
 	{
 		displayName: 'ID',
 		name: 'recordId',
-		type: 'string',
+		type: FIELD_TYPE.STRING,
 		default: '',
 		description: 'ID of the record to find',
 		displayOptions: { show: { findById: [true] } },

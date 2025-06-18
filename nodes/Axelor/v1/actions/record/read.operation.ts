@@ -14,7 +14,7 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
-import { HTTP } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 import { apiRequest } from '../../transport';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
@@ -23,7 +23,7 @@ const properties: INodeProperties[] = [
 	{
 		displayName: 'Records Name or ID',
 		name: 'records',
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		typeOptions: {
 			loadOptionsMethod: 'getMetaModelRecords',
 			loadOptionsDependsOn: ['model'],
@@ -42,7 +42,7 @@ const properties: INodeProperties[] = [
 	{
 		displayName: 'Advanced Settings',
 		name: 'advancedSettings',
-		type: 'boolean',
+		type: FIELD_TYPE.BOOLEAN,
 		default: false,
 		description: 'Whether to show advanced options',
 	},
@@ -50,7 +50,7 @@ const properties: INodeProperties[] = [
 		// eslint-disable-next-line n8n-nodes-base/node-param-display-name-wrong-for-dynamic-multi-options
 		displayName: 'Select Fields',
 		name: 'fields',
-		type: 'multiOptions',
+		type: FIELD_TYPE.MULTI_OPTIONS,
 		description:
 			'Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 		default: [],

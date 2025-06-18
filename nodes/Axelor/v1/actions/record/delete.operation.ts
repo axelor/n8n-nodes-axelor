@@ -7,20 +7,20 @@ import {
 import { NodeApiError } from 'n8n-workflow';
 import { isValidResponse, processAxelorError } from '../../helpers/utils';
 import { apiRequest } from '../../transport';
-import { HTTP } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
 		displayName: 'Delete Multiple Records',
 		name: 'deleteMultiple',
-		type: 'boolean',
+		type: FIELD_TYPE.BOOLEAN,
 		default: false,
 		description: 'Whether to delete multiple records at once',
 	},
 	{
 		displayName: 'Record Name or ID',
 		name: 'singleRecordId',
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		description:
 			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 		typeOptions: {
@@ -40,7 +40,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Records to Delete',
 		name: 'recordIds',
-		type: 'multiOptions',
+		type: FIELD_TYPE.MULTI_OPTIONS,
 		description:
 			'Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 		typeOptions: {

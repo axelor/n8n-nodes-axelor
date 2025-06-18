@@ -1,9 +1,33 @@
-node_modules
-.DS_Store
-.tmp
-tmp
-dist
+# Dependency directories
+node_modules/
+
+# Build output
+dist/
+.tmp/
+tmp/
+
+# Coverage directory
+coverage/
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Logs
+logs
+*.log
 npm-debug.log*
-yarn.lock
-.vscode/launch.json
-.env.prod
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# TypeScript cache
+*.tsbuildinfo

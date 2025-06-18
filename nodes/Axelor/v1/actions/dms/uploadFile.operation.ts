@@ -13,15 +13,15 @@ import {
 	getItemBinaryData,
 	wrapData,
 } from '../../helpers/utils';
-import { HTTP } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 import { apiRequest } from '../../transport';
 
 export const properties: INodeProperties[] = [
 	{
 		displayName: 'Input Data Field Name',
 		name: 'inputDataFieldName',
-		type: 'string',
-		placeholder: '“e.g. data',
+		type: FIELD_TYPE.STRING,
+		placeholder: '"e.g. data',
 		default: 'data',
 		required: true,
 		hint: 'The name of the input field containing the binary file data to update the file',
@@ -31,7 +31,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'File Name',
 		name: 'fileName',
-		type: 'string',
+		type: FIELD_TYPE.STRING,
 		default: '',
 		placeholder: 'e.g. My New File',
 		description: 'If not specified, the original file name will be used',

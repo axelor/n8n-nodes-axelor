@@ -13,14 +13,14 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
-import { HTTP, MODEL } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP, MODEL } from '../../helpers/constants';
 import { apiRequest } from '../../transport';
 
 const properties: INodeProperties[] = [
 	{
 		displayName: 'Fields',
 		name: 'fields',
-		type: 'resourceMapper',
+		type: FIELD_TYPE.RESOURCE_MAPPER,
 		required: true,
 		default: { mappingMode: 'defineBelow', value: null },
 		typeOptions: {

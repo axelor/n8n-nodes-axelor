@@ -14,7 +14,7 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { AxelorApiCredentials } from '../../helpers/interface';
-import { HTTP, WEB_SERVICE } from '../../helpers/constants';
+import { FIELD_TYPE, HTTP, WEB_SERVICE } from '../../helpers/constants';
 import { join } from '../../helpers/lodash';
 import { apiRequest } from '../../transport';
 
@@ -23,7 +23,7 @@ export const properties: INodeProperties[] = [
 		displayName: 'Module Name or ID',
 		name: 'module',
 		required: true,
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		description:
 			'Select the Axelor module you want to interact with. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 		typeOptions: {
@@ -35,7 +35,7 @@ export const properties: INodeProperties[] = [
 		displayName: 'Action Name or ID',
 		name: 'action',
 		required: true,
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		description:
 			'Select the action. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 		typeOptions: {
@@ -53,7 +53,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Parameters',
 		name: 'parameters',
-		type: 'resourceMapper',
+		type: FIELD_TYPE.RESOURCE_MAPPER,
 		default: {
 			mappingMode: 'defineBelow',
 			value: null,

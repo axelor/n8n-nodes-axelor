@@ -18,7 +18,7 @@ import {
 	wrapData,
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
-import { ARCHIVED_OPTIONS, HTTP, SORT_BY_OPTIONS } from '../../helpers/constants';
+import { ARCHIVED_OPTIONS, FIELD_TYPE, HTTP, SORT_BY_OPTIONS } from '../../helpers/constants';
 import { isEmpty } from '../../helpers/lodash';
 import { apiRequest } from '../../transport';
 
@@ -28,7 +28,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Search Query',
 		name: 'query',
-		type: 'string',
+		type: FIELD_TYPE.STRING,
 		default: '',
 		placeholder: '',
 		hint: 'If empty, all the records will be returned',
@@ -38,14 +38,14 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Advanced Settings',
 		name: 'advancedSettings',
-		type: 'boolean',
+		type: FIELD_TYPE.BOOLEAN,
 		default: false,
 		description: 'Whether to show advanced options',
 	},
 	{
 		displayName: 'Limit',
 		name: 'limit',
-		type: 'number',
+		type: FIELD_TYPE.NUMBER,
 		typeOptions: {
 			minValue: 1,
 		},
@@ -57,7 +57,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Field Name Names or IDs',
 		name: 'fields',
-		type: 'multiOptions',
+		type: FIELD_TYPE.MULTI_OPTIONS,
 		description:
 			'Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 		default: [],
@@ -71,7 +71,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Show Archived',
 		name: 'archived',
-		type: 'options',
+		type: FIELD_TYPE.OPTIONS,
 		options: ARCHIVED_OPTIONS,
 		default: 'unset',
 		description: 'Whether the item is archived',
@@ -82,7 +82,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Context',
 		name: 'context',
-		type: 'fixedCollection',
+		type: FIELD_TYPE.FIXED_COLLECTION,
 		typeOptions: { multipleValues: true },
 		default: {},
 		options: [
@@ -93,14 +93,14 @@ export const properties: INodeProperties[] = [
 					{
 						displayName: 'Key',
 						name: 'key',
-						type: 'string',
+						type: FIELD_TYPE.STRING,
 						required: true,
 						default: '',
 					},
 					{
 						displayName: 'Value',
 						name: 'value',
-						type: 'string',
+						type: FIELD_TYPE.STRING,
 						required: true,
 						default: '',
 					},
@@ -112,7 +112,7 @@ export const properties: INodeProperties[] = [
 	{
 		displayName: 'Sort By',
 		name: 'sortBy',
-		type: 'fixedCollection',
+		type: FIELD_TYPE.FIXED_COLLECTION,
 		typeOptions: { multipleValues: true },
 		default: {},
 		options: [
@@ -123,7 +123,7 @@ export const properties: INodeProperties[] = [
 					{
 						displayName: 'Field Name or ID',
 						name: 'field',
-						type: 'options',
+						type: FIELD_TYPE.OPTIONS,
 						description:
 							'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 						default: '',
@@ -135,7 +135,7 @@ export const properties: INodeProperties[] = [
 					{
 						displayName: 'Rule',
 						name: 'rule',
-						type: 'options',
+						type: FIELD_TYPE.OPTIONS,
 						options: SORT_BY_OPTIONS,
 						default: '',
 					},
