@@ -7,6 +7,7 @@ import {
 	IRequestOptions,
 } from 'n8n-workflow';
 import { AxelorApiCredentials } from '../helpers/interface';
+import { HTTP } from '../helpers/constants';
 
 export async function apiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions | IPollFunctions,
@@ -36,7 +37,7 @@ export async function apiRequest(
 	if (Object.keys(headers).length !== 0) {
 		options.headers = Object.assign({}, options.headers, headers);
 	}
-	if (Object.keys(body).length === 0) {
+	if (![HTTP.PATCH, HTTP.POST].includes(method) && Object.keys(body).length === 0) {
 		delete options.body;
 	}
 
