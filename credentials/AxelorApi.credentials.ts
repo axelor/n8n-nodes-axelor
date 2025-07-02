@@ -1,4 +1,10 @@
-import { INodeProperties, ICredentialType, IAuthenticateGeneric, Icon } from 'n8n-workflow';
+import {
+	IAuthenticateGeneric,
+	Icon,
+	ICredentialTestRequest,
+	ICredentialType,
+	INodeProperties,
+} from 'n8n-workflow';
 
 export class AxelorApi implements ICredentialType {
 	name = 'axelorApi';
@@ -32,6 +38,18 @@ export class AxelorApi implements ICredentialType {
 		type: 'generic',
 		properties: {
 			auth: {
+				username: '={{$credentials.username}}',
+				password: '={{$credentials.password}}',
+			},
+		},
+	};
+
+	test: ICredentialTestRequest = {
+		request: {
+			baseURL: '={{$credentials.baseUrl.replace(new RegExp("/$"), "")}}',
+			url: '/callback',
+			method: 'POST',
+			body: {
 				username: '={{$credentials.username}}',
 				password: '={{$credentials.password}}',
 			},
