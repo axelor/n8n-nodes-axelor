@@ -1,4 +1,4 @@
-import { IDataObject, IHookFunctions, NodeApiError } from 'n8n-workflow';
+import { IDataObject, IHookFunctions, JsonObject, NodeApiError } from 'n8n-workflow';
 import { MODEL } from '../helpers/constants';
 
 export const webhookMethods = {
@@ -47,23 +47,21 @@ export const webhookMethods = {
 		 * Create webhook in Axelor when not already existing
 		 */
 		async create(this: IHookFunctions): Promise<boolean> {
-			const { baseUrl, username, password } = await this.getCredentials('axelorApi');
+			const { baseUrl } = await this.getCredentials('axelorApi');
 			const modelName = this.getNodeParameter('model') as string;
 			const webhookUrl = this.getNodeWebhookUrl('default');
 
 			const body = { data: { name: modelName, modelName, url: webhookUrl } };
-			const response = await this.helpers.httpRequest.call(this, {
+			const response = await this.helpers.httpRequestWithAuthentication.call(this, 'axelorApi', {
 				method: 'POST',
 				url: `${baseUrl}/ws/rest/${MODEL.CONNECT_DB_WEBHOOK}`,
-				auth: { username: username as string, password: password as string },
 				body,
 				json: true,
 			});
 
 			if (!response.data?.length) {
-				throw new NodeApiError(this.getNode(), {
+				throw new NodeApiError(this.getNode(), response as JsonObject, {
 					message: 'Failed to create Axelor webhook',
-					response,
 				});
 			}
 
@@ -75,14 +73,13 @@ export const webhookMethods = {
 		 * Delete webhook in Axelor when workflow is deactivated
 		 */
 		async delete(this: IHookFunctions): Promise<boolean> {
-			const { baseUrl, username, password } = await this.getCredentials('axelorApi');
+			const { baseUrl } = await this.getCredentials('axelorApi');
 			const staticData = this.getWorkflowStaticData('node');
 			const webhookId = staticData.webhookId as number;
 			if (!webhookId) return false;
-			await this.helpers.httpRequest.call(this, {
+			await this.helpers.httpRequestWithAuthentication.call(this, 'axelorApi', {
 				method: 'DELETE',
 				url: `${baseUrl}/ws/rest/${MODEL.CONNECT_DB_WEBHOOK}/${webhookId}`,
-				auth: { username: username as string, password: password as string },
 				json: true,
 			});
 			delete staticData.webhookId;

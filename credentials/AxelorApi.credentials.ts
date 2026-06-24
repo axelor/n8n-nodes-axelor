@@ -10,7 +10,7 @@ export class AxelorApi implements ICredentialType {
 	name = 'axelorApi';
 	displayName = 'Axelor API';
 	documentationUrl = 'http://example.com/docs/auth';
-	icon: Icon = 'file:axelor.svg';
+	icon: Icon = { light: 'file:../nodes/Axelor/axelor_light.svg', dark: 'file:../nodes/Axelor/axelor_dark.svg' };
 	properties: INodeProperties[] = [
 		{
 			displayName: 'Base URL',

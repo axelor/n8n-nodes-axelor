@@ -7,7 +7,7 @@ import {
 	IHttpRequestMethods,
 	INodeExecutionData,
 	INodePropertyOptions,
-	IRequestOptions,
+	IHttpRequestOptions,
 	NodeApiError,
 	NodeOperationError,
 } from 'n8n-workflow';
@@ -138,7 +138,7 @@ export function buildRequestData(
 	return data;
 }
 
-export function getSortByFields(this: IExecuteFunctions, i: number): Array<String> {
+export function getSortByFields(this: IExecuteFunctions, i: number): Array<string> {
 	const sortByValues = this.getNodeParameter('sortBy', i, {}) as {
 		sortBy: { field: string; rule: string }[];
 	};
@@ -148,7 +148,7 @@ export function getSortByFields(this: IExecuteFunctions, i: number): Array<Strin
 		: [];
 }
 
-export function getContextFields(this: IExecuteFunctions, i: number): Object {
+export function getContextFields(this: IExecuteFunctions, i: number): object {
 	const contextValues = this.getNodeParameter('context', i, {}) as {
 		context: { key: string; value: string }[];
 	};
@@ -156,8 +156,8 @@ export function getContextFields(this: IExecuteFunctions, i: number): Object {
 	return fromPairs(contextArray.map((c: any) => [c.key, c.value]));
 }
 
-export function getSelectedFields(this: IExecuteFunctions, i: number): Array<String> {
-	return this.getNodeParameter('fields', i, []) as Array<String>;
+export function getSelectedFields(this: IExecuteFunctions, i: number): Array<string> {
+	return this.getNodeParameter('fields', i, []) as Array<string>;
 }
 
 export function createCriteria(fieldName: string, operator: string, value: string) {
@@ -265,8 +265,8 @@ export function filterFieldsByJson(fields: AxelorModelFieldSchema[]) {
 	return { metaFields, metaJsonFields };
 }
 
-export function processSelectedFields(selectedFields: Array<String>) {
-	const metaFields: Array<String> = [];
+export function processSelectedFields(selectedFields: Array<string>) {
+	const metaFields: Array<string> = [];
 	const jsonFields = new Set();
 
 	selectedFields.forEach((field) => {
@@ -319,7 +319,7 @@ export const buildRequest = ({
 	const headerParamerters = getParameter(values, PARAMETER.header);
 	const qs = getParameter(values, PARAMETER.query);
 
-	const request: IRequestOptions = {
+	const request: IHttpRequestOptions = {
 		method: serviceInfo.httpMethod as IHttpRequestMethods,
 		url,
 		baseURL: credentials.baseUrl,
@@ -328,10 +328,6 @@ export const buildRequest = ({
 			'Content-Type': 'application/json',
 			...headerParamerters,
 		},
-		auth: {
-			user: credentials.username,
-			pass: credentials.password,
-		},
 		json: true,
 		qs,
 	};
@@ -339,8 +335,8 @@ export const buildRequest = ({
 	return request;
 };
 
-const processUrl = (url: string, value: Object) => {
-	let processedUrl = replaceUrlParams(url, value, PARAMETER.path);
+const processUrl = (url: string, value: object) => {
+	const processedUrl = replaceUrlParams(url, value, PARAMETER.path);
 	return `/ws${processedUrl}`;
 };
 

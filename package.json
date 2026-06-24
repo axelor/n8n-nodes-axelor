@@ -1,48 +1,63 @@
 {
-    "name": "n8n-nodes-axelor",
-    "version": "0.1.0",
-    "description": "",
-    "license": "MIT",
-    "homepage": "",
-    "keywords": [
-        "n8n-community-node-package"
+  "name": "@axelor/n8n-nodes-axelor",
+  "version": "0.1.0",
+  "description": "Axelor nodes for n8n",
+  "license": "MIT",
+  "homepage": "",
+  "keywords": [
+    "n8n",
+    "axelor",
+    "workflow",
+    "n8n-community-node-package",
+    "axelor-n8n-node",
+    "n8n-node-package"
+  ],
+  "author": {
+    "name": "Axelor",
+    "email": "info@axelor.com"
+  },
+  "repository": {
+    "type": "git"
+  },
+  "scripts": {
+    "build": "n8n-node build",
+    "build:watch": "tsc --watch",
+    "dev": "n8n-node dev",
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix",
+    "release": "n8n-node release",
+    "prepublishOnly": "n8n-node prerelease",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/AxelorApi.credentials.js"
     ],
-    "author": {
-        "name": "kunal k shaw",
-        "email": "k.kumarshaw@axelor.com"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/<...>/n8n-nodes-<...>.git"
-    },
-   "scripts": {
-		"build": "n8n-node build",
-		"build:watch": "tsc --watch",
-		"dev": "n8n-node dev",
-		"lint": "n8n-node lint",
-		"lint:fix": "n8n-node lint --fix",
-		"release": "n8n-node release",
-		"prepublishOnly": "n8n-node prerelease"
-	},
-    "files": [
-        "dist"
-    ],
-    "n8n": {
-        "n8nNodesApiVersion": 1,
-        "strict": true,
-        "credentials": [],
-        "nodes": [
-            "dist/nodes/Example/Example.node.js"
-        ]
-    },
-    "devDependencies": {
-        "@n8n/node-cli": "*",
-        "eslint": "9.32.0",
-        "prettier": "3.6.2",
-        "release-it": "^19.0.4",
-        "typescript": "5.9.2"
-    },
-    "peerDependencies": {
-        "n8n-workflow": "*"
-    }
+    "nodes": [
+      "dist/nodes/Axelor/Axelor.node.js",
+      "dist/nodes/Axelor/AxelorTrigger.node.js",
+      "dist/nodes/Axelor/AxelorPollTrigger.node.js",
+      "dist/nodes/Axelor/v1/AxelorV1.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "*",
+    "@types/node": "^22.15.21",
+    "@types/jest": "^29.5.12",
+    "eslint": "9.29.0",
+    "gulp": "^4.0.2",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "prettier": "3.6.2",
+    "release-it": "^19.0.4",
+    "typescript": "5.9.2"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
 }

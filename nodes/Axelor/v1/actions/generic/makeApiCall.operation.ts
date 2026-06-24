@@ -1,6 +1,7 @@
 import {
 	IExecuteFunctions,
 	IHttpRequestMethods,
+	IHttpRequestOptions,
 	INodeExecutionData,
 	INodeProperties,
 	NodeApiError,
@@ -161,12 +162,11 @@ export async function execute(
 				}
 			}
 
-			const requestOptions: Record<string, any> = {
+			const requestOptions: IHttpRequestOptions = {
 				method,
 				url,
 				baseURL: creds.baseUrl,
-				headers: { Accept: '*/*', ...headers },
-				auth: { user: creds.username, pass: creds.password },
+				headers: { Accept: '*/*', 'Content-Type': 'application/json', ...headers },
 				json: true,
 				qs,
 			};
@@ -175,7 +175,7 @@ export async function execute(
 				requestOptions.body = body;
 			}
 
-			const response = await this.helpers.request(requestOptions);
+			const response = await this.helpers.httpRequestWithAuthentication.call(this, 'axelorApi', requestOptions);
 			isValidResponse(response);
 
 			const executionData = this.helpers.constructExecutionMetaData(wrapData(response.data), {

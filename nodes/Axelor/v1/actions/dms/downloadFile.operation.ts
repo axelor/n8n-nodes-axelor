@@ -1,5 +1,6 @@
 import {
 	IExecuteFunctions,
+	IHttpRequestOptions,
 	INodeExecutionData,
 	INodeProperties,
 	NodeApiError,
@@ -38,11 +39,6 @@ export async function execute(
 	const returnData: INodeExecutionData[] = [];
 	const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
 
-	const auth = {
-		user: creds.username,
-		pass: creds.password,
-	};
-
 	for (let i = 0; i < items.length; i++) {
 		const fileRecordId = this.getNodeParameter('fileRecordId', i);
 
@@ -54,15 +50,17 @@ export async function execute(
 		}
 
 		try {
-			const response = await this.helpers.request!({
-				method: HTTP.GET,
-				baseURL: creds.baseUrl,
-				url: `/ws/dms/download/${fileRecordId}`,
-				auth,
-				json: false,
-				encoding: null,
-				resolveWithFullResponse: true,
-			});
+			const response = await this.helpers.httpRequestWithAuthentication.call(
+				this,
+				'axelorApi',
+				{
+					method: HTTP.GET,
+					baseURL: creds.baseUrl,
+					url: `/ws/dms/download/${fileRecordId}`,
+					encoding: 'arraybuffer',
+					returnFullResponse: true,
+				} satisfies IHttpRequestOptions,
+			);
 
 			isValidResponse(response);
 

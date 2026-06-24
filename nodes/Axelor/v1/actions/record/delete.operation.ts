@@ -2,9 +2,8 @@ import {
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
-	updateDisplayOptions,
+	updateDisplayOptions, NodeApiError 
 } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
 import { isValidResponse, processAxelorError } from '../../helpers/utils';
 import { apiRequest } from '../../transport';
 import { FIELD_TYPE, HTTP } from '../../helpers/constants';

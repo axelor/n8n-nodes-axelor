@@ -109,7 +109,6 @@ export async function execute(
 
 		if (!module || !action) return returnData;
 
-		if (!this.helpers.request) throw new Error('Request helper not available');
 
 		const qs: IDataObject = {};
 
@@ -145,7 +144,7 @@ export async function execute(
 				const data = buildBuisnessAPIRequestData(changedKeys, mapping.value, fields);
 				requestBody.body = data;
 			}
-			const buisnessCallResponse = await this.helpers.request(requestBody);
+			const buisnessCallResponse = await this.helpers.httpRequestWithAuthentication.call(this, 'axelorApi', requestBody);
 			const executionData = this.helpers.constructExecutionMetaData(
 				wrapData(buisnessCallResponse as IDataObject[]),
 				{ itemData: { item: i } },

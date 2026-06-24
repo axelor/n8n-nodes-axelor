@@ -15,7 +15,7 @@ describe('Test Axelor, downloadFile operation', () => {
 			}),
 			continueOnFail: jest.fn().mockReturnValue(false),
 			helpers: {
-				request: jest.fn(),
+				httpRequestWithAuthentication: jest.fn(),
 				prepareBinaryData: jest.fn(),
 			},
 		};
@@ -40,18 +40,18 @@ describe('Test Axelor, downloadFile operation', () => {
 		};
 
 		mockExecuteFunction.getNodeParameter.mockReturnValue(fileRecordId);
-		mockExecuteFunction.helpers.request.mockResolvedValue(mockResponse);
+		mockExecuteFunction.helpers.httpRequestWithAuthentication.mockResolvedValue(mockResponse);
 		mockExecuteFunction.helpers.prepareBinaryData.mockReturnValue(mockBinaryData);
 
 		const result = await downloadFile.execute.call(mockExecuteFunction, items);
 		//assertions
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('fileRecordId', 0);
 		expect(mockExecuteFunction.getCredentials).toHaveBeenCalledWith('axelorApi');
-		expect(mockExecuteFunction.helpers.request).toHaveBeenCalledWith(
+		expect(mockExecuteFunction.helpers.httpRequestWithAuthentication).toHaveBeenCalledWith(
+			'axelorApi',
 			expect.objectContaining({
 				method: 'GET',
 				baseURL: 'https://api.axelor.com/',
-				auth: { user: 'test', pass: 'test' },
 				url: `/ws/dms/download/${fileRecordId}`,
 			}),
 		);
@@ -85,6 +85,6 @@ describe('Test Axelor, downloadFile operation', () => {
 		);
 
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('fileRecordId', 0);
-		expect(mockExecuteFunction.helpers.request).not.toHaveBeenCalled();
+		expect(mockExecuteFunction.helpers.httpRequestWithAuthentication).not.toHaveBeenCalled();
 	});
 });

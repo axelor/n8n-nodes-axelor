@@ -15,7 +15,7 @@ import {
 } from '../../helpers/utils';
 import { getFields, getMetaModelFieldRecord } from '../../helpers/api-helper';
 import { FIELD_TYPE, HTTP, MODEL } from '../../helpers/constants';
-import { AxelorApiCredentials } from '../../helpers/interface';
+import { apiRequest } from '../../transport';
 
 const properties: INodeProperties[] = [
 	{
@@ -76,8 +76,6 @@ export async function execute(
 
 	const metaFieldCache: Record<string, any> = {};
 
-	const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
-
 	for (let i = 0; i < items.length; i++) {
 		const model = this.getNodeParameter('customModel', i) as string;
 		const recordId = this.getNodeParameter('records', i) as number;
@@ -117,14 +115,7 @@ export async function execute(
 			data.id = record.id;
 			data.version = record.version;
 
-			const responseData = await this.helpers.request!({
-				method: HTTP.POST,
-				url: `/ws/rest/${MODEL.META_JSON_RECORD}`,
-				baseURL: creds.baseUrl,
-				auth: { user: creds.username, pass: creds.password },
-				body: { data },
-				json: true,
-			});
+			const responseData = await apiRequest.call(this, HTTP.POST, `/ws/rest/${MODEL.META_JSON_RECORD}`, { data });
 
 			isValidResponse(responseData);
 

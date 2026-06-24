@@ -3,9 +3,8 @@ import {
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
-	updateDisplayOptions,
+	updateDisplayOptions, NodeApiError
 } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
 
 import {
 	getContextFields,
