@@ -1,3 +1,4 @@
+import type { IExecuteFunctions } from 'n8n-workflow';
 import * as apiRequest from '../../../../v1/transport/index';
 import * as addAttachments from '../../../../v1/actions/dms/addAttachments.operation';
 
@@ -6,8 +7,14 @@ jest.mock('../../../../v1/transport/index', () => {
 	return { ...originalModule, apiRequest: jest.fn() };
 });
 
+type MockExecuteFunction = {
+	getNodeParameter: jest.Mock;
+	continueOnFail: jest.Mock;
+	helpers: { constructExecutionMetaData: jest.Mock };
+};
+
 describe('Test Axelor, add attachment operation', () => {
-	let mockExecuteFunction: any;
+	let mockExecuteFunction: MockExecuteFunction;
 	beforeEach(() => {
 		jest.clearAllMocks();
 		mockExecuteFunction = {
@@ -31,7 +38,7 @@ describe('Test Axelor, add attachment operation', () => {
 		};
 
 		mockExecuteFunction.getNodeParameter.mockImplementation(
-			(param: string, index: number, defaultValue?: any) => {
+			(param: string, index: number, defaultValue?: unknown) => {
 				if (param === 'model') return model;
 				if (param === 'records') return recordId;
 				if (param === 'uploadIds.values') return uploadIds.values;
@@ -41,7 +48,7 @@ describe('Test Axelor, add attachment operation', () => {
 
 		(apiRequest.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
-		const result = await addAttachments.execute.call(mockExecuteFunction, items);
+		const result = await addAttachments.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
 
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('records', 0);
@@ -79,7 +86,7 @@ describe('Test Axelor, add attachment operation', () => {
 		};
 
 		mockExecuteFunction.getNodeParameter.mockImplementation(
-			(param: string, _idx: number, defaultValue?: any) => {
+			(param: string, _idx: number, defaultValue?: unknown) => {
 				if (param === 'model') return model;
 				if (param === 'records') return recordId;
 				if (param === 'uploadIds.values') return uploadIds.values;
@@ -89,7 +96,7 @@ describe('Test Axelor, add attachment operation', () => {
 
 		(apiRequest.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
-		const result = await addAttachments.execute.call(mockExecuteFunction, items);
+		const result = await addAttachments.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
 
 		expect(apiRequest.apiRequest).toHaveBeenCalledWith(
 			'PUT',

@@ -5,6 +5,12 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 import { NodeApiError, updateDisplayOptions } from 'n8n-workflow';
+import type { AxelorModelFieldSchema, FieldCategory } from '../../helpers/interface';
+
+type MappingData = {
+	schema?: Array<{ id: string; removed: boolean }>;
+	value?: IDataObject;
+};
 import {
 	buildRequestData,
 	getChangedFieldNames,
@@ -74,7 +80,7 @@ export async function execute(
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
 
-	const metaFieldCache: Record<string, any> = {};
+	const metaFieldCache: Record<string, Record<FieldCategory, AxelorModelFieldSchema[]>> = {};
 
 	for (let i = 0; i < items.length; i++) {
 		const model = this.getNodeParameter('customModel', i) as string;
@@ -93,7 +99,7 @@ export async function execute(
 		}
 
 		try {
-			const mapping = this.getNodeParameter('fields', i, {}) as any;
+			const mapping = this.getNodeParameter('fields', i, {}) as MappingData;
 
 			let cacheData = metaFieldCache[model];
 			if (!cacheData) {
@@ -115,23 +121,28 @@ export async function execute(
 			data.id = record.id;
 			data.version = record.version;
 
-			const responseData = await apiRequest.call(this, HTTP.POST, `/ws/rest/${MODEL.META_JSON_RECORD}`, { data });
+			const responseData = await apiRequest.call(
+				this,
+				HTTP.POST,
+				`/ws/rest/${MODEL.META_JSON_RECORD}`,
+				{ data },
+			);
 
 			isValidResponse(responseData);
 
 			const executionData = this.helpers.constructExecutionMetaData(
-				wrapData(responseData as IDataObject[]),
+				wrapData(responseData.data as IDataObject[]),
 				{ itemData: { item: i } },
 			);
 
 			returnData.push(...executionData);
 		} catch (error) {
-			error = processAxelorError(error as NodeApiError);
+			const processedError = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {
-				returnData.push({ json: { error: error.message } });
+				returnData.push({ json: { error: processedError.message } });
 				continue;
 			}
-			throw error;
+			throw processedError;
 		}
 	}
 

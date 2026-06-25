@@ -148,7 +148,9 @@ export class AxelorPollTrigger implements INodeType {
 			const lastTimeStamp = (webhookData.lastTimeChecked as string) || (initialTimeStamp as string);
 			const currentTimeStamp = now;
 
-			const data: { criteria: any[] } = { criteria: [] };
+			type SimpleCriterion = { fieldName: string; operator: string; value: string };
+			type CompoundCriterion = { operator: string; criteria: SimpleCriterion[] };
+			const data: { criteria: Array<SimpleCriterion | CompoundCriterion> } = { criteria: [] };
 
 			if (isEqual(triggerOn, 'recordCreate')) {
 				data.criteria.push(createCriteria('createdOn', '>=', lastTimeStamp));

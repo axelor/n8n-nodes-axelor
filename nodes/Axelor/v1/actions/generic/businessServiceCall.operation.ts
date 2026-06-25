@@ -13,7 +13,7 @@ import {
 	processAxelorError,
 	wrapData,
 } from '../../helpers/utils';
-import { AxelorApiCredentials } from '../../helpers/interface';
+import type { AxelorApiCredentials, AxelorModelFieldSchema, WebServiceInfo } from '../../helpers/interface';
 import { FIELD_TYPE, HTTP, WEB_SERVICE } from '../../helpers/constants';
 import { join } from '../../helpers/lodash';
 import { apiRequest } from '../../transport';
@@ -90,13 +90,22 @@ const displayOptions = {
 
 export const description = updateDisplayOptions(displayOptions, properties);
 
+type ServiceInfo = WebServiceInfo & {
+	requestBody?: { bodyParameters?: AxelorModelFieldSchema[] };
+};
+
+type MappingData = {
+	schema?: Array<{ id: string; removed: boolean }>;
+	value?: IDataObject;
+};
+
 export async function execute(
 	this: IExecuteFunctions,
 	items: INodeExecutionData[],
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
 
-	const infoCache: Record<string, any> = {};
+	const infoCache: Record<string, ServiceInfo> = {};
 
 	for (let i = 0; i < items.length; i++) {
 		const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
@@ -117,12 +126,12 @@ export async function execute(
 
 		const key = join([module, action], '_');
 		let cacheData = infoCache[key];
-		let response: any = {};
+		let response!: ServiceInfo;
 		try {
 			if (!cacheData) {
 				const url = WEB_SERVICE.CONNECT_WS_INFO;
 				const data: IDataObject = {};
-				response = await apiRequest.call(this, HTTP.GET, url, data, qs);
+				response = await apiRequest.call(this, HTTP.GET, url, data, qs) as unknown as ServiceInfo;
 
 				infoCache[key] = response;
 				cacheData = response;
@@ -131,17 +140,17 @@ export async function execute(
 
 			const fields = response.requestBody?.bodyParameters || [];
 
-			const mapping = this.getNodeParameter('parameters', i, {}) as any;
+			const mapping = this.getNodeParameter('parameters', i, {}) as MappingData;
 
 			const changedKeys = getChangedFieldNames(mapping);
 
 			const requestBody = buildRequest({
 				serviceInfo: response,
 				credentials: creds,
-				values: mapping?.value || {},
+				values: mapping?.value,
 			});
 			if (requestBody.method === HTTP.POST) {
-				const data = buildBuisnessAPIRequestData(changedKeys, mapping.value, fields);
+				const data = buildBuisnessAPIRequestData(changedKeys, mapping.value ?? {}, fields);
 				requestBody.body = data;
 			}
 			const buisnessCallResponse = await this.helpers.httpRequestWithAuthentication.call(this, 'axelorApi', requestBody);
@@ -152,12 +161,12 @@ export async function execute(
 
 			returnData.push(...executionData);
 		} catch (error) {
-			error = processAxelorError(error as NodeApiError);
+			const processedError = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {
-				returnData.push({ json: { error: error.message } });
+				returnData.push({ json: { error: processedError.message } });
 				continue;
 			}
-			throw error;
+			throw processedError;
 		}
 	}
 	return returnData;

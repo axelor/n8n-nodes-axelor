@@ -83,7 +83,7 @@ export async function execute(
 
 			isValidResponse(responseData);
 			const executionData = this.helpers.constructExecutionMetaData(
-				wrapData(responseData as IDataObject[]),
+				wrapData(responseData as unknown as IDataObject),
 				{ itemData: { item: i } },
 			);
 			returnData.push(...executionData);

@@ -1,10 +1,10 @@
-import {
+import type {
 	INodeType,
 	INodeTypeDescription,
 	IWebhookFunctions,
 	IWebhookResponseData,
-	NodeConnectionTypes,
 } from 'n8n-workflow';
+import { NodeConnectionTypes } from 'n8n-workflow';
 import { loadOptions } from './v1/methods';
 import { webhookMethods } from './v1/triggers/webhook-methods';
 

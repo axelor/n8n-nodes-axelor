@@ -6,7 +6,7 @@ import {
 	ILoadOptionsFunctions,
 	IPollFunctions,
 } from 'n8n-workflow';
-import { AxelorApiCredentials } from '../helpers/interface';
+import { AxelorApiCredentials, AxelorApiResponse } from '../helpers/interface';
 import { HTTP } from '../helpers/constants';
 
 export async function apiRequest(
@@ -17,7 +17,7 @@ export async function apiRequest(
 	qs: IDataObject = {},
 	headers: IDataObject = {},
 	option: Partial<IHttpRequestOptions> = {},
-): Promise<any> {
+): Promise<AxelorApiResponse> {
 	const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
 
 	const options: IHttpRequestOptions = {

@@ -1,4 +1,4 @@
-import { FieldType } from 'n8n-workflow';
+import type { FieldType, IDataObject } from 'n8n-workflow';
 
 export type TypesMap = Partial<Record<FieldType, string[]>>;
 export type FieldCategory = 'fields' | 'metaFields' | 'metaJsonFields' | 'jsonFields';
@@ -9,7 +9,7 @@ export interface AxelorSelectionOption {
 	color: string | null;
 	order: number;
 	hidden: boolean;
-	data: any;
+	data: unknown;
 	title: string;
 }
 
@@ -18,6 +18,7 @@ export interface AxelorModelFieldSchema {
 	title?: string;
 	required?: boolean;
 	type: string;
+	nameColumn?: boolean;
 	selectionList?: AxelorSelectionOption[];
 	target?: string;
 	targetName?: string;
@@ -29,10 +30,9 @@ export interface AxelorModelFieldSchema {
 	subParameters?: AxelorModelFieldSchema[];
 }
 
-export interface AxelorRecord {
+export interface AxelorRecord extends IDataObject {
 	id: number;
 	version: number;
-	[key: string]: any;
 }
 
 export interface AxelorApiCredentials {
@@ -44,4 +44,12 @@ export interface AxelorApiCredentials {
 export interface WebServiceInfo {
 	target: string;
 	httpMethod: string;
+}
+
+export interface AxelorApiResponse {
+	status: number;
+	data?: IDataObject | IDataObject[];
+	offset?: number;
+	total?: number;
+	[key: string]: unknown;
 }

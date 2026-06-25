@@ -38,7 +38,7 @@ export const webhookMethods = {
 					return true;
 				}
 				return false;
-			} catch (error) {
+			} catch {
 				return false;
 			}
 		},

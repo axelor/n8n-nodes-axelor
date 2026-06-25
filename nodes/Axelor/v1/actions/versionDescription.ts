@@ -8,6 +8,7 @@ import * as generic from './generic/Generic.resource';
 export const versionDescription: INodeTypeDescription = {
 	displayName: 'Axelor',
 	name: 'axelor',
+	icon: { light: 'file:axelor_light.svg', dark: 'file:axelor_dark.svg' },
 	group: ['input'],
 	version: 1,
 	subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',

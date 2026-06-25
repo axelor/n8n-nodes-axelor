@@ -98,7 +98,9 @@ export async function execute(
 
 	for (let i = 0; i < items.length; i++) {
 		try {
-			const actionsRaw = this.getNodeParameter('actions', i) as any;
+			const actionsRaw = this.getNodeParameter('actions', i) as {
+				values?: Array<{ item: string }>;
+			};
 			const model = this.getNodeParameter('model', i) as string;
 			const contextRaw = this.getNodeParameter('context', i, {}) as {
 				values?: Array<{ key: string; value: string }>;
@@ -108,9 +110,9 @@ export async function execute(
 				throw new NodeOperationError(this.getNode(), 'Missing required parameter: Actions');
 			}
 
-			const action = actionsRaw.values.map((a: any) => a.item).join(',');
+			const action = (actionsRaw.values || []).map((a) => a.item).join(',');
 
-			let context: Record<string, any> = {};
+			let context: Record<string, string> = {};
 			if (contextRaw?.values?.length) {
 				context = fromPairs(contextRaw.values.map(({ key, value }) => [key, value]));
 			}
@@ -129,7 +131,7 @@ export async function execute(
 			isValidResponse(responseData);
 
 			const executionData = this.helpers.constructExecutionMetaData(
-				wrapData(responseData as IDataObject[]),
+				wrapData(responseData.data as IDataObject[]),
 				{ itemData: { item: i } },
 			);
 

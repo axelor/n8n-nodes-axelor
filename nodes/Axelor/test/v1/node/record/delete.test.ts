@@ -1,3 +1,4 @@
+import type { IExecuteFunctions } from 'n8n-workflow';
 import * as transport from '../../../../v1/transport';
 import * as deleteOp from '../../../../v1/actions/record/delete.operation';
 
@@ -6,8 +7,13 @@ jest.mock('../../../../v1/transport', () => {
 	return { ...originalModule, apiRequest: jest.fn() };
 });
 
+type MockExecuteFunction = {
+	getNodeParameter: jest.Mock;
+	continueOnFail: jest.Mock;
+};
+
 describe('Test Axelor, delete operation', () => {
-	let mockExecuteFunction: any;
+	let mockExecuteFunction: MockExecuteFunction;
 
 	beforeEach(() => {
 		jest.clearAllMocks();
@@ -36,7 +42,7 @@ describe('Test Axelor, delete operation', () => {
 
 		(transport.apiRequest as jest.Mock).mockResolvedValue(mockApiResponse);
 
-		const result = await deleteOp.execute.call(mockExecuteFunction, items);
+		const result = await deleteOp.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
 
 		//assertions
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
@@ -81,7 +87,7 @@ describe('Test Axelor, delete operation', () => {
 		);
 
 		(transport.apiRequest as jest.Mock).mockResolvedValue(mockApiResponse);
-		const result = await deleteOp.execute.call(mockExecuteFunction, items);
+		const result = await deleteOp.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
 
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('deleteMultiple', 0, false);

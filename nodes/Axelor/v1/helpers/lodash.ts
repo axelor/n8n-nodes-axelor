@@ -5,7 +5,7 @@
 /**
  * Checks if two values are deeply equal
  */
-export function isEqual(value: any, other: any): boolean {
+export function isEqual(value: unknown, other: unknown): boolean {
 	// Handle simple cases
 	if (value === other) return true;
 	if (value == null || other == null) return value === other;
@@ -21,14 +21,16 @@ export function isEqual(value: any, other: any): boolean {
 	}
 
 	// Handle objects
-	if (typeof value === 'object') {
-		const valueKeys = Object.keys(value);
-		const otherKeys = Object.keys(other);
+	if (typeof value === 'object' && typeof other === 'object') {
+		const valueObj = value as Record<string, unknown>;
+		const otherObj = other as Record<string, unknown>;
+		const valueKeys = Object.keys(valueObj);
+		const otherKeys = Object.keys(otherObj);
 
 		if (valueKeys.length !== otherKeys.length) return false;
 
 		for (const key of valueKeys) {
-			if (!Object.prototype.hasOwnProperty.call(other, key) || !isEqual(value[key], other[key])) {
+			if (!Object.prototype.hasOwnProperty.call(otherObj, key) || !isEqual(valueObj[key], otherObj[key])) {
 				return false;
 			}
 		}
@@ -41,17 +43,17 @@ export function isEqual(value: any, other: any): boolean {
 /**
  * Gets the value at path of object
  */
-export function get(object: any, path: string | string[], defaultValue?: any): any {
+export function get(object: unknown, path: string | string[], defaultValue?: unknown): unknown {
 	if (object == null) return defaultValue;
 
 	const keys = Array.isArray(path) ? path : path.split('.');
-	let result = object;
+	let result: unknown = object;
 
 	for (const key of keys) {
 		if (result == null || typeof result !== 'object') {
 			return defaultValue;
 		}
-		result = result[key];
+		result = (result as Record<string, unknown>)[key];
 	}
 
 	return result === undefined ? defaultValue : result;
@@ -60,18 +62,18 @@ export function get(object: any, path: string | string[], defaultValue?: any): a
 /**
  * Sets the value at path of object
  */
-export function set(object: any, path: string | string[], value: any): any {
+export function set(object: unknown, path: string | string[], value: unknown): unknown {
 	if (object == null) return object;
 
 	const keys = Array.isArray(path) ? path : path.split('.');
 	const lastKey = keys.pop()!;
-	let current = object;
+	let current = object as Record<string, unknown>;
 
 	for (const key of keys) {
 		if (current[key] == null) {
 			current[key] = /^\d+$/.test(keys[keys.indexOf(key) + 1] || '') ? [] : {};
 		}
-		current = current[key];
+		current = current[key] as Record<string, unknown>;
 	}
 
 	current[lastKey] = value;
@@ -81,8 +83,8 @@ export function set(object: any, path: string | string[], value: any): any {
 /**
  * Converts an array of key-value pairs to an object
  */
-export function fromPairs(pairs: Array<[string, any]>): Record<string, any> {
-	const result: Record<string, any> = {};
+export function fromPairs<T>(pairs: Array<[string, T]>): Record<string, T> {
+	const result: Record<string, T> = {};
 
 	for (const [key, value] of pairs) {
 		result[key] = value;
@@ -94,7 +96,7 @@ export function fromPairs(pairs: Array<[string, any]>): Record<string, any> {
 /**
  * Joins array elements with the separator
  */
-export function join(array: any[], separator: string = ','): string {
+export function join(array: unknown[], separator: string = ','): string {
 	if (!Array.isArray(array)) return '';
 	return array.join(separator);
 }
@@ -119,7 +121,7 @@ export function startCase(string: string): string {
  * Custom isEmpty implementation
  */
 
-export const isEmpty = (value: any): boolean => {
+export const isEmpty = (value: unknown): boolean => {
 	if (value == null) return true;
 	if (Array.isArray(value) || typeof value === 'string') return value.length === 0;
 	if (typeof value === 'object') return Object.keys(value).length === 0;
@@ -128,4 +130,4 @@ export const isEmpty = (value: any): boolean => {
 
 export const toLower = (str: string): string => str?.toLowerCase() || '';
 
-export const isNull = (value: any): boolean => value === null;
+export const isNull = (value: unknown): boolean => value === null;

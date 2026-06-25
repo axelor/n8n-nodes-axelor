@@ -38,8 +38,9 @@ export async function getMetaModelFields(
 	try {
 		const url = `/ws/meta/fields/${encodeURIComponent(selectedModel)}`;
 		const response = await apiRequest.call(this, HTTP.GET, url);
+		const respData = response.data as IDataObject;
 
-		const $fields: AxelorModelFieldSchema[] = response.data?.fields || [];
+		const $fields: AxelorModelFieldSchema[] = (respData?.fields as AxelorModelFieldSchema[]) || [];
 
 		const attrs = [
 			'title',
@@ -53,9 +54,12 @@ export async function getMetaModelFields(
 			'domain',
 			'enumType',
 		];
-		const $jsonFields = getJsonFields(response?.data.jsonFields, attrs)
-			.map((item) => ({ name: item.attributeValue, ...item }))
-			.filter(excludeNonInputFields) as AxelorModelFieldSchema[];
+		const $jsonFields = (
+			getJsonFields(respData?.jsonFields as Record<string, Record<string, IDataObject>>, attrs).map((item) => ({
+				name: item.attributeValue,
+				...item,
+			})) as AxelorModelFieldSchema[]
+		).filter(excludeNonInputFields);
 
 		const mappedFields: ResourceMapperField[] = await Promise.all(
 			[...$fields, ...$jsonFields].map(async (field) => {
@@ -104,6 +108,7 @@ export async function getMetaJsonModelFields(
 	try {
 		const url = `/ws/meta/fields/${MODEL.META_JSON_RECORD}/?jsonModel=${selectedModel}`;
 		const response = await apiRequest.call(this, HTTP.GET, url);
+		const respData = response.data as IDataObject;
 
 		const attrs = [
 			'title',
@@ -117,9 +122,12 @@ export async function getMetaJsonModelFields(
 			'domain',
 			'enumType',
 		];
-		const $jsonFields = getJsonFields(response?.data.jsonFields, attrs)
-			.map((item) => ({ name: item.attributeValue, ...item }))
-			.filter(excludeNonInputFields) as AxelorModelFieldSchema[];
+		const $jsonFields = (
+			getJsonFields(respData?.jsonFields as Record<string, Record<string, IDataObject>>, attrs).map((item) => ({
+				name: item.attributeValue,
+				...item,
+			})) as AxelorModelFieldSchema[]
+		).filter(excludeNonInputFields);
 
 		const mappedFields: ResourceMapperField[] = await Promise.all(
 			$jsonFields.map(async (field) => {
@@ -179,23 +187,25 @@ export async function loadActionBodyFields(
 		const url = WEB_SERVICE.CONNECT_WS_INFO;
 		const response = await apiRequest.call(this, HTTP.GET, url, {}, qs);
 
-		let $fields: AxelorModelFieldSchema[] = response.requestBody?.bodyParameters || [];
+		const serviceResponse = response as unknown as { requestBody?: { bodyParameters?: AxelorModelFieldSchema[] } };
+		let $fields: AxelorModelFieldSchema[] = serviceResponse.requestBody?.bodyParameters || [];
 
 		$fields = processCollectionFields($fields).filter((item) => item.name !== 'id');
 
 		const headerParams =
-			response.headers
-				?.filter((item: any) => isNull(item.value))
-				?.map((item: any) => ({ name: item.name, type: 'string' })) || [];
+			(response.headers as Array<{ name: string; value: string | null }>)
+				?.filter((item) => isNull(item.value))
+				?.map((item) => ({ name: item.name, type: 'string' })) || [];
 
 		const $headerParameterField: AxelorModelFieldSchema[] = buildResourceField(
 			headerParams,
 			PARAMETER.header,
 		);
 		const $pathParameterField: AxelorModelFieldSchema[] =
-			buildResourceField(response.pathParameters, PARAMETER.path) || [];
+			buildResourceField(response.pathParameters as AxelorModelFieldSchema[], PARAMETER.path) || [];
 		const $queryParameterField =
-			buildResourceField(response.queryParameters, PARAMETER.query) || [];
+			buildResourceField(response.queryParameters as AxelorModelFieldSchema[], PARAMETER.query) ||
+			[];
 
 		const mappedFields: ResourceMapperField[] = await Promise.all(
 			[...$headerParameterField, ...$pathParameterField, ...$queryParameterField, ...$fields].map(
