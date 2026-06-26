@@ -15,6 +15,12 @@ import {
 import { getFields } from '../../helpers/api-helper';
 import { FIELD_TYPE, HTTP, MODEL } from '../../helpers/constants';
 import { apiRequest } from '../../transport';
+import type { AxelorModelFieldSchema, FieldCategory } from '../../helpers/interface';
+
+type MappingData = {
+	schema?: Array<{ id: string; removed: boolean }>;
+	value?: IDataObject;
+};
 
 const properties: INodeProperties[] = [
 	{
@@ -56,12 +62,12 @@ export async function execute(
 ): Promise<INodeExecutionData[]> {
 	const returnData: INodeExecutionData[] = [];
 
-	const metaFieldCache: Record<string, any> = {};
+	const metaFieldCache: Record<string, Record<FieldCategory, AxelorModelFieldSchema[]>> = {};
 
 	for (let i = 0; i < items.length; i++) {
 		try {
 			const model = this.getNodeParameter('customModel', i) as string;
-			const mapping = this.getNodeParameter('fields', i, {}) as any;
+			const mapping = this.getNodeParameter('fields', i, {}) as MappingData;
 
 			let cacheData = metaFieldCache[model];
 			if (!cacheData) {
@@ -86,18 +92,18 @@ export async function execute(
 			isValidResponse(responseData);
 
 			const executionData = this.helpers.constructExecutionMetaData(
-				wrapData(responseData as IDataObject[]),
+				wrapData(responseData.data as IDataObject | IDataObject[]),
 				{ itemData: { item: i } },
 			);
 
 			returnData.push(...executionData);
 		} catch (error) {
-			error = processAxelorError(error as NodeApiError);
+			const processedError = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {
-				returnData.push({ json: { error: error.message } });
+				returnData.push({ json: { error: processedError.message } });
 				continue;
 			}
-			throw error;
+			throw processedError;
 		}
 	}
 

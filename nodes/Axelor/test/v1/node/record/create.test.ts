@@ -1,3 +1,4 @@
+import type { IExecuteFunctions } from 'n8n-workflow';
 import * as apiHelper from '../../../../v1/helpers/api-helper';
 import * as transport from '../../../../v1/transport';
 import * as create from '../../../../v1/actions/record/create.operation';
@@ -12,8 +13,14 @@ jest.mock('../../../../v1/helpers/api-helper', () => {
 	return { ...originalModule, getFields: jest.fn() };
 });
 
+type MockExecuteFunction = {
+	getNodeParameter: jest.Mock;
+	continueOnFail: jest.Mock;
+	helpers: { constructExecutionMetaData: jest.Mock };
+};
+
 describe('Test Axelor, create operation', () => {
-	let mockExecuteFunction: any;
+	let mockExecuteFunction: MockExecuteFunction;
 
 	beforeEach(() => {
 		jest.clearAllMocks();
@@ -69,7 +76,7 @@ describe('Test Axelor, create operation', () => {
 		(apiHelper.getFields as jest.Mock).mockResolvedValue(mockFields);
 		(transport.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
-		const result = await create.execute.call(mockExecuteFunction, items);
+		const result = await create.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
 
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('fields', 0, {});

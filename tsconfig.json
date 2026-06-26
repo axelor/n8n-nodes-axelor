@@ -22,7 +22,8 @@
 		"outDir": "./dist/",
 		"paths": {
 			"@/*": ["./*"]
-		}
+		},
+		"types": ["jest", "node"]
 	},
 	"include": ["credentials/**/*", "nodes/**/*", "nodes/**/*.json", "package.json"]
 }

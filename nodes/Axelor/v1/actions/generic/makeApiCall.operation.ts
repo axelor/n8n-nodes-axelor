@@ -1,6 +1,7 @@
 import {
 	IExecuteFunctions,
 	IHttpRequestMethods,
+	IHttpRequestOptions,
 	INodeExecutionData,
 	INodeProperties,
 	NodeApiError,
@@ -156,17 +157,16 @@ export async function execute(
 				const bodyContent = this.getNodeParameter('body', i, '') as string;
 				try {
 					body = JSON.parse(bodyContent);
-				} catch (e) {
+				} catch {
 					body = bodyContent;
 				}
 			}
 
-			const requestOptions: Record<string, any> = {
+			const requestOptions: IHttpRequestOptions = {
 				method,
 				url,
 				baseURL: creds.baseUrl,
-				headers: { Accept: '*/*', ...headers },
-				auth: { user: creds.username, pass: creds.password },
+				headers: { Accept: '*/*', 'Content-Type': 'application/json', ...headers },
 				json: true,
 				qs,
 			};
@@ -175,7 +175,7 @@ export async function execute(
 				requestOptions.body = body;
 			}
 
-			const response = await this.helpers.request(requestOptions);
+			const response = await this.helpers.httpRequestWithAuthentication.call(this, 'axelorApi', requestOptions);
 			isValidResponse(response);
 
 			const executionData = this.helpers.constructExecutionMetaData(wrapData(response.data), {
@@ -184,12 +184,12 @@ export async function execute(
 
 			returnData.push(...executionData);
 		} catch (error) {
-			error = processAxelorError(error as NodeApiError);
+			const processedError = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {
-				returnData.push({ json: { error: error.message } });
+				returnData.push({ json: { error: processedError.message } });
 				continue;
 			}
-			throw error;
+			throw processedError;
 		}
 	}
 

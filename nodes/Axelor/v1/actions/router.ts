@@ -1,3 +1,4 @@
+import type { NodeApiError } from 'n8n-workflow';
 import { IExecuteFunctions, INodeExecutionData, NodeOperationError } from 'n8n-workflow';
 
 import * as record from './record/Record.resource';
@@ -35,13 +36,14 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 				);
 		}
 	} catch (error) {
+		const err = error as NodeApiError;
 		if (
-			error.description &&
-			(error.description as string).includes('cannot accept the provided value')
+			err.description &&
+			(err.description as string).includes('cannot accept the provided value')
 		) {
-			error.description = `${error.description}. Consider using 'Typecast' option`;
+			err.description = `${err.description}. Consider using 'Typecast' option`;
 		}
-		throw error;
+		throw err;
 	}
 
 	return [returnData];

@@ -2,9 +2,8 @@ import {
 	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
-	updateDisplayOptions,
+	updateDisplayOptions, NodeApiError 
 } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
 import { isValidResponse, processAxelorError } from '../../helpers/utils';
 import { apiRequest } from '../../transport';
 import { FIELD_TYPE, HTTP } from '../../helpers/constants';
@@ -101,12 +100,12 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				},
 			});
 		} catch (error) {
-			error = processAxelorError(error as NodeApiError, undefined, i);
+			const processedError = processAxelorError(error as NodeApiError, undefined, i);
 			if (this.continueOnFail()) {
-				returnData.push({ json: { error: error.message } });
+				returnData.push({ json: { error: processedError.message } });
 				continue;
 			}
-			throw error;
+			throw processedError;
 		}
 	}
 	return returnData;

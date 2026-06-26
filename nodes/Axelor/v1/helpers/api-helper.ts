@@ -1,10 +1,16 @@
 import {
+	IDataObject,
 	IExecuteFunctions,
 	ILoadOptionsFunctions,
 	INodePropertyOptions,
 	NodeOperationError,
 } from 'n8n-workflow';
-import { AxelorModelFieldSchema, AxelorRecord, FieldCategory } from './interface';
+import type { AxelorModelFieldSchema, AxelorRecord, FieldCategory } from './interface';
+
+type ApiHelperOptions = {
+	isCustomModel?: boolean;
+	jsonMetaFields?: boolean;
+};
 import { filterFieldsByJson, getJsonFields, getNameColoumn, normalizeKey } from './utils';
 import { FIELD_ATTRIBUTES, HTTP, MODEL } from './constants';
 import { apiRequest } from '../transport';
@@ -26,10 +32,10 @@ export async function getOptions(
 		const url = `/ws/rest/${target}/search`;
 		const response = await apiRequest.call(this, HTTP.POST, url, body);
 
-		const records = Array.isArray(response.data) ? response.data : [];
+		const records = (Array.isArray(response.data) ? response.data : []) as AxelorRecord[];
 
-		return records.map((record: any) => ({
-			name: targetName ? record[targetName] : record.id,
+		return records.map((record) => ({
+			name: String(targetName ? record[targetName] ?? '' : record.id),
 			value: record.id,
 		}));
 	} catch (error) {
@@ -40,13 +46,14 @@ export async function getOptions(
 export async function getMetaFields(
 	this: IExecuteFunctions,
 	model: string,
-	options?: Record<string, any>,
+	options?: ApiHelperOptions,
 ): Promise<AxelorModelFieldSchema[]> {
 	try {
 		const url = `/ws/meta/fields/${encodeURIComponent(model)}`;
 		const respFields = await apiRequest.call(this, HTTP.GET, url);
+		const respData = respFields.data as IDataObject;
 
-		const fields: AxelorModelFieldSchema[] = respFields.data?.fields || [];
+		const fields: AxelorModelFieldSchema[] = (respData?.fields as AxelorModelFieldSchema[]) || [];
 
 		if (!options?.jsonMetaFields) {
 			return fields;
@@ -60,8 +67,8 @@ export async function getMetaFields(
 			'target',
 			'targetName',
 		];
-		const jsonFields = getJsonFields(respFields?.data.jsonFields, attrs).map((item) => {
-			return { ...item, name: item.attributeValue, type: normalizeKey(item?.type) };
+		const jsonFields = getJsonFields(respData?.jsonFields as Record<string, Record<string, IDataObject>>, attrs).map((item) => {
+			return { ...item, name: item.attributeValue, type: normalizeKey(item?.type as string) };
 		}) as AxelorModelFieldSchema[];
 
 		return [...fields, ...jsonFields];
@@ -74,7 +81,7 @@ export async function getMetaModelFieldRecord(
 	this: IExecuteFunctions,
 	model: string,
 	recordId: number,
-	options?: Record<string, any>,
+	options?: ApiHelperOptions,
 ): Promise<AxelorRecord | null> {
 	if (!model || !recordId) {
 		throw new NodeOperationError(
@@ -90,7 +97,8 @@ export async function getMetaModelFieldRecord(
 	try {
 		const response = await apiRequest.call(this, HTTP.POST, url);
 
-		return response.data?.[0] || {};
+		const record = Array.isArray(response.data) ? response.data[0] : response.data;
+		return (record as AxelorRecord) || null;
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch fields for the record', error);
 	}
@@ -107,7 +115,7 @@ export async function getMetaModelRecords(
 		const fieldsUrl = `/ws/meta/fields/${encodeURIComponent(selectedModel)}`;
 		const respFields = await apiRequest.call(this, HTTP.GET, fieldsUrl);
 
-		const nameColumn = getNameColoumn(respFields?.data);
+		const nameColumn = getNameColoumn(respFields?.data as IDataObject);
 
 		const fields = nameColumn && nameColumn !== 'id' ? ['id', nameColumn] : ['id'];
 
@@ -116,8 +124,8 @@ export async function getMetaModelRecords(
 		const result = await apiRequest.call(this, HTTP.POST, searchUrl, body);
 
 		return Array.isArray(result.data)
-			? result.data.map((item: any) => ({
-					name: item[nameColumn] ? item[nameColumn] : `null(${item.id})`,
+			? (result.data as AxelorRecord[]).map((item) => ({
+					name: item[nameColumn] ? String(item[nameColumn]) : `null(${item.id})`,
 					value: item.id!,
 				}))
 			: [];
@@ -129,7 +137,7 @@ export async function getMetaModelRecords(
 export async function getFields(
 	this: IExecuteFunctions,
 	model: string,
-	options?: Record<string, any>,
+	options?: ApiHelperOptions,
 ): Promise<Record<FieldCategory, AxelorModelFieldSchema[]>> {
 	const url = options?.isCustomModel
 		? `/ws/meta/fields/${MODEL.META_JSON_RECORD}/?jsonModel=${model}`
@@ -137,13 +145,14 @@ export async function getFields(
 
 	try {
 		const respFields = await apiRequest.call(this, HTTP.GET, url);
+		const respData = respFields.data as IDataObject;
 
-		const fields: AxelorModelFieldSchema[] = respFields.data?.fields || [];
+		const fields: AxelorModelFieldSchema[] = (respData?.fields as AxelorModelFieldSchema[]) || [];
 
 		const { metaFields, metaJsonFields } = filterFieldsByJson(fields);
 
-		const jsonFields = getJsonFields(respFields?.data.jsonFields, FIELD_ATTRIBUTES).map((item) => {
-			return { ...item, name: item.attributeValue, type: normalizeKey(item?.type) };
+		const jsonFields = getJsonFields(respData?.jsonFields as Record<string, Record<string, IDataObject>>, FIELD_ATTRIBUTES).map((item) => {
+			return { ...item, name: item.attributeValue, type: normalizeKey(item?.type as string) };
 		}) as AxelorModelFieldSchema[];
 		return {
 			fields,

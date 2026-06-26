@@ -16,6 +16,7 @@ import {
 import { getFields } from '../../helpers/api-helper';
 import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 import { apiRequest } from '../../transport';
+import type { AxelorModelFieldSchema, FieldCategory } from '../../helpers/interface';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
 
@@ -47,7 +48,7 @@ const properties: INodeProperties[] = [
 		description: 'Whether to show advanced options',
 	},
 	{
-		// eslint-disable-next-line n8n-nodes-base/node-param-display-name-wrong-for-dynamic-multi-options
+
 		displayName: 'Select Fields',
 		name: 'fields',
 		type: FIELD_TYPE.MULTI_OPTIONS,
@@ -73,7 +74,7 @@ export const description = updateDisplayOptions(displayOptions, properties);
 
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]) {
 	const returnData: INodeExecutionData[] = [];
-	const metaFieldCache: Record<string, any> = {};
+	const metaFieldCache: Record<string, Record<FieldCategory, AxelorModelFieldSchema[]>> = {};
 
 	for (let i = 0; i < items?.length || 0; i++) {
 		const model = this.getNodeParameter('model', i) as string;
@@ -92,7 +93,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const recordId = this.getNodeParameter('records', i) as string;
 			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
 
-			const body: any = { fields: fieldNames, data: {} };
+			const body: { fields: string[]; data: IDataObject } = { fields: fieldNames, data: {} };
 			let jsonFields: Array<string> | undefined;
 			let selectedFields: Array<string> | undefined;
 
@@ -110,23 +111,23 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 
 			isValidResponse(resp);
 
-			let result = (resp.data && resp.data[0]) || {};
+			let result = (Array.isArray(resp.data) ? resp.data[0] : resp.data) || {};
 			if (jsonFields && jsonFields.length > 0) {
 				result = processCustomFieldResponse(result, selectedFields!, jsonFields);
 			}
 			const executionData = this.helpers.constructExecutionMetaData(
-				wrapData(result as IDataObject[]),
+				wrapData(result as IDataObject),
 				{ itemData: { item: i } },
 			);
 
 			returnData.push(...executionData);
 		} catch (error) {
-			error = processAxelorError(error as NodeApiError);
+			const processedError = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {
-				returnData.push({ json: { error: error.message } });
+				returnData.push({ json: { error: processedError.message } });
 				continue;
 			}
-			throw error;
+			throw processedError;
 		}
 	}
 	return returnData;

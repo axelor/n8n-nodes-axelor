@@ -4,12 +4,13 @@ import {
 	INodeExecutionData,
 	INodeProperties,
 	updateDisplayOptions,
+	NodeApiError,
 } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
 import { apiRequest } from '../../transport';
 import { FIELD_TYPE, HTTP } from '../../helpers/constants';
+import type { AxelorModelFieldSchema, FieldCategory } from '../../helpers/interface';
 
 export const properties: INodeProperties[] = [
 	{
@@ -52,7 +53,7 @@ export const description = updateDisplayOptions(displayOptions, properties);
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]) {
 	const returnData: INodeExecutionData[] = [];
 
-	const metaFieldCache: Record<string, any> = {};
+	const metaFieldCache: Record<string, Record<FieldCategory, AxelorModelFieldSchema[]>> = {};
 
 	for (let i = 0; i < items.length; i++) {
 		const model = this.getNodeParameter('model', i) as string;
@@ -93,12 +94,12 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			);
 			returnData.push(...executionData);
 		} catch (error) {
-			error = processAxelorError(error as NodeApiError);
+			const processedError = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {
-				returnData.push({ json: { error: error.message } });
+				returnData.push({ json: { error: processedError.message } });
 				continue;
 			}
-			throw error;
+			throw processedError;
 		}
 	}
 

@@ -4,8 +4,8 @@ import {
 	INodeExecutionData,
 	INodeProperties,
 	updateDisplayOptions,
+	NodeApiError,
 } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
 
 import {
 	getContextFields,
@@ -19,6 +19,7 @@ import {
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
 import { ARCHIVED_OPTIONS, FIELD_TYPE, HTTP, SORT_BY_OPTIONS } from '../../helpers/constants';
+import type { AxelorModelFieldSchema, FieldCategory } from '../../helpers/interface';
 import { isEmpty } from '../../helpers/lodash';
 import { apiRequest } from '../../transport';
 
@@ -152,7 +153,7 @@ export const description = updateDisplayOptions(displayOptions, properties);
 export async function execute(this: IExecuteFunctions, items: INodeExecutionData[]) {
 	const returnData: INodeExecutionData[] = [];
 
-	const metaFieldCache: Record<string, any> = {};
+	const metaFieldCache: Record<string, Record<FieldCategory, AxelorModelFieldSchema[]>> = {};
 
 	for (let i = 0; i < items.length; i++) {
 		const model = this.getNodeParameter('model', i) as string;
@@ -170,8 +171,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const fields = [...(cacheData?.metaFields || []), ...(cacheData?.jsonFields || [])];
 			const fieldNames = fields.map((f: { name: string }) => f.name);
 
-			const data: Record<string, any> = {};
-			const body: Record<string, any> = { offset: 0, limit, data, fields: fieldNames };
+			const data: IDataObject = {};
+			const body: IDataObject = { offset: 0, limit, data, fields: fieldNames };
 
 			const query = this.getNodeParameter('query', i, '') as string;
 			if (query) {
@@ -195,7 +196,11 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 					data._domainContext = domainContext;
 				}
 
-				typeof archived === 'boolean' ? (data._archived = archived) : delete data._archived;
+				if (typeof archived === 'boolean') {
+					data._archived = archived;
+				} else {
+					delete data._archived;
+				}
 			}
 
 			const url = `/ws/rest/${encodeURIComponent(model)}/search`;
@@ -203,9 +208,9 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 
 			isValidResponse(resp);
 
-			let result = (resp.data && resp.data) || [];
+			let result: IDataObject[] = Array.isArray(resp.data) ? resp.data : [];
 			if (jsonFields && jsonFields.length > 0) {
-				const processedResponse = result.map((item: any) =>
+				const processedResponse = result.map((item: IDataObject) =>
 					processCustomFieldResponse(item, selectedFields!, jsonFields),
 				);
 				result = processedResponse;
@@ -218,12 +223,12 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 
 			returnData.push(...executionData);
 		} catch (error) {
-			error = processAxelorError(error as NodeApiError);
+			const processedError = processAxelorError(error as NodeApiError);
 			if (this.continueOnFail()) {
-				returnData.push({ json: { error: error.message } });
+				returnData.push({ json: { error: processedError.message } });
 				continue;
 			}
-			throw error;
+			throw processedError;
 		}
 	}
 	return returnData;

@@ -1,3 +1,4 @@
+import type { IExecuteFunctions } from 'n8n-workflow';
 import * as apiRequest from '../../../../v1/transport/index';
 import * as listAttachments from '../../../../v1/actions/dms/listAttachments.operation';
 
@@ -6,8 +7,14 @@ jest.mock('../../../../v1/transport/index', () => {
 	return { ...originalModule, apiRequest: jest.fn() };
 });
 
+type MockExecuteFunction = {
+	getNodeParameter: jest.Mock;
+	continueOnFail: jest.Mock;
+	helpers: { constructExecutionMetaData: jest.Mock };
+};
+
 describe('Test Axelor, list attachments operation', () => {
-	let mockExecuteFunction: any;
+	let mockExecuteFunction: MockExecuteFunction;
 
 	beforeEach(() => {
 		jest.clearAllMocks();
@@ -37,7 +44,7 @@ describe('Test Axelor, list attachments operation', () => {
 			],
 		};
 
-		mockExecuteFunction.getNodeParameter.mockImplementation((param: string, index: number) => {
+		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
 			if (param === 'model') return model;
 			if (param === 'records') return recordId;
 			return null;
@@ -45,7 +52,7 @@ describe('Test Axelor, list attachments operation', () => {
 
 		(apiRequest.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
-		const result = await listAttachments.execute.call(mockExecuteFunction, items);
+		const result = await listAttachments.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
 
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('records', 0);
@@ -82,7 +89,7 @@ describe('Test Axelor, list attachments operation', () => {
 			data: [],
 		};
 
-		mockExecuteFunction.getNodeParameter.mockImplementation((param: string, index: number) => {
+		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
 			if (param === 'model') return model;
 			if (param === 'records') return recordId;
 			return null;
@@ -90,7 +97,7 @@ describe('Test Axelor, list attachments operation', () => {
 
 		(apiRequest.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
-		const result = await listAttachments.execute.call(mockExecuteFunction, items);
+		const result = await listAttachments.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
 
 		expect(apiRequest.apiRequest).toHaveBeenCalledWith(
 			'GET',

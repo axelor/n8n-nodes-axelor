@@ -1,3 +1,4 @@
+import type { IExecuteFunctions } from 'n8n-workflow';
 import * as transport from '../../../../v1/transport';
 import * as find from '../../../../v1/actions/record/find.operation';
 import * as apiHelper from '../../../../v1/helpers/api-helper';
@@ -12,8 +13,14 @@ jest.mock('../../../../v1/helpers/api-helper', () => {
 	return { ...originalModule, getFields: jest.fn() };
 });
 
+type MockExecuteFunction = {
+	getNodeParameter: jest.Mock;
+	continueOnFail: jest.Mock;
+	helpers: { constructExecutionMetaData: jest.Mock };
+};
+
 describe('Test Axelor, find operation', () => {
-	let mockExecutionFunction: any;
+	let mockExecutionFunction: MockExecuteFunction;
 
 	beforeEach(() => {
 		jest.clearAllMocks();
@@ -54,7 +61,7 @@ describe('Test Axelor, find operation', () => {
 		(transport.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 		(apiHelper.getFields as jest.Mock).mockResolvedValue(mockFields);
 
-		const result = await find.execute.call(mockExecutionFunction, items);
+		const result = await find.execute.call(mockExecutionFunction as unknown as IExecuteFunctions, items);
 
 		expect(transport.apiRequest).toHaveBeenCalledTimes(1);
 		expect(mockExecutionFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
@@ -101,7 +108,7 @@ describe('Test Axelor, find operation', () => {
 		(transport.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 		(apiHelper.getFields as jest.Mock).mockResolvedValue(mockFields);
 
-		const result = await find.execute.call(mockExecutionFunction, items);
+		const result = await find.execute.call(mockExecutionFunction as unknown as IExecuteFunctions, items);
 
 		expect(mockExecutionFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
 		expect(mockExecutionFunction.getNodeParameter).toHaveBeenCalledWith('recordId', 0, null);

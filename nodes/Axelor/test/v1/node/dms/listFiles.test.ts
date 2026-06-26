@@ -1,3 +1,4 @@
+import type { IExecuteFunctions } from 'n8n-workflow';
 import * as apiRequest from '../../../../v1/transport/index';
 import * as listFiles from '../../../../v1/actions/dms/listFiles.operation';
 
@@ -6,8 +7,14 @@ jest.mock('../../../../v1/transport/index', () => {
 	return { ...originalModule, apiRequest: jest.fn() };
 });
 
+type MockExecuteFunction = {
+	getNodeParameter: jest.Mock;
+	continueOnFail: jest.Mock;
+	helpers: { constructExecutionMetaData: jest.Mock };
+};
+
 describe('Test Axelor, list files operation', () => {
-	let mockExecuteFunction: any;
+	let mockExecuteFunction: MockExecuteFunction;
 
 	beforeEach(() => {
 		jest.clearAllMocks();
@@ -34,7 +41,7 @@ describe('Test Axelor, list files operation', () => {
 			],
 		};
 
-		mockExecuteFunction.getNodeParameter.mockImplementation((param: string, index: number) => {
+		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
 			if (param === 'parentId') return parentId;
 			if (param === 'pattern') return pattern;
 			return null;
@@ -43,7 +50,7 @@ describe('Test Axelor, list files operation', () => {
 		(apiRequest.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
 		// execute the function
-		const result = await listFiles.execute.call(mockExecuteFunction, items);
+		const result = await listFiles.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
 
 		// assertions
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('parentId', 0);
@@ -85,7 +92,7 @@ describe('Test Axelor, list files operation', () => {
 			],
 		};
 
-		mockExecuteFunction.getNodeParameter.mockImplementation((param: string, index: number) => {
+		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
 			if (param === 'parentId') return parentId;
 			if (param === 'pattern') return pattern;
 			return null;
@@ -94,7 +101,7 @@ describe('Test Axelor, list files operation', () => {
 		(apiRequest.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
 		// execute the function
-		const result = await listFiles.execute.call(mockExecuteFunction, items);
+		const result = await listFiles.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
 
 		// assertions
 		expect(apiRequest.apiRequest).toHaveBeenCalledWith(

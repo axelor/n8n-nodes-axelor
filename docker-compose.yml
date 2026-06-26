@@ -6,10 +6,13 @@ services:
       - .env
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - n8n-net
 
   n8n:
     build:
       context: .
+      network: host
     ports:
       - "5678:5678"
     env_file:
@@ -18,7 +21,13 @@ services:
       - n8n_data:/home/node/.n8n
     depends_on:
       - postgres
+    networks:
+      - n8n-net
 
 volumes:
   pgdata:
   n8n_data:
+
+networks:
+  n8n-net:
+    driver: bridge

@@ -1,3 +1,4 @@
+import type { IExecuteFunctions } from 'n8n-workflow';
 import * as apiRequest from '../../../../v1/transport/index';
 import * as utils from '../../../../v1/helpers/utils';
 import * as uploadFile from '../../../../v1/actions/dms/uploadFile.operation';
@@ -15,8 +16,14 @@ jest.mock('../../../../v1/helpers/utils', () => {
 	};
 });
 
+type MockExecuteFunction = {
+	getNodeParameter: jest.Mock;
+	continueOnFail: jest.Mock;
+	helpers: { constructExecutionMetaData: jest.Mock };
+};
+
 describe('Test Axelor, upload file operation', () => {
-	let mockExecuteFunction: any;
+	let mockExecuteFunction: MockExecuteFunction;
 
 	beforeEach(() => {
 		jest.clearAllMocks();
@@ -44,7 +51,7 @@ describe('Test Axelor, upload file operation', () => {
 
 		const mockResponse = { id: 123, fileName: 'custom-filename.pdf' };
 
-		mockExecuteFunction.getNodeParameter.mockImplementation((param: string, index: number) => {
+		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
 			if (param === 'inputDataFieldName') return inputDataFieldName;
 			if (param === 'fileName') return fileName;
 			return null;
@@ -53,7 +60,7 @@ describe('Test Axelor, upload file operation', () => {
 		(utils.getItemBinaryData as jest.Mock).mockResolvedValue(binaryData);
 		(apiRequest.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
-		const result = await uploadFile.execute.call(mockExecuteFunction, items);
+		const result = await uploadFile.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
 
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('inputDataFieldName', 0);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('fileName', 0);

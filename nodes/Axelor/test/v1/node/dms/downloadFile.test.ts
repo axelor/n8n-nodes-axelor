@@ -1,8 +1,20 @@
+import type { IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import * as downloadFile from '../../../../v1/actions/dms/downloadFile.operation';
 
+type MockExecuteFunction = {
+	getNode: jest.Mock;
+	getNodeParameter: jest.Mock;
+	getCredentials: jest.Mock;
+	continueOnFail: jest.Mock;
+	helpers: {
+		httpRequestWithAuthentication: jest.Mock;
+		prepareBinaryData: jest.Mock;
+	};
+};
+
 describe('Test Axelor, downloadFile operation', () => {
-	let mockExecuteFunction: any;
+	let mockExecuteFunction: MockExecuteFunction;
 	beforeEach(() => {
 		jest.clearAllMocks();
 		mockExecuteFunction = {
@@ -15,7 +27,7 @@ describe('Test Axelor, downloadFile operation', () => {
 			}),
 			continueOnFail: jest.fn().mockReturnValue(false),
 			helpers: {
-				request: jest.fn(),
+				httpRequestWithAuthentication: jest.fn(),
 				prepareBinaryData: jest.fn(),
 			},
 		};
@@ -40,18 +52,18 @@ describe('Test Axelor, downloadFile operation', () => {
 		};
 
 		mockExecuteFunction.getNodeParameter.mockReturnValue(fileRecordId);
-		mockExecuteFunction.helpers.request.mockResolvedValue(mockResponse);
+		mockExecuteFunction.helpers.httpRequestWithAuthentication.mockResolvedValue(mockResponse);
 		mockExecuteFunction.helpers.prepareBinaryData.mockReturnValue(mockBinaryData);
 
-		const result = await downloadFile.execute.call(mockExecuteFunction, items);
+		const result = await downloadFile.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
 		//assertions
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('fileRecordId', 0);
 		expect(mockExecuteFunction.getCredentials).toHaveBeenCalledWith('axelorApi');
-		expect(mockExecuteFunction.helpers.request).toHaveBeenCalledWith(
+		expect(mockExecuteFunction.helpers.httpRequestWithAuthentication).toHaveBeenCalledWith(
+			'axelorApi',
 			expect.objectContaining({
 				method: 'GET',
 				baseURL: 'https://api.axelor.com/',
-				auth: { user: 'test', pass: 'test' },
 				url: `/ws/dms/download/${fileRecordId}`,
 			}),
 		);
@@ -77,7 +89,7 @@ describe('Test Axelor, downloadFile operation', () => {
 		const items = [{ json: { item: 'test' } }];
 		mockExecuteFunction.getNodeParameter.mockReturnValue(undefined);
 
-		await expect(downloadFile.execute.call(mockExecuteFunction, items)).rejects.toThrow(
+		await expect(downloadFile.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items)).rejects.toThrow(
 			new NodeOperationError(
 				mockExecuteFunction.getNode(),
 				'Missing required parameter: DMS File Record ID',
@@ -85,6 +97,6 @@ describe('Test Axelor, downloadFile operation', () => {
 		);
 
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('fileRecordId', 0);
-		expect(mockExecuteFunction.helpers.request).not.toHaveBeenCalled();
+		expect(mockExecuteFunction.helpers.httpRequestWithAuthentication).not.toHaveBeenCalled();
 	});
 });

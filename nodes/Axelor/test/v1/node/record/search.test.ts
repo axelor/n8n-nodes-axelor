@@ -1,3 +1,4 @@
+import type { IExecuteFunctions } from 'n8n-workflow';
 import * as apiHelper from '../../../../v1/helpers/api-helper';
 import * as transport from '../../../../v1/transport';
 import * as search from '../../../../v1/actions/record/search.operation';
@@ -12,8 +13,14 @@ jest.mock('../../../../v1/helpers/api-helper', () => {
 	return { ...originalModule, getFields: jest.fn() };
 });
 
+type MockExecuteFunction = {
+	getNodeParameter: jest.Mock;
+	continueOnFail: jest.Mock;
+	helpers: { constructExecutionMetaData: jest.Mock };
+};
+
 describe('Test Axelor, Search Operation', () => {
-	let mockExecuteFunction: any;
+	let mockExecuteFunction: MockExecuteFunction;
 	beforeEach(() => {
 		jest.clearAllMocks();
 		mockExecuteFunction = {
@@ -82,7 +89,7 @@ describe('Test Axelor, Search Operation', () => {
 		(apiHelper.getFields as jest.Mock).mockResolvedValue(mockFields);
 		(transport.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
-		const result = await search.execute.call(mockExecuteFunction, item);
+		const result = await search.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, item);
 
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('advancedSettings', 0);

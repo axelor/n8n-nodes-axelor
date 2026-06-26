@@ -1,5 +1,5 @@
 /* eslint-disable n8n-nodes-base/node-filename-against-convention */
-import { type INodeTypeDescription } from 'n8n-workflow';
+import { type INodeTypeDescription, NodeConnectionTypes } from 'n8n-workflow';
 
 import * as record from './record/Record.resource';
 import * as dms from './dms/Dms.resource';
@@ -8,6 +8,7 @@ import * as generic from './generic/Generic.resource';
 export const versionDescription: INodeTypeDescription = {
 	displayName: 'Axelor',
 	name: 'axelor',
+	icon: { light: 'file:axelor_light.svg', dark: 'file:axelor_dark.svg' },
 	group: ['input'],
 	version: 1,
 	subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',
@@ -15,15 +16,14 @@ export const versionDescription: INodeTypeDescription = {
 	defaults: {
 		name: 'Axelor',
 	},
-	inputs: ['main'],
-	outputs: ['main'],
+	inputs: [NodeConnectionTypes.Main],
+	outputs: [NodeConnectionTypes.Main],
 	credentials: [
 		{
 			name: 'axelorApi',
 			required: true,
 		},
 	],
-	continueOnFail: false,
 	properties: [
 		{
 			displayName: 'Resource',

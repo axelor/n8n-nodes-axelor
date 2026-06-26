@@ -14,9 +14,9 @@ export async function getMetaModels(this: ILoadOptionsFunctions): Promise<INodeP
 		const response = await apiRequest.call(this, HTTP.POST, url, body);
 
 		return Array.isArray(response.data)
-			? response.data.map((model: { name: string; fullName: string }) => ({
-					name: model.name,
-					value: model.fullName,
+			? response.data.map((model: IDataObject) => ({
+					name: model.name as string,
+					value: model.fullName as string,
 				}))
 			: [];
 	} catch (error) {
@@ -35,16 +35,16 @@ export async function getMetaModelRecords(
 		const fieldsUrl = `/ws/meta/fields/${encodeURIComponent(selectedModel)}`;
 		const respFields = await apiRequest.call(this, HTTP.GET, fieldsUrl);
 
-		const nameColumn = getNameColoumn(respFields?.data);
+		const nameColumn = getNameColoumn(respFields?.data as Record<string, unknown>);
 		const fields = nameColumn && nameColumn !== 'id' ? ['id', nameColumn] : ['id'];
 
 		const url = `/ws/rest/${encodeURIComponent(selectedModel)}/search`;
 		const result = await apiRequest.call(this, HTTP.POST, url, { fields });
 
 		return Array.isArray(result.data)
-			? result.data.map((item: any) => ({
-					name: item[nameColumn] ? item[nameColumn] : `null(${item.id})`,
-					value: item.id!,
+			? result.data.map((item: IDataObject) => ({
+					name: item[nameColumn] ? String(item[nameColumn]) : `null(${item.id})`,
+					value: item.id as number,
 				}))
 			: [];
 	} catch (error) {
@@ -62,18 +62,20 @@ export async function loadMetaFields(this: ILoadOptionsFunctions): Promise<INode
 		const respFields = await apiRequest.call(this, HTTP.GET, url);
 
 		if (respFields.status == -1) {
-			throw new Error(respFields.data?.message || 'Invalid response');
+			throw new Error((respFields.data as IDataObject)?.message as string || 'Invalid response');
 		}
 		const attrs = ['title', 'autoTitle'];
-		const jsonFields = getJsonFields(respFields?.data.jsonFields, attrs).map((item) => {
+		const jsonFields = getJsonFields((respFields?.data as IDataObject)?.jsonFields as Record<string, Record<string, IDataObject>>, attrs).map((item) => {
 			const { title, autoTitle, attributeValue } = item;
 			return {
-				name: title ? title : autoTitle,
-				value: attributeValue,
+				name: (title ? title : autoTitle) as string,
+				value: attributeValue as string,
 			};
 		});
 
-		const metaField = respFields.data.fields.map((item: any) => ({
+		const metaField = (
+			((respFields.data as IDataObject)?.fields as Array<{ name: string; title?: string }>) ?? []
+		).map((item) => ({
 			name: item.title || startCase(toLower(item.name)),
 			value: item.name,
 		}));
@@ -140,9 +142,9 @@ export async function getMetaJsonModels(
 		const response = await apiRequest.call(this, HTTP.POST, url, body);
 
 		return Array.isArray(response.data)
-			? response.data.map((model: { name: string; title: string }) => ({
-					name: model.title,
-					value: model.name,
+			? response.data.map((model: IDataObject) => ({
+					name: model.title as string,
+					value: model.name as string,
 				}))
 			: [];
 	} catch (error) {
@@ -170,17 +172,16 @@ export async function getMetaJsonRecords(
 
 		isValidResponse(response);
 
-		const records = response.data?.map((item: any) => {
-			const properties = JSON.parse(item.attrs || '{}');
-			return {
-				id: item.id,
-				...properties,
-			};
-		});
+		const records: IDataObject[] = Array.isArray(response.data)
+			? response.data.map((item: IDataObject) => {
+					const properties = JSON.parse((item.attrs as string) || '{}') as IDataObject;
+					return { id: item.id, ...properties };
+				})
+			: [];
 
-		return records.map((item: any) => ({
-			name: item?.name || item?.id,
-			value: item.id!,
+		return records.map((item: IDataObject) => ({
+			name: (item.name || item.id) as string,
+			value: item.id as number,
 		}));
 	} catch (error) {
 		throw new NodeOperationError(this.getNode(), 'Failed to fetch records', error);

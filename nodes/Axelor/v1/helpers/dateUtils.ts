@@ -29,7 +29,7 @@ function getTimeZoneOffsetMinutes(date: Date, timeZone: string): number {
 		second: '2-digit',
 	});
 	const parts = dtf.formatToParts(date);
-	const map: any = {};
+	const map: Record<string, string> = {};
 	parts.forEach(({ type, value }) => {
 		if (type !== 'literal') map[type] = value;
 	});

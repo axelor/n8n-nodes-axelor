@@ -7,11 +7,10 @@ import {
 	IHttpRequestMethods,
 	INodeExecutionData,
 	INodePropertyOptions,
-	IRequestOptions,
+	IHttpRequestOptions,
 	NodeApiError,
 	NodeOperationError,
 } from 'n8n-workflow';
-import { Readable } from 'stream';
 import {
 	AXELOR_FIELD_TYPE_MAP,
 	AXELOR_SELECTION_FIELDS,
@@ -20,7 +19,14 @@ import {
 	PARAMETER,
 	UPLOAD_CHUNK_SIZE,
 } from './constants';
-import { AxelorApiCredentials, AxelorModelFieldSchema, WebServiceInfo } from './interface';
+import { AxelorApiCredentials, AxelorApiResponse, AxelorModelFieldSchema, WebServiceInfo } from './interface';
+
+type BinaryFileContent = Buffer | Awaited<ReturnType<IExecuteFunctions['helpers']['getBinaryStream']>>;
+
+interface FieldMapping {
+	schema?: Array<{ id: string; removed?: boolean }>;
+	value?: Record<string, unknown>;
+}
 
 export function normalizeKey(input: string) {
 	if (input && !input.trim()) return input;
@@ -62,13 +68,13 @@ export function processAxelorError(error: NodeApiError, id?: string, itemIndex?:
 	return error;
 }
 
-export function getNameColoumn(data: Record<string, any>): string {
-	const fields = data?.fields || [];
+export function getNameColoumn(data: Record<string, unknown>): string {
+	const fields = (data?.fields as AxelorModelFieldSchema[]) || [];
 
-	const preferredOrder = [
-		(f: any) => f.nameColumn === true,
-		(f: any) => f.name === 'name',
-		(f: any) => f.name === 'code',
+	const preferredOrder: Array<(f: AxelorModelFieldSchema) => boolean> = [
+		(f) => f.nameColumn === true,
+		(f) => f.name === 'name',
+		(f) => f.name === 'code',
 	];
 
 	for (const selector of preferredOrder) {
@@ -88,29 +94,29 @@ export function wrapData(data: IDataObject | IDataObject[]): INodeExecutionData[
 	}));
 }
 
-export function isValidResponse(response: any): boolean {
+export function isValidResponse(response: AxelorApiResponse): boolean {
 	if (response.status === -1) {
-		throw new Error(response.data?.message || 'Invalid response');
+		throw new Error((response.data as IDataObject | undefined)?.message as string || 'Invalid response');
 	}
 
 	return true;
 }
 
-export function getChangedFieldNames(mapping: any): string[] {
+export function getChangedFieldNames(mapping: FieldMapping): string[] {
 	return (mapping.schema || [])
-		.filter((field: any) => !field.removed)
-		.map((field: any) => field.id);
+		.filter((field) => !field.removed)
+		.map((field) => field.id);
 }
 
 export function buildRequestData(
 	keys: string[],
-	mapping: any,
-	fields: any[],
+	mapping: FieldMapping,
+	fields: AxelorModelFieldSchema[],
 	metaJsonFields: AxelorModelFieldSchema[],
-): Record<string, any> {
-	const data: Record<string, any> = {};
-	const validFieldNames = new Set(fields.map((f: any) => f.name));
-	const customFieldData: Record<string, any> = {};
+): Record<string, unknown> {
+	const data: Record<string, unknown> = {};
+	const validFieldNames = new Set(fields.map((f) => f.name));
+	const customFieldData: Record<string, Record<string, unknown>> = {};
 
 	for (const key of keys) {
 		if (!validFieldNames.has(key)) continue;
@@ -118,10 +124,10 @@ export function buildRequestData(
 		const value = mapping.value?.[key];
 		if (value === undefined) continue;
 
-		const fieldMeta: any = fields.find((f) => f.name === key);
+		const fieldMeta = fields.find((f) => f.name === key);
 		if (!fieldMeta) continue;
 
-		const [_, prefix, name] = key.match(/^([^_]+)_(.+)$/) || [];
+		const [, prefix, name] = key.match(/^([^_]+)_(.+)$/) || [];
 		if (prefix && metaJsonFields.find((f) => isEqual(f.name, prefix))) {
 			customFieldData[prefix] = {
 				...(customFieldData[prefix] || {}),
@@ -138,26 +144,26 @@ export function buildRequestData(
 	return data;
 }
 
-export function getSortByFields(this: IExecuteFunctions, i: number): Array<String> {
+export function getSortByFields(this: IExecuteFunctions, i: number): Array<string> {
 	const sortByValues = this.getNodeParameter('sortBy', i, {}) as {
 		sortBy: { field: string; rule: string }[];
 	};
-	const sortByArray = get(sortByValues, 'sortBy', []);
+	const sortByArray = get(sortByValues, 'sortBy', []) as { field: string; rule: string }[];
 	return sortByArray.length > 0
-		? sortByArray.map((sort: any) => (sort.rule === 'desc' ? `-${sort.field}` : sort.field))
+		? sortByArray.map((sort) => (sort.rule === 'desc' ? `-${sort.field}` : sort.field))
 		: [];
 }
 
-export function getContextFields(this: IExecuteFunctions, i: number): Object {
+export function getContextFields(this: IExecuteFunctions, i: number): object {
 	const contextValues = this.getNodeParameter('context', i, {}) as {
 		context: { key: string; value: string }[];
 	};
-	const contextArray = get(contextValues, 'context', []);
-	return fromPairs(contextArray.map((c: any) => [c.key, c.value]));
+	const contextArray = get(contextValues, 'context', []) as { key: string; value: string }[];
+	return fromPairs(contextArray.map((c) => [c.key, c.value]));
 }
 
-export function getSelectedFields(this: IExecuteFunctions, i: number): Array<String> {
-	return this.getNodeParameter('fields', i, []) as Array<String>;
+export function getSelectedFields(this: IExecuteFunctions, i: number): Array<string> {
+	return this.getNodeParameter('fields', i, []) as Array<string>;
 }
 
 export function createCriteria(fieldName: string, operator: string, value: string) {
@@ -175,7 +181,7 @@ export async function getItemBinaryData(
 	chunkSize = UPLOAD_CHUNK_SIZE,
 ) {
 	let contentLength: number;
-	let fileContent: Buffer | Readable;
+	let fileContent: BinaryFileContent;
 	let originalFilename: string | undefined;
 	let mimeType;
 
@@ -212,15 +218,18 @@ export async function getItemBinaryData(
 	};
 }
 
-export function getJsonFields(jsonFields: Record<string, any>, fieldNames: Array<string> = []) {
+export function getJsonFields(
+	jsonFields: Record<string, Record<string, IDataObject>>,
+	fieldNames: Array<string> = [],
+) {
 	if (!jsonFields) return [];
 
 	const jsonkeys = Object.keys(jsonFields);
 
-	return jsonkeys.reduce((acc: Array<Record<string, any>>, key) => {
+	return jsonkeys.reduce((acc: Array<Record<string, unknown>>, key) => {
 		const attrs = jsonFields[key];
 		for (const attrKey in attrs) {
-			const fields: Record<string, any> = {};
+			const fields: Record<string, unknown> = {};
 			const attr = attrs[attrKey];
 			fields.attributeValue = `${key}_${attr?.name}`;
 
@@ -236,15 +245,15 @@ export function getJsonFields(jsonFields: Record<string, any>, fieldNames: Array
 }
 
 export function manageCustomFieldData(
-	data: Record<string, any>,
-	record: Record<string, any>,
+	data: Record<string, unknown>,
+	record: Record<string, unknown>,
 	metaJsonFields: AxelorModelFieldSchema[],
-) {
+): Record<string, unknown> {
 	const fieldName = metaJsonFields.map((f) => f.name);
 	for (const field of fieldName) {
 		if (!data[field]) continue;
-		const updated = JSON.parse(data[field] || '{}');
-		const original = JSON.parse(record[field] || '{}');
+		const updated = JSON.parse(String(data[field]));
+		const original = JSON.parse(String(record[field] ?? '{}'));
 		const merged = { ...original, ...updated };
 		data[field] = JSON.stringify(merged);
 	}
@@ -265,12 +274,12 @@ export function filterFieldsByJson(fields: AxelorModelFieldSchema[]) {
 	return { metaFields, metaJsonFields };
 }
 
-export function processSelectedFields(selectedFields: Array<String>) {
-	const metaFields: Array<String> = [];
-	const jsonFields = new Set();
+export function processSelectedFields(selectedFields: Array<string>) {
+	const metaFields: Array<string> = [];
+	const jsonFields = new Set<string>();
 
 	selectedFields.forEach((field) => {
-		const [_, prefix] = field.match(/^([^_]+)_(.+)$/) || [];
+		const [, prefix] = field.match(/^([^_]+)_(.+)$/) || [];
 		if (prefix) {
 			jsonFields.add(prefix);
 		} else {
@@ -281,20 +290,20 @@ export function processSelectedFields(selectedFields: Array<String>) {
 }
 
 export function processCustomFieldResponse(
-	record: Record<string, any>,
+	record: IDataObject,
 	selectedFields: Array<string>,
 	jsonFields: Array<string> = [],
 ) {
 	const result = { ...record };
-	const customData: Record<string, any> = {};
+	const customData: Record<string, Record<string, unknown>> = {};
 	jsonFields.forEach((field) => {
 		customData[field] = {};
 	});
 
 	selectedFields.forEach((field) => {
-		const [_, prefix, name] = field.match(/^([^_]+)_(.+)$/) || [];
+		const [, prefix, name] = field.match(/^([^_]+)_(.+)$/) || [];
 		if (prefix && jsonFields.includes(prefix)) {
-			const data = JSON.parse(record[prefix] || '{}');
+			const data = JSON.parse((record[prefix] as string) || '{}') as Record<string, unknown>;
 			customData[prefix][name] = data[name] || null;
 		}
 	});
@@ -302,7 +311,7 @@ export function processCustomFieldResponse(
 	return { ...result, ...customData };
 }
 
-export const excludeNonInputFields = (field: any) => {
+export const excludeNonInputFields = (field: AxelorModelFieldSchema) => {
 	return !NON_INPUT_FIELDS.includes(field?.type);
 };
 
@@ -313,13 +322,13 @@ export const buildRequest = ({
 }: {
 	serviceInfo: WebServiceInfo;
 	credentials: AxelorApiCredentials;
-	values: Record<string, string>;
+	values?: IDataObject;
 }) => {
 	const url = processUrl(serviceInfo.target, values);
 	const headerParamerters = getParameter(values, PARAMETER.header);
 	const qs = getParameter(values, PARAMETER.query);
 
-	const request: IRequestOptions = {
+	const request: IHttpRequestOptions = {
 		method: serviceInfo.httpMethod as IHttpRequestMethods,
 		url,
 		baseURL: credentials.baseUrl,
@@ -328,10 +337,6 @@ export const buildRequest = ({
 			'Content-Type': 'application/json',
 			...headerParamerters,
 		},
-		auth: {
-			user: credentials.username,
-			pass: credentials.password,
-		},
 		json: true,
 		qs,
 	};
@@ -339,19 +344,19 @@ export const buildRequest = ({
 	return request;
 };
 
-const processUrl = (url: string, value: Object) => {
-	let processedUrl = replaceUrlParams(url, value, PARAMETER.path);
+const processUrl = (url: string, value: object) => {
+	const processedUrl = replaceUrlParams(url, value as IDataObject, PARAMETER.path);
 	return `/ws${processedUrl}`;
 };
 
-function replaceUrlParams(url: string, values: Record<string, any>, prefix: string) {
+function replaceUrlParams(url: string, values: IDataObject, prefix: string) {
 	const filteredValues = Object.fromEntries(
 		Object.entries(values)
 			.filter(([key]) => key.startsWith(prefix))
 			.map(([key, value]) => [key.slice(prefix.length + 1), value]),
 	);
-	return url.replace(/{(\w+)}/g, (_, key) => {
-		return filteredValues[key] !== undefined ? filteredValues[key] : `{${key}}`;
+	return url.replace(/{(\w+)}/g, (_, key: string) => {
+		return filteredValues[key] !== undefined ? String(filteredValues[key]) : `{${key}}`;
 	});
 }
 
@@ -367,7 +372,7 @@ export const buildResourceField = (
 	}));
 };
 
-export const getParameter = (values: Record<string, string> = {}, prefix: string) => {
+export const getParameter = (values: IDataObject = {}, prefix: string) => {
 	if (!values) return {};
 
 	const parameter = Object.fromEntries(
@@ -400,9 +405,9 @@ export const processCollectionFields = (fields: AxelorModelFieldSchema[]) => {
 
 export function buildBuisnessAPIRequestData(
 	keys: string[],
-	values: Record<string, any>,
-	fields: any[],
-): Record<string, any> {
+	values: IDataObject,
+	fields: AxelorModelFieldSchema[],
+): IDataObject {
 	const data = Object.fromEntries(
 		Object.entries(values || {}).filter(
 			([key]) =>
@@ -412,7 +417,7 @@ export function buildBuisnessAPIRequestData(
 		),
 	);
 
-	const result: Record<string, any> = fields.reduce((acc, curr) => {
+	const result: IDataObject = fields.reduce((acc: IDataObject, curr) => {
 		if (curr.type === FIELD_TYPE.COLLECTION) {
 			acc[curr.name] = {};
 		}
@@ -427,7 +432,7 @@ export function buildBuisnessAPIRequestData(
 	for (const key of keys) {
 		const match = key.match(/^([^_]+)_(.+)$/);
 		if (match) {
-			const [_, prefix, field] = match;
+			const [, prefix, field] = match;
 			if (!prefixMap[prefix]) prefixMap[prefix] = [];
 			prefixMap[prefix].push(field);
 		} else {
@@ -438,7 +443,7 @@ export function buildBuisnessAPIRequestData(
 	for (const prefix in prefixMap) {
 		result[prefix] = {};
 		for (const field of prefixMap[prefix]) {
-			result[prefix][field] = data?.[`${prefix}_${field}`];
+			(result[prefix] as IDataObject)[field] = data?.[`${prefix}_${field}`];
 		}
 	}
 
