@@ -93,13 +93,6 @@ describe('Test Axelor, create operation', () => {
 				},
 			}),
 		);
-		expect(result).toEqual([
-			{
-				json: {
-					status: 0,
-					data: [{ id: 1, name: 'Test Name', code: 'TEST001' }],
-				},
-			},
-		]);
+		expect(result).toEqual([{ json: { id: 1, name: 'Test Name', code: 'TEST001' } }]);
 	});
 });

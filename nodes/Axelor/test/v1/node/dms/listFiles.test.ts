@@ -64,16 +64,8 @@ describe('Test Axelor, list files operation', () => {
 			{ parent: parentId, pattern: pattern },
 		);
 		expect(result).toEqual([
-			{
-				json: {
-					status: 0,
-					total: 2,
-					data: [
-						{ id: 1, fileName: 'document1.pdf', isDirectory: false },
-						{ id: 2, fileName: 'document2.pdf', isDirectory: false },
-					],
-				},
-			},
+			{ json: { id: 1, fileName: 'document1.pdf', isDirectory: false } },
+			{ json: { id: 2, fileName: 'document2.pdf', isDirectory: false } },
 		]);
 	});
 
@@ -111,16 +103,9 @@ describe('Test Axelor, list files operation', () => {
 			{ parent: parentId },
 		);
 		expect(result).toEqual([
-			{
-				json: {
-					status: 0,
-					data: [
-						{ id: 1, fileName: 'document1.pdf', isDirectory: false },
-						{ id: 2, fileName: 'folder1', isDirectory: true },
-						{ id: 3, fileName: 'document2.txt', isDirectory: false },
-					],
-				},
-			},
+			{ json: { id: 1, fileName: 'document1.pdf', isDirectory: false } },
+			{ json: { id: 2, fileName: 'folder1', isDirectory: true } },
+			{ json: { id: 3, fileName: 'document2.txt', isDirectory: false } },
 		]);
 	});
 });

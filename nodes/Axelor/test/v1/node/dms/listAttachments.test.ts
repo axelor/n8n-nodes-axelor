@@ -63,17 +63,12 @@ describe('Test Axelor, list attachments operation', () => {
 			`/ws/dms/attachments/${model}/${recordId}`,
 		);
 		expect(result).toEqual([
+			{ json: { id: 1, fileName: 'document1.pdf', fileType: 'application/pdf' } },
 			{
 				json: {
-					status: 0,
-					data: [
-						{ id: 1, fileName: 'document1.pdf', fileType: 'application/pdf' },
-						{
-							id: 2,
-							fileName: 'document2.docx',
-							fileType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-						},
-					],
+					id: 2,
+					fileName: 'document2.docx',
+					fileType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 				},
 			},
 		]);
@@ -103,13 +98,6 @@ describe('Test Axelor, list attachments operation', () => {
 			'GET',
 			`/ws/dms/attachments/${model}/${recordId}`,
 		);
-		expect(result).toEqual([
-			{
-				json: {
-					status: 0,
-					data: [],
-				},
-			},
-		]);
+		expect(result).toEqual([]);
 	});
 });

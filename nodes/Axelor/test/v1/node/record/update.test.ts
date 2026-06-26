@@ -116,10 +116,7 @@ describe('Test Axelor, update operation', () => {
 		);
 		expect(result).toEqual([
 			{
-				json: {
-					status: 0,
-					data: [{ id: recordId, name: 'Updated Name', code: 'UPD001', version: 3 }],
-				},
+				json: { id: recordId, name: 'Updated Name', code: 'UPD001', version: 3 },
 			},
 		]);
 	});

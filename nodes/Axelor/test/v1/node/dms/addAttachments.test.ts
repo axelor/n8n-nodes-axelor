@@ -38,7 +38,7 @@ describe('Test Axelor, add attachment operation', () => {
 		};
 
 		mockExecuteFunction.getNodeParameter.mockImplementation(
-			(param: string, index: number, defaultValue?: unknown) => {
+			(param: string, _index: number, defaultValue?: unknown) => {
 				if (param === 'model') return model;
 				if (param === 'records') return recordId;
 				if (param === 'uploadIds.values') return uploadIds.values;
@@ -60,14 +60,7 @@ describe('Test Axelor, add attachment operation', () => {
 			`/ws/dms/attachments/${encodeURIComponent(model)}/${recordId}`,
 			{ records: uploadIds.values },
 		);
-		expect(result).toEqual([
-			{
-				json: {
-					status: 0,
-					data: [{ fileName: 'abc.txt', id: 1 }],
-				},
-			},
-		]);
+		expect(result).toEqual([{ json: { fileName: 'abc.txt', id: 1 } }]);
 	});
 
 	test('should handle multiple upload IDs', async () => {
@@ -104,16 +97,9 @@ describe('Test Axelor, add attachment operation', () => {
 			{ records: uploadIds.values },
 		);
 		expect(result).toEqual([
-			{
-				json: {
-					status: 0,
-					data: [
-						{ fileName: 'file1.txt', id: 1 },
-						{ fileName: 'file2.pdf', id: 2 },
-						{ fileName: 'file3.docx', id: 3 },
-					],
-				},
-			},
+			{ json: { fileName: 'file1.txt', id: 1 } },
+			{ json: { fileName: 'file2.pdf', id: 2 } },
+			{ json: { fileName: 'file3.docx', id: 3 } },
 		]);
 	});
 });
