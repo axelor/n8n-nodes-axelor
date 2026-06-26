@@ -10,14 +10,16 @@
     "workflow",
     "n8n-community-node-package",
     "axelor-n8n-node",
-    "n8n-node-package"
+    "n8n-node-package",
+    "n8n-nodes-axelor"
   ],
   "author": {
     "name": "Axelor",
     "email": "info@axelor.com"
   },
   "repository": {
-    "type": "git"
+    "type": "git",
+    "url": "https://github.com/axelor/n8n-nodes-axelor.git"
   },
   "scripts": {
     "build": "n8n-node build",
