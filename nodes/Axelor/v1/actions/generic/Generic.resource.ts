@@ -28,8 +28,8 @@ export const description: INodeProperties[] = [
 			{
 				name: 'Make API Call',
 				value: 'makeApiCall',
-				description: 'Invoke all Axelor API',
-				action: 'Make a API call',
+				description: 'Call any Axelor REST endpoint',
+				action: 'Make an API call',
 			},
 		],
 		default: 'runAction',

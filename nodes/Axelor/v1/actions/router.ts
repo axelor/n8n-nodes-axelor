@@ -1,4 +1,3 @@
-import type { NodeApiError } from 'n8n-workflow';
 import { IExecuteFunctions, INodeExecutionData, NodeOperationError } from 'n8n-workflow';
 
 import * as record from './record/Record.resource';
@@ -18,32 +17,21 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 		operation,
 	} as AxelorType;
 
-	try {
-		switch (axelorNodeData.resource) {
-			case 'record':
-				returnData = await record[axelorNodeData.operation].execute.call(this, items);
-				break;
-			case 'dms':
-				returnData = await dms[axelorNodeData.operation].execute.call(this, items);
-				break;
-			case 'generic':
-				returnData = await generic[axelorNodeData.operation].execute.call(this, items);
-				break;
-			default:
-				throw new NodeOperationError(
-					this.getNode(),
-					`The operation "${operation}" is not supported!`,
-				);
-		}
-	} catch (error) {
-		const err = error as NodeApiError;
-		if (
-			err.description &&
-			(err.description as string).includes('cannot accept the provided value')
-		) {
-			err.description = `${err.description}. Consider using 'Typecast' option`;
-		}
-		throw err;
+	switch (axelorNodeData.resource) {
+		case 'record':
+			returnData = await record[axelorNodeData.operation].execute.call(this, items);
+			break;
+		case 'dms':
+			returnData = await dms[axelorNodeData.operation].execute.call(this, items);
+			break;
+		case 'generic':
+			returnData = await generic[axelorNodeData.operation].execute.call(this, items);
+			break;
+		default:
+			throw new NodeOperationError(
+				this.getNode(),
+				`The operation "${operation}" is not supported!`,
+			);
 	}
 
 	return [returnData];
