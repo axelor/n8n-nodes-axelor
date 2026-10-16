@@ -7,7 +7,10 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-180, 0],
+			"position": [
+				-180,
+				0
+			],
 			"id": "ab1d2483-fb91-422e-b257-96c7da5fcea2",
 			"name": "Code"
 		},
@@ -26,14 +29,16 @@
 					]
 				}
 			},
-			"type": "CUSTOM.axelor",
+			"type": "@axelor/n8n-nodes-axelor.axelor",
 			"typeVersion": 1,
-			"position": [20, 0],
+			"position": [
+				20,
+				0
+			],
 			"id": "e3481f89-8cb2-4312-82c4-00974efad25f",
 			"name": "Axelor",
 			"credentials": {
 				"axelorApi": {
-					"id": "UcsF8vmOHq1HJand",
 					"name": "Axelor account"
 				}
 			}
@@ -50,7 +55,10 @@
 			},
 			"type": "n8n-nodes-base.scheduleTrigger",
 			"typeVersion": 1.2,
-			"position": [-400, 0],
+			"position": [
+				-400,
+				0
+			],
 			"id": "bc2a6366-06b5-4c4d-b5cf-f4e11ea81e24",
 			"name": "Schedule Trigger"
 		},
@@ -60,13 +68,16 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [200, 0],
+			"position": [
+				200,
+				0
+			],
 			"id": "c7f21752-9b51-431c-9036-948f2cf3e7aa",
 			"name": "Code1"
 		},
 		{
 			"parameters": {
-				"sendTo": "k.kumarshaw@axelor.com",
+				"sendTo": "user@example.com",
 				"subject": "=🗓️ Daily Sales Summary – {{ $now.format('YYYY-MM-DD') }}",
 				"message": "=<h2>📊 Daily Sales Report - {{ $now.format('MMMM Do, YYYY') }}</h2>\n\n<p>Here is the summary of today's confirmed sale orders:</p>\n{{ $json.orders.map(order => `\n  <hr/>\n  <h3>🧾 Order ID: ${order.saleOrderId}</h3>\n  <ul>\n    <li><strong>Customer:</strong> ${order.customer}</li>\n    <li><strong>Date:</strong> ${order.createdOn}</li>\n    <li><strong>Invoice Address:</strong> ${order.invoiceAddress}</li>\n    <li><strong>Payment Terms:</strong> ${order.paymentTerms}</li>\n    <li><strong>Payment Mode:</strong> ${order.paymentMode}</li>\n    <li><strong>Products:</strong>\n      <ul>\n        ${order.products.map(p => `<li>${p}</li>`).join('')}\n      </ul>\n    </li>\n    <li><strong>Subtotal:</strong> ${order.exTaxTotal} ${order.currency}</li>\n    <li><strong>Tax:</strong> ${order.taxTotal} ${order.currency}</li>\n    <li><strong>Total:</strong> ${order.inTaxTotal} ${order.currency}</li>\n  </ul>\n`).join('') \n}}\n\n<hr/>\n<h3>📦 Total Sales Summary</h3>\n<ul>\n  <li><strong>Number of Orders:</strong> {{ $json.orders.length }}</li>\n  <li><strong>Total Revenue (Excl. Tax):</strong> {{ $json.orders.reduce((sum, o) => sum + Number(o.exTaxTotal), 0).toFixed(2) }} Euro</li>\n  <li><strong>Total Revenue (Incl. Tax):</strong> {{ $json.orders.reduce((sum, o) => sum + Number(o.inTaxTotal), 0).toFixed(2) }} Euro</li>\n</ul>\n\n<p>Keep up the great work! 🚀</p>\n",
 				"options": {
@@ -75,13 +86,14 @@
 			},
 			"type": "n8n-nodes-base.gmail",
 			"typeVersion": 2.1,
-			"position": [400, 0],
+			"position": [
+				400,
+				0
+			],
 			"id": "d5aefc46-3850-4eb2-a6c2-49a5a959b43d",
-			"name": "Gmail",
-			"webhookId": "c1c06ec2-98c8-48f9-82cd-eed97af106bf"
+			"name": "Gmail"
 		}
 	],
-	"pinData": {},
 	"connections": {
 		"Code": {
 			"main": [
@@ -128,15 +140,11 @@
 			]
 		}
 	},
-	"active": false,
 	"settings": {
 		"executionOrder": "v1"
 	},
-	"versionId": "2c952a5c-4e25-4ad7-a5a0-3e603390af74",
 	"meta": {
-		"templateCredsSetupCompleted": true,
-		"instanceId": "51214fd8a03cf3a9453785abfbd8430d0c7bb0e202185d9356a7f9b04dfbc8e3"
+		"templateCredsSetupCompleted": false
 	},
-	"id": "lWbjTx5r7hqYxXRz",
 	"tags": []
 }

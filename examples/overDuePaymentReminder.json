@@ -14,7 +14,10 @@
 			},
 			"type": "n8n-nodes-base.scheduleTrigger",
 			"typeVersion": 1.2,
-			"position": [-640, -140],
+			"position": [
+				-640,
+				-140
+			],
 			"id": "7250dd2e-9d36-4e0e-8387-7716bbd2a6fd",
 			"name": "Schedule Trigger"
 		},
@@ -42,14 +45,16 @@
 					]
 				}
 			},
-			"type": "CUSTOM.axelor",
+			"type": "@axelor/n8n-nodes-axelor.axelor",
 			"typeVersion": 1,
-			"position": [-200, -140],
+			"position": [
+				-200,
+				-140
+			],
 			"id": "6580312c-ec6e-4252-bd01-5edb4785a5ec",
 			"name": "Axelor",
 			"credentials": {
 				"axelorApi": {
-					"id": "UcsF8vmOHq1HJand",
 					"name": "Axelor account"
 				}
 			}
@@ -60,23 +65,28 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [-420, -140],
+			"position": [
+				-420,
+				-140
+			],
 			"id": "e062fae5-b52a-42ac-9cd8-2ffa8f40f78b",
 			"name": "Code"
 		},
 		{
 			"parameters": {
-				"sendTo": "k.kumarshaw@axelor.com",
+				"sendTo": "user@example.com",
 				"subject": "⚙️ Overdue Payment Reminder Workflow in n8n",
 				"message": "=<h2>📋 Overdue Invoices Report</h2>\n<p>Hello Finance Team,</p>\n<p>The following invoices are overdue as of:</p>\n\n<table border=\"1\" cellpadding=\"6\" cellspacing=\"0\" style=\"border-collapse: collapse;\">\n  <thead>\n    <tr style=\"background-color: #f0f0f0;\">\n      <th>Sale Order</th>\n      <th>Created On</th>\n      <th>Total (With Tax)</th>\n      <th>Amount Invoiced</th>\n      <th>Overdue Amount</th>\n    </tr>\n  </thead>\n  <tbody>\n{{ $json.overdue.map(item => `\n<tr>\n<td>${item.saleOrder}</td>\n<td>${item.createdOn}</td>\n<td>${item.inTaxTotal} €</td>\n<td>${item.amountInvoiced} €</td>\n<td><strong>${item.overdueAmount} €</strong></td>\n</tr>\n`).join(\" \") }}\n  </tbody>\n</table>\n<p>⏰ Please follow up on these overdue payments.</p>\n<p>Thanks,<br><em>ERP Automation Bot</em></p>\n",
 				"options": {}
 			},
 			"type": "n8n-nodes-base.gmail",
 			"typeVersion": 2.1,
-			"position": [240, -140],
+			"position": [
+				240,
+				-140
+			],
 			"id": "3584032e-9d2f-4d5b-ad65-e25a864be846",
-			"name": "Gmail",
-			"webhookId": "bfb966d4-954c-448d-b23c-4986199575d5"
+			"name": "Gmail"
 		},
 		{
 			"parameters": {
@@ -84,12 +94,14 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [20, -140],
+			"position": [
+				20,
+				-140
+			],
 			"id": "f401c3fe-a3e4-4b3a-ba5f-1ba2d109a408",
 			"name": "Code1"
 		}
 	],
-	"pinData": {},
 	"connections": {
 		"Schedule Trigger": {
 			"main": [
@@ -136,15 +148,11 @@
 			]
 		}
 	},
-	"active": false,
 	"settings": {
 		"executionOrder": "v1"
 	},
-	"versionId": "77020a4e-5ff1-4931-bcd8-bdc41dcf11be",
 	"meta": {
-		"templateCredsSetupCompleted": true,
-		"instanceId": "51214fd8a03cf3a9453785abfbd8430d0c7bb0e202185d9356a7f9b04dfbc8e3"
+		"templateCredsSetupCompleted": false
 	},
-	"id": "SFKnLGjAjN9OgsAz",
 	"tags": []
 }
