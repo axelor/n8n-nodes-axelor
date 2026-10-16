@@ -45,8 +45,7 @@
     "nodes": [
       "dist/nodes/Axelor/Axelor.node.js",
       "dist/nodes/Axelor/AxelorTrigger.node.js",
-      "dist/nodes/Axelor/AxelorPollTrigger.node.js",
-      "dist/nodes/Axelor/v1/AxelorV1.node.js"
+      "dist/nodes/Axelor/AxelorPollTrigger.node.js"
     ]
   },
   "devDependencies": {

@@ -9,7 +9,7 @@ import {
 export class AxelorApi implements ICredentialType {
 	name = 'axelorApi';
 	displayName = 'Axelor API';
-	documentationUrl = 'http://example.com/docs/auth';
+	documentationUrl = 'https://github.com/axelor/n8n-nodes-axelor?tab=readme-ov-file#credentials';
 	icon: Icon = { light: 'file:../nodes/Axelor/axelor_light.svg', dark: 'file:../nodes/Axelor/axelor_dark.svg' };
 	properties: INodeProperties[] = [
 		{
