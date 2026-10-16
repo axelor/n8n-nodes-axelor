@@ -5,6 +5,7 @@ import {
 	INodeExecutionData,
 	INodeProperties,
 	NodeApiError,
+	NodeOperationError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
@@ -20,8 +21,9 @@ export const properties: INodeProperties[] = [
 		type: FIELD_TYPE.STRING,
 		required: true,
 		default: '',
-		description: 'The URL to make the API call to',
-		hint: 'Enter a relative path. Example: /ws/axelor/getRecord',
+		description: 'Path of the API endpoint, relative to the Base URL of the credential',
+		placeholder: '/ws/rest/com.axelor.apps.base.db.Partner/1',
+		hint: 'Enter a path starting with /. Full URLs are not allowed.',
 	},
 	{
 		displayName: 'Method',
@@ -110,6 +112,17 @@ export const properties: INodeProperties[] = [
 	},
 ];
 
+/**
+ * Only allow paths relative to the credential's Base URL, so the
+ * authenticated request can never be sent to another host.
+ */
+export function validateRelativePath(url: string): boolean {
+	// Must start with a single "/"; "//" and "/\" are protocol-relative URLs.
+	// Control characters and whitespace are rejected because URL parsers strip them.
+	if (!/^\/(?![/\\])/.test(url) || /\s/.test(url)) return false;
+	return [...url].every((char) => char.charCodeAt(0) > 0x1f && char.charCodeAt(0) !== 0x7f);
+}
+
 const displayOptions = {
 	show: {
 		resource: ['generic'],
@@ -130,6 +143,16 @@ export async function execute(
 
 		try {
 			const url = this.getNodeParameter('url', i) as string;
+			if (!validateRelativePath(url)) {
+				throw new NodeOperationError(
+					this.getNode(),
+					`Invalid URL "${url}": enter a path relative to the Base URL, starting with /`,
+					{
+						itemIndex: i,
+						description: 'For example: /ws/rest/com.axelor.apps.base.db.Partner/1',
+					},
+				);
+			}
 			const method = this.getNodeParameter('method', i) as IHttpRequestMethods;
 			const headersCollection = this.getNodeParameter('headers', i, {}) as {
 				parameters?: Array<{ key: string; value: string }>;

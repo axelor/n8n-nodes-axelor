@@ -29,7 +29,10 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [740, 0],
+			"position": [
+				740,
+				0
+			],
 			"id": "8f140a7a-a7c6-4bbb-9595-e68e79492b49",
 			"name": "HTTP Request",
 			"executeOnce": false
@@ -40,7 +43,10 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [980, 0],
+			"position": [
+				980,
+				0
+			],
 			"id": "a8d0ac17-8676-4fa3-bf93-fb4ee3930c35",
 			"name": "Code"
 		},
@@ -72,7 +78,10 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [1080, 400],
+			"position": [
+				1080,
+				400
+			],
 			"id": "f5cdf3c5-6297-4559-b9b9-f7979b58a919",
 			"name": "HTTP Request1"
 		},
@@ -82,7 +91,10 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [720, 400],
+			"position": [
+				720,
+				400
+			],
 			"id": "2dbf9f13-83c3-4598-bed5-60caaf7e52f4",
 			"name": "Code2"
 		},
@@ -93,12 +105,14 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
 			"typeVersion": 1,
-			"position": [1540, 580],
+			"position": [
+				1540,
+				580
+			],
 			"id": "a9fa9b0e-7048-4317-a32f-edb3be5d03c3",
 			"name": "Google Gemini Chat Model1",
 			"credentials": {
 				"googlePalmApi": {
-					"id": "F92R9plzCW56456Y",
 					"name": "Google Gemini(PaLM) Api account"
 				}
 			}
@@ -109,7 +123,10 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [2180, 400],
+			"position": [
+				2180,
+				400
+			],
 			"id": "15725331-5ead-4b11-aab6-02c4a5df340c",
 			"name": "Code1"
 		},
@@ -120,12 +137,14 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
 			"typeVersion": 1,
-			"position": [1200, 220],
+			"position": [
+				1200,
+				220
+			],
 			"id": "19fd7ebe-f6f3-4e76-a60a-a34666b10869",
 			"name": "Google Gemini Chat Model",
 			"credentials": {
 				"googlePalmApi": {
-					"id": "F92R9plzCW56456Y",
 					"name": "Google Gemini(PaLM) Api account"
 				}
 			}
@@ -136,7 +155,10 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1620, 0],
+			"position": [
+				1620,
+				0
+			],
 			"id": "cfd3cccb-fa59-471b-b5bc-371f59c50840",
 			"name": "Code3"
 		},
@@ -148,7 +170,10 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 1.9,
-			"position": [1180, 0],
+			"position": [
+				1180,
+				0
+			],
 			"id": "f61adb59-09a1-403d-9c63-4ae363ed5cac",
 			"name": "AI Agent2"
 		},
@@ -157,28 +182,30 @@
 				"operation": "clear",
 				"documentId": {
 					"__rl": true,
-					"value": "1ZI8ow85qfOlvjKz_LtWtUuI47AiKRlX7p0RE1BMnzPM",
+					"value": "YOUR_GOOGLE_SHEET_ID",
 					"mode": "list",
 					"cachedResultName": "n8n",
-					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZI8ow85qfOlvjKz_LtWtUuI47AiKRlX7p0RE1BMnzPM/edit?usp=drivesdk"
+					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
 				},
 				"sheetName": {
 					"__rl": true,
 					"value": "gid=0",
 					"mode": "list",
 					"cachedResultName": "Sheet1",
-					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZI8ow85qfOlvjKz_LtWtUuI47AiKRlX7p0RE1BMnzPM/edit#gid=0"
+					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
 				},
 				"keepFirstRow": true
 			},
 			"type": "n8n-nodes-base.googleSheets",
 			"typeVersion": 4.5,
-			"position": [1880, 0],
+			"position": [
+				1880,
+				0
+			],
 			"id": "406aabfe-fc0d-4d6e-b589-d8e9d5840995",
 			"name": "Google Sheets3",
 			"credentials": {
 				"googleSheetsOAuth2Api": {
-					"id": "hy1Zfs3JzTrbgbff",
 					"name": "Google Sheets account"
 				}
 			}
@@ -188,17 +215,17 @@
 				"operation": "append",
 				"documentId": {
 					"__rl": true,
-					"value": "1ZI8ow85qfOlvjKz_LtWtUuI47AiKRlX7p0RE1BMnzPM",
+					"value": "YOUR_GOOGLE_SHEET_ID",
 					"mode": "list",
 					"cachedResultName": "n8n",
-					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZI8ow85qfOlvjKz_LtWtUuI47AiKRlX7p0RE1BMnzPM/edit?usp=drivesdk"
+					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
 				},
 				"sheetName": {
 					"__rl": true,
 					"value": "gid=0",
 					"mode": "list",
 					"cachedResultName": "Sheet1",
-					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZI8ow85qfOlvjKz_LtWtUuI47AiKRlX7p0RE1BMnzPM/edit#gid=0"
+					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
 				},
 				"columns": {
 					"mappingMode": "defineBelow",
@@ -258,12 +285,14 @@
 			},
 			"type": "n8n-nodes-base.googleSheets",
 			"typeVersion": 4.5,
-			"position": [2220, 0],
+			"position": [
+				2220,
+				0
+			],
 			"id": "3c1885a6-d443-4e6f-82f4-5d52941ada4d",
 			"name": "Google Sheets",
 			"credentials": {
 				"googleSheetsOAuth2Api": {
-					"id": "hy1Zfs3JzTrbgbff",
 					"name": "Google Sheets account"
 				}
 			}
@@ -272,28 +301,30 @@
 			"parameters": {
 				"documentId": {
 					"__rl": true,
-					"value": "1ZI8ow85qfOlvjKz_LtWtUuI47AiKRlX7p0RE1BMnzPM",
+					"value": "YOUR_GOOGLE_SHEET_ID",
 					"mode": "list",
 					"cachedResultName": "n8n",
-					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZI8ow85qfOlvjKz_LtWtUuI47AiKRlX7p0RE1BMnzPM/edit?usp=drivesdk"
+					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
 				},
 				"sheetName": {
 					"__rl": true,
 					"value": "gid=0",
 					"mode": "list",
 					"cachedResultName": "Sheet1",
-					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZI8ow85qfOlvjKz_LtWtUuI47AiKRlX7p0RE1BMnzPM/edit#gid=0"
+					"cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
 				},
 				"options": {}
 			},
 			"type": "n8n-nodes-base.googleSheets",
 			"typeVersion": 4.5,
-			"position": [-60, 400],
+			"position": [
+				-60,
+				400
+			],
 			"id": "17ba5acf-4c1a-4426-b8a4-7ea1e8659546",
 			"name": "Google Sheets4",
 			"credentials": {
 				"googleSheetsOAuth2Api": {
-					"id": "hy1Zfs3JzTrbgbff",
 					"name": "Google Sheets account"
 				}
 			}
@@ -306,7 +337,10 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 1.9,
-			"position": [1520, 400],
+			"position": [
+				1520,
+				400
+			],
 			"id": "748ce034-fd7c-4f64-8dc5-12af051ed5a2",
 			"name": "AI Agent3"
 		},
@@ -318,7 +352,10 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.agent",
 			"typeVersion": 1.9,
-			"position": [1200, 780],
+			"position": [
+				1200,
+				780
+			],
 			"id": "b25c6bba-05b1-4218-92ce-94d877bb6db2",
 			"name": "AI Agent"
 		},
@@ -328,7 +365,10 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [800, 780],
+			"position": [
+				800,
+				780
+			],
 			"id": "0b4d6239-bec9-49c3-a702-684901850f0d",
 			"name": "Code4"
 		},
@@ -338,16 +378,22 @@
 				"model": "com.axelor.apps.portal.db.PortalNewsCategory",
 				"query": "self.workspace.id = 3",
 				"advancedSettings": true,
-				"fields": ["workspace", "importId", "name"]
+				"fields": [
+					"workspace",
+					"importId",
+					"name"
+				]
 			},
-			"type": "CUSTOM.axelor",
+			"type": "@axelor/n8n-nodes-axelor.axelor",
 			"typeVersion": 1,
-			"position": [420, 780],
+			"position": [
+				420,
+				780
+			],
 			"id": "f831b455-b0a5-4f0d-9126-6ae2d92762da",
 			"name": "Search Categories",
 			"credentials": {
 				"axelorApi": {
-					"id": "UcsF8vmOHq1HJand",
 					"name": "Axelor account"
 				}
 			}
@@ -19728,14 +19774,16 @@
 					"convertFieldsToString": false
 				}
 			},
-			"type": "CUSTOM.axelor",
+			"type": "@axelor/n8n-nodes-axelor.axelor",
 			"typeVersion": 1,
-			"position": [-40, 780],
+			"position": [
+				-40,
+				780
+			],
 			"id": "418b3e1f-1b93-49d5-8fc7-cbcff48b97e9",
 			"name": "Axelor create news",
 			"credentials": {
 				"axelorApi": {
-					"id": "UcsF8vmOHq1HJand",
 					"name": "Axelor account"
 				}
 			}
@@ -19747,12 +19795,14 @@
 			},
 			"type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
 			"typeVersion": 1,
-			"position": [1200, 920],
+			"position": [
+				1200,
+				920
+			],
 			"id": "2261a83f-e66e-43e7-acd7-2f869c498599",
 			"name": "Google Gemini Chat Model2",
 			"credentials": {
 				"googlePalmApi": {
-					"id": "F92R9plzCW56456Y",
 					"name": "Google Gemini(PaLM) Api account"
 				}
 			}
@@ -19760,12 +19810,14 @@
 		{
 			"parameters": {
 				"method": "POST",
-				"url": "http://163.172.110.200:8080/axelor-portal/ws/rest/com.axelor.apps.portal.db.PortalNews",
+				"url": "https://your-axelor-instance.com/ws/rest/com.axelor.apps.portal.db.PortalNews",
 				"authentication": "predefinedCredentialType",
 				"nodeCredentialType": "axelorApi",
 				"sendHeaders": true,
 				"headerParameters": {
-					"parameters": [{}]
+					"parameters": [
+						{}
+					]
 				},
 				"sendBody": true,
 				"specifyBody": "json",
@@ -19774,16 +19826,14 @@
 			},
 			"type": "n8n-nodes-base.httpRequest",
 			"typeVersion": 4.2,
-			"position": [1900, 780],
+			"position": [
+				1900,
+				780
+			],
 			"id": "5bf56311-1e79-487c-9042-8540963d65de",
 			"name": "HTTP Request2",
 			"credentials": {
-				"httpBasicAuth": {
-					"id": "cwrKNSBfmkWST62f",
-					"name": "Unnamed credential"
-				},
 				"axelorApi": {
-					"id": "UcsF8vmOHq1HJand",
 					"name": "Axelor account"
 				}
 			}
@@ -19794,7 +19844,10 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [1600, 780],
+			"position": [
+				1600,
+				780
+			],
 			"id": "3014b9e3-9b64-41a5-9408-f95372c7e234",
 			"name": "Code5"
 		},
@@ -19813,10 +19866,12 @@
 			},
 			"type": "n8n-nodes-base.formTrigger",
 			"typeVersion": 2.2,
-			"position": [-80, 0],
+			"position": [
+				-80,
+				0
+			],
 			"id": "0f17685b-4b7c-45da-8029-40df045e3be8",
-			"name": "On form submission",
-			"webhookId": "a6491ab0-1345-4004-aefb-21b3fe108fff"
+			"name": "On form submission"
 		},
 		{
 			"parameters": {
@@ -19824,12 +19879,14 @@
 			},
 			"type": "n8n-nodes-base.code",
 			"typeVersion": 2,
-			"position": [300, 0],
+			"position": [
+				300,
+				0
+			],
 			"id": "36e3099d-2e11-4d55-a34e-e5740db5f4f2",
 			"name": "Code6"
 		}
 	],
-	"pinData": {},
 	"connections": {
 		"HTTP Request": {
 			"main": [
@@ -20041,7 +20098,9 @@
 			]
 		},
 		"HTTP Request2": {
-			"main": [[]]
+			"main": [
+				[]
+			]
 		},
 		"On form submission": {
 			"main": [
@@ -20066,15 +20125,11 @@
 			]
 		}
 	},
-	"active": false,
 	"settings": {
 		"executionOrder": "v1"
 	},
-	"versionId": "2361f43c-d517-4213-aa53-95564c3f762b",
 	"meta": {
-		"templateCredsSetupCompleted": true,
-		"instanceId": "51214fd8a03cf3a9453785abfbd8430d0c7bb0e202185d9356a7f9b04dfbc8e3"
+		"templateCredsSetupCompleted": false
 	},
-	"id": "Uv5RgIV5EYt4qwrK",
 	"tags": []
 }

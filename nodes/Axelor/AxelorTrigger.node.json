@@ -1,17 +1,17 @@
 {
-	"node": "n8n-nodes-base.axelorTrigger",
+	"node": "@axelor/n8n-nodes-axelor.axelorTrigger",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Data & Storage"],
 	"resources": {
 		"credentialDocumentation": [
 			{
-				"url": "https://docs.n8n.io/integrations/builtin/credentials/axelor/"
+				"url": "https://github.com/axelor/n8n-nodes-axelor?tab=readme-ov-file#credentials"
 			}
 		],
 		"primaryDocumentation": [
 			{
-				"url": "https://docs.n8n.io/integrations/builtin/trigger-nodes/n8n-nodes-base.axelortrigger/"
+				"url": "https://github.com/axelor/n8n-nodes-axelor?tab=readme-ov-file#axelor-delete-trigger"
 			}
 		]
 	}

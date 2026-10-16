@@ -9,15 +9,16 @@ import {
 export class AxelorApi implements ICredentialType {
 	name = 'axelorApi';
 	displayName = 'Axelor API';
-	documentationUrl = 'http://example.com/docs/auth';
+	documentationUrl = 'https://github.com/axelor/n8n-nodes-axelor?tab=readme-ov-file#credentials';
 	icon: Icon = { light: 'file:../nodes/Axelor/axelor_light.svg', dark: 'file:../nodes/Axelor/axelor_dark.svg' };
 	properties: INodeProperties[] = [
 		{
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'string',
-			default: 'http://localhost:8080',
-			placeholder: 'http://example.com',
+			default: '',
+			placeholder: 'https://erp.example.com',
+			description: 'URL of your Axelor instance, including its context path if it has one',
 			required: true,
 		},
 		{
@@ -25,6 +26,7 @@ export class AxelorApi implements ICredentialType {
 			name: 'username',
 			type: 'string',
 			default: '',
+			required: true,
 		},
 		{
 			displayName: 'Password',
@@ -32,6 +34,7 @@ export class AxelorApi implements ICredentialType {
 			type: 'string',
 			typeOptions: { password: true },
 			default: '',
+			required: true,
 		},
 	];
 	authenticate: IAuthenticateGeneric = {

@@ -25,5 +25,6 @@
 		},
 		"types": ["jest", "node"]
 	},
-	"include": ["credentials/**/*", "nodes/**/*", "nodes/**/*.json", "package.json"]
+	"include": ["credentials/**/*", "nodes/**/*", "nodes/**/*.json", "package.json"],
+	"exclude": ["nodes/**/test/**"]
 }

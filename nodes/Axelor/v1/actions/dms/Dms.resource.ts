@@ -22,22 +22,22 @@ export const description: INodeProperties[] = [
 			},
 
 			{
-				name: 'File Downlaod',
+				name: 'Download File',
 				value: 'downloadFile',
-				description: 'Download file from DMS ID',
-				action: 'File download',
+				description: 'Download a file by its DMS ID',
+				action: 'Download a file',
 			},
 			{
-				name: 'List Attachment',
+				name: 'List Attachments',
 				value: 'listAttachments',
-				description: 'List all the attachments',
+				description: 'List the attachments of a record',
 				action: 'List attachments',
 			},
 			{
-				name: 'List File',
+				name: 'List Files',
 				value: 'listFiles',
-				description: 'List all the files',
-				action: 'File listing',
+				description: 'List files in the DMS',
+				action: 'List files',
 			},
 
 			{

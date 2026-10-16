@@ -3,13 +3,10 @@
 .github/
 .vscode/
 .editorconfig
-.eslintrc.js
-.eslintrc.prepublish.js
 .prettierrc.js
 .DS_Store
 *.tsbuildinfo
 tsconfig.json
-gulpfile.js
 
 # Environment and configuration
 .env

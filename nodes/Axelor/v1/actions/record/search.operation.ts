@@ -52,7 +52,7 @@ export const properties: INodeProperties[] = [
 		},
 		default: 50,
 		description: 'Max number of results to return',
-		hint: 'The maximum no. of records to be fetched in one internal request and total there can be max. 3200 internal request in one operation',
+		hint: 'The maximum number of records returned',
 		displayOptions: ENABLED_ON_ADVANCED_SETTING,
 	},
 	{

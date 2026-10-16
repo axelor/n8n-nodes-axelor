@@ -27,7 +27,7 @@ export class AxelorPollTrigger implements INodeType {
 		group: ['trigger'],
 		version: 1,
 		subtitle: '={{$parameter["triggerOn"]}}',
-		description: 'Triggers when a new item created or updated',
+		description: 'Triggers when a record is created or updated in Axelor',
 		defaults: {
 			name: 'Axelor Poll Trigger',
 		},
@@ -36,7 +36,6 @@ export class AxelorPollTrigger implements INodeType {
 		 
 		outputs: [NodeConnectionTypes.Main],
 		polling: true,
-		usableAsTool: true,
 		properties: [
 			{
 				displayName: 'Model Name or ID',
@@ -76,7 +75,7 @@ export class AxelorPollTrigger implements INodeType {
 				},
 				default: 50,
 				description: 'Max number of results to return',
-				hint: 'The maximum no. of records to be fetched in one internal request and total there can be max. 3200 internal request in one operation',
+				hint: 'The maximum number of records fetched in one poll',
 				displayOptions: {
 					show: {
 						triggerOn: ['recordCreate', 'recordUpdate'],
@@ -89,7 +88,7 @@ export class AxelorPollTrigger implements INodeType {
 				type: 'options',
 				options: START_OPTIONS,
 				default: 'all',
-				description: 'Whether the item is archived',
+				description: 'Which records to return on the first poll',
 				displayOptions: ENABLED_ON,
 				required: true,
 			},
