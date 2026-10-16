@@ -3,8 +3,6 @@
 .github/
 .vscode/
 .editorconfig
-.eslintrc.js
-.eslintrc.prepublish.js
 .prettierrc.js
 .DS_Store
 *.tsbuildinfo
