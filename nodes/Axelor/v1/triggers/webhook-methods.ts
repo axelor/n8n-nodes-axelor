@@ -77,11 +77,16 @@ export const webhookMethods = {
 			const staticData = this.getWorkflowStaticData('node');
 			const webhookId = staticData.webhookId as number;
 			if (!webhookId) return false;
-			await this.helpers.httpRequestWithAuthentication.call(this, 'axelorApi', {
-				method: 'DELETE',
-				url: `${baseUrl}/ws/rest/${MODEL.CONNECT_DB_WEBHOOK}/${webhookId}`,
-				json: true,
-			});
+			try {
+				await this.helpers.httpRequestWithAuthentication.call(this, 'axelorApi', {
+					method: 'DELETE',
+					url: `${baseUrl}/ws/rest/${MODEL.CONNECT_DB_WEBHOOK}/${webhookId}`,
+					json: true,
+				});
+			} catch (error) {
+				// Already removed in Axelor: nothing left to clean up
+				if ((error as NodeApiError).httpCode !== '404') return false;
+			}
 			delete staticData.webhookId;
 			return true;
 		},

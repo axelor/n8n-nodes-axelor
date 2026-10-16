@@ -16,8 +16,9 @@ export class AxelorApi implements ICredentialType {
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'string',
-			default: 'http://localhost:8080',
-			placeholder: 'http://example.com',
+			default: '',
+			placeholder: 'https://erp.example.com',
+			description: 'URL of your Axelor instance, including its context path if it has one',
 			required: true,
 		},
 		{
@@ -25,6 +26,7 @@ export class AxelorApi implements ICredentialType {
 			name: 'username',
 			type: 'string',
 			default: '',
+			required: true,
 		},
 		{
 			displayName: 'Password',
@@ -32,6 +34,7 @@ export class AxelorApi implements ICredentialType {
 			type: 'string',
 			typeOptions: { password: true },
 			default: '',
+			required: true,
 		},
 	];
 	authenticate: IAuthenticateGeneric = {
