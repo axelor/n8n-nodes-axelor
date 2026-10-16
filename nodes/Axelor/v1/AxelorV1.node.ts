@@ -62,7 +62,7 @@ const versionDescription: INodeTypeDescription = {
 export class AxelorV1 implements INodeType {
 	description: INodeTypeDescription = {
 		...versionDescription,
-		icon: { light: 'file:../axelor_light.svg', dark: 'file:../axelor_dark.svg' },
+		icon: { light: 'file:axelor_light.svg', dark: 'file:axelor_dark.svg' },
 		subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',
 		usableAsTool: true,
 	};
@@ -71,7 +71,7 @@ export class AxelorV1 implements INodeType {
 		this.description = {
 			...baseDescription,
 			...versionDescription,
-			icon: { light: 'file:../axelor_light.svg', dark: 'file:../axelor_dark.svg' },
+			icon: { light: 'file:axelor_light.svg', dark: 'file:axelor_dark.svg' },
 			usableAsTool: true,
 		};
 	}
