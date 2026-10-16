@@ -17,13 +17,24 @@ export const description: INodeProperties[] = [
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
-		// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 		options: [
+			{
+				name: 'Create Custom Record',
+				value: 'createCustom',
+				description: 'Create a Custom record',
+				action: 'Create custom record',
+			},
 			{
 				name: 'Create Record',
 				value: 'create',
 				description: 'Create a new record',
 				action: 'Create a record',
+			},
+			{
+				name: 'Delete Record',
+				value: 'delete',
+				description: 'Delete a record',
+				action: 'Delete a record',
 			},
 			{
 				name: 'Find Records',
@@ -44,28 +55,16 @@ export const description: INodeProperties[] = [
 				action: 'Search records',
 			},
 			{
-				name: 'Delete Record',
-				value: 'delete',
-				description: 'Delete a record',
-				action: 'Delete a record',
+				name: 'Update Custom Record',
+				value: 'updateCustom',
+				description: 'Update a Custom record',
+				action: 'Update custom record',
 			},
 			{
 				name: 'Update Record',
 				value: 'update',
 				description: 'Update a record',
 				action: 'Update record',
-			},
-			{
-				name: 'Create Custom Record',
-				value: 'createCustom',
-				description: 'Create a Custom record',
-				action: 'Create custom record',
-			},
-			{
-				name: 'Update Custom Record',
-				value: 'updateCustom',
-				description: 'Update a Custom record',
-				action: 'Update custom record',
 			},
 		],
 		default: 'create',

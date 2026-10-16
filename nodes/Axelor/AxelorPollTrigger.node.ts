@@ -36,7 +36,6 @@ export class AxelorPollTrigger implements INodeType {
 		 
 		outputs: [NodeConnectionTypes.Main],
 		polling: true,
-		usableAsTool: true,
 		properties: [
 			{
 				displayName: 'Model Name or ID',

@@ -4,7 +4,7 @@ Connect your [Axelor ERP](https://docs.axelor.com) applications with [n8n](https
 
 ## 📚 Overview
 
-The **n8n-nodes-axelor-connect** integration allows you to connect your Axelor ERP applications with n8n workflows. This integration provides comprehensive access to Axelor's data and functionality through three main resource categories:
+The **@axelor/n8n-nodes-axelor** integration allows you to connect your Axelor ERP applications with n8n workflows. This integration provides comprehensive access to Axelor's data and functionality through three main resource categories:
 
 - **Record**: Core CRUD operations for Axelor models
 - **DMS**: Document Management System operations
@@ -27,11 +27,22 @@ Before using any Axelor node, you need to set up authentication:
 
 ## 📦 Installation
 
-1. **Navigate to your n8n root folder**
+Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
+
+### From the n8n UI (recommended)
+
+1. Go to **Settings > Community Nodes**.
+2. Select **Install**.
+3. Enter `@axelor/n8n-nodes-axelor` as the npm package name.
+4. Accept the risks of installing unverified code and select **Install**.
+
+### Manual installation (self-hosted)
+
+1. Go to your n8n custom nodes folder (by default `~/.n8n/nodes`).
 2. Run the install command:
 
    ```bash
-   npm install n8n-nodes-axelor-connect
+   npm i @axelor/n8n-nodes-axelor
    ```
 
 3. **Restart n8n**

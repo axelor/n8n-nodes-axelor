@@ -1,4 +1,3 @@
-/* eslint-disable n8n-nodes-base/node-param-display-name-miscased */
 import { FieldType, IHttpRequestMethods, NodePropertyTypes } from 'n8n-workflow';
 
 export const AXELOR_SELECTION_FIELDS = ['ONE_TO_ONE', 'MANY_TO_ONE', 'MANY_TO_MANY', 'ONE_TO_MANY'];
@@ -58,7 +57,7 @@ export const SORT_BY_OPTIONS = [
 ];
 export const START_OPTIONS = [
 	{
-		name: 'Since specific date',
+		name: 'Since Specific Date',
 		value: 'sinceSpecificDate',
 	},
 	{

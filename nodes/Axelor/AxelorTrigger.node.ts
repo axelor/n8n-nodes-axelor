@@ -23,7 +23,6 @@ export class AxelorTrigger implements INodeType {
 		credentials: [{ name: 'axelorApi', required: true }],
 		inputs: [],
 		outputs: [NodeConnectionTypes.Main],
-		usableAsTool: true,
 		properties: [
 			{
 				displayName: 'Model Name or ID',
