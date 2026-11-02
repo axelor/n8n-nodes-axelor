@@ -78,11 +78,16 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          # Pinned: n8n supports Node 24, and the lts/* alias now resolves to
+          # Node 26, where the unused native dev dependency isolated-vm
+          # (pulled in by @n8n/node-cli) fails to compile.
+          node-version: 24
           cache: 'npm'
 
       - name: Install dependencies
-        run: 'npm ci'
+        # --ignore-scripts: skip native builds of dev dependencies that lint,
+        # build and publish do not need.
+        run: 'npm ci --ignore-scripts'
 
       - name: Release
         # Publishes to npm with a provenance attestation (requires id-token: write above).
