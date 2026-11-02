@@ -5,6 +5,9 @@ export const webhookMethods = {
 	default: {
 		/**
 		 * Check if webhook exists in Axelor by filtering on modelName & URL.
+		 * Request errors (authentication, network, server) are thrown as
+		 * NodeApiError by httpRequestWithAuthentication so that n8n reports
+		 * them on activation; only "no matching record" returns false.
 		 */
 		async checkExists(this: IHookFunctions): Promise<boolean> {
 			const credentials = await this.getCredentials('axelorApi');
@@ -25,22 +28,18 @@ export const webhookMethods = {
 				},
 			};
 
-			try {
-				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'axelorApi', {
-					method: 'POST',
-					url: `${credentials.baseUrl}/ws/rest/${MODEL.CONNECT_DB_WEBHOOK}/search`,
-					body,
-					json: true,
-				});
-				if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-					const record = response.data[0] as IDataObject;
-					webhookData.webhookId = record.id as number;
-					return true;
-				}
-				return false;
-			} catch {
-				return false;
+			const response = await this.helpers.httpRequestWithAuthentication.call(this, 'axelorApi', {
+				method: 'POST',
+				url: `${credentials.baseUrl}/ws/rest/${MODEL.CONNECT_DB_WEBHOOK}/search`,
+				body,
+				json: true,
+			});
+			if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+				const record = response.data[0] as IDataObject;
+				webhookData.webhookId = record.id as number;
+				return true;
 			}
+			return false;
 		},
 
 		/**
@@ -84,8 +83,12 @@ export const webhookMethods = {
 					json: true,
 				});
 			} catch (error) {
-				// Already removed in Axelor: nothing left to clean up
-				if ((error as NodeApiError).httpCode !== '404') return false;
+				// 404 means the webhook was already removed in Axelor: nothing left
+				// to clean up. Any other error (authentication, network, server) is
+				// rethrown so that n8n reports it on deactivation.
+				if ((error as NodeApiError).httpCode !== '404') {
+					throw new NodeApiError(this.getNode(), error as JsonObject);
+				}
 			}
 			delete staticData.webhookId;
 			return true;
