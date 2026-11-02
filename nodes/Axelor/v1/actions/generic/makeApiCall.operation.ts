@@ -181,6 +181,7 @@ export async function execute(
 				try {
 					body = JSON.parse(bodyContent);
 				} catch {
+					// Not JSON: send the body as plain text, which is valid for some endpoints
 					body = bodyContent;
 				}
 			}
