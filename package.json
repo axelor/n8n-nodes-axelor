@@ -1,6 +1,6 @@
 {
   "name": "@axelor/n8n-nodes-axelor",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Axelor nodes for n8n",
   "license": "MIT",
   "homepage": "https://github.com/axelor/n8n-nodes-axelor#readme",
