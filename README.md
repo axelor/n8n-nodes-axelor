@@ -122,7 +122,7 @@ Polls a model at the interval you set and outputs records that are new (**Create
 
 - **Poll Times**: how often to check for records (required).
 - **Choose Where To Start**: `All` returns every existing record on the first poll; `Since Specific Date` starts from the date you pick.
-- **Limit**: the maximum number of records fetched per poll.
+- Every record that changed since the previous poll is returned, fetched in pages of 100, so nothing is skipped when many records change between two polls.
 
 ### Axelor Delete Trigger
 

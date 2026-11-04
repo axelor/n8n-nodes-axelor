@@ -9,10 +9,10 @@ import {
 } from 'n8n-workflow';
 import { isEqual } from './v1/helpers/lodash';
 import { loadOptions } from './v1/methods';
-import { HTTP, START_OPTIONS } from './v1/helpers/constants';
+import { START_OPTIONS } from './v1/helpers/constants';
 import { createCriteria } from './v1/helpers/utils';
 import { toUTCISOStringFromTZ } from './v1/helpers/dateUtils';
-import { apiRequest } from './v1/transport';
+import { searchRecords } from './v1/helpers/pagination';
 
 const ENABLED_ON = { show: { triggerOn: ['recordCreate', 'recordUpdate'] } };
 
@@ -21,8 +21,8 @@ export class AxelorPollTrigger implements INodeType {
 		displayName: 'Axelor Poll Trigger',
 		name: 'axelorPollTrigger',
 		icon: {
-			dark:'file:axelor_dark.svg',
-			light:'file:axelor_light.svg',
+			dark: 'file:axelor_dark.svg',
+			light: 'file:axelor_light.svg',
 		},
 		group: ['trigger'],
 		version: 1,
@@ -33,7 +33,7 @@ export class AxelorPollTrigger implements INodeType {
 		},
 		credentials: [{ name: 'axelorApi', required: true }],
 		inputs: [],
-		 
+
 		outputs: [NodeConnectionTypes.Main],
 		polling: true,
 		properties: [
@@ -65,22 +65,6 @@ export class AxelorPollTrigger implements INodeType {
 						action: 'Watch New / Updated Records',
 					},
 				],
-			},
-			{
-				displayName: 'Limit',
-				name: 'limit',
-				type: 'number',
-				typeOptions: {
-					minValue: 1,
-				},
-				default: 50,
-				description: 'Max number of results to return',
-				hint: 'The maximum number of records fetched in one poll',
-				displayOptions: {
-					show: {
-						triggerOn: ['recordCreate', 'recordUpdate'],
-					},
-				},
 			},
 			{
 				displayName: 'Choose Where To Start',
@@ -117,7 +101,6 @@ export class AxelorPollTrigger implements INodeType {
 		const poolTimes = this.getNodeParameter('pollTimes.item', []) as IDataObject[];
 		const model = this.getNodeParameter('model', '') as string;
 		const triggerOn = this.getNodeParameter('triggerOn', '') as string;
-		const limit = this.getNodeParameter('limit', 50) as number;
 		const startPreference = this.getNodeParameter('startPreference', '') as string;
 
 		let initialTimeStamp;
@@ -163,17 +146,21 @@ export class AxelorPollTrigger implements INodeType {
 				});
 			}
 
-			const url = `/ws/rest/${encodeURIComponent(model)}/search`;
-			const body = { limit, data };
-			const response = await apiRequest.call(this, HTTP.POST, url, body);
+			// Fetch every changed record; sorting by id keeps the pages stable.
+			const records = await searchRecords.call(
+				this,
+				model,
+				{ sortBy: ['id'], data },
+				{ returnAll: true },
+			);
 
 			webhookData.lastTimeChecked = currentTimeStamp;
 
-			if (!response.data || !response.data.length) {
+			if (records.length === 0) {
 				return null;
 			}
 
-			return [this.helpers.returnJsonArray(response.data)];
+			return [this.helpers.returnJsonArray(records)];
 		} catch (error) {
 			throw new NodeOperationError(this.getNode(), 'Failed to poll for records', error);
 		}
