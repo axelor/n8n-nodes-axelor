@@ -32,10 +32,10 @@ export const properties: INodeProperties[] = [
 		name: 'query',
 		type: FIELD_TYPE.STRING,
 		default: '',
-		placeholder: '',
+		placeholder: "self.name like 'A%' AND self.archived = false",
 		hint: 'If empty, all the records will be returned',
 		description:
-			'The formula will be evaluated for each record, and if the result is not 0, false, "", NaN, [], or #Error! the record will be included in the response. <a href="https://support.airtable.com/docs/formula-field-reference" target="_blank">More info</a>.',
+			'Axelor domain filter, e.g. <code>self.email like :email</code>, with named parameters taken from the Context option. <a href="https://docs.axelor.com/adk/latest/dev-guide/web-services/advanced.html#advanced-search" target="_blank">More info</a>.',
 	},
 	{
 		displayName: 'Return All',
