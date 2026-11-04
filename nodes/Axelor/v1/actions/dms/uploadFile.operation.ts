@@ -4,7 +4,6 @@ import {
 	INodeExecutionData,
 	INodeProperties,
 	NodeApiError,
-	NodeOperationError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import {
@@ -73,10 +72,6 @@ export async function execute(
 
 		const options = this.getNodeParameter('options', i, {}) as { fileName?: string };
 		const name = options.fileName || originalFilename;
-
-		if (!Buffer.isBuffer(fileContent)) {
-			throw new NodeOperationError(this.getNode(), 'Invalid file content. Expected a Buffer.');
-		}
 
 		try {
 			const headers = {

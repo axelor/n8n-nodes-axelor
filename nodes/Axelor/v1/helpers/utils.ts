@@ -1,6 +1,5 @@
 import { fromPairs, get, isEqual, join, set, startCase } from './lodash';
 import {
-	BINARY_ENCODING,
 	FieldType,
 	IDataObject,
 	IExecuteFunctions,
@@ -17,7 +16,6 @@ import {
 	FIELD_TYPE,
 	NON_INPUT_FIELDS,
 	PARAMETER,
-	UPLOAD_CHUNK_SIZE,
 } from './constants';
 import type {
 	AxelorApiCredentials,
@@ -27,10 +25,6 @@ import type {
 	SortValues,
 	WebServiceInfo,
 } from './interface';
-
-type BinaryFileContent =
-	| Buffer
-	| Awaited<ReturnType<IExecuteFunctions['helpers']['getBinaryStream']>>;
 
 interface FieldMapping {
 	schema?: Array<{ id: string; removed?: boolean }>;
@@ -175,17 +169,19 @@ export function createCriteria(fieldName: string, operator: string, value: strin
 	};
 }
 
+/**
+ * Reads the binary attached to item `i` under `inputDataFieldName` as a Buffer,
+ * with its size, original file name and MIME type.
+ *
+ * Works in both n8n binary data modes: in memory, where the bytes sit on the
+ * item, and filesystem/S3, where the item only carries an id and the bytes
+ * must be fetched from the binary data store.
+ */
 export async function getItemBinaryData(
 	this: IExecuteFunctions,
 	inputDataFieldName: string,
 	i: number,
-	chunkSize = UPLOAD_CHUNK_SIZE,
 ) {
-	let contentLength: number;
-	let fileContent: BinaryFileContent;
-	let originalFilename: string | undefined;
-	let mimeType;
-
 	if (!inputDataFieldName) {
 		throw new NodeOperationError(
 			this.getNode(),
@@ -196,19 +192,17 @@ export async function getItemBinaryData(
 		);
 	}
 	const binaryData = this.helpers.assertBinaryData(i, inputDataFieldName);
+	const fileContent = await this.helpers.getBinaryDataBuffer(i, inputDataFieldName);
+
+	let contentLength = fileContent.length;
+	let originalFilename = binaryData.fileName;
+	let mimeType = binaryData.mimeType;
 
 	if (binaryData.id) {
-		// Stream data in 256KB chunks, and upload the via the resumable upload api
-		fileContent = await this.helpers.getBinaryStream(binaryData.id, chunkSize);
 		const metadata = await this.helpers.getBinaryMetadata(binaryData.id);
-		contentLength = metadata.fileSize;
-		originalFilename = metadata.fileName;
-		if (metadata.mimeType) mimeType = binaryData.mimeType;
-	} else {
-		fileContent = Buffer.from(binaryData.data, BINARY_ENCODING);
-		contentLength = fileContent.length;
-		originalFilename = binaryData.fileName;
-		mimeType = binaryData.mimeType;
+		contentLength = metadata.fileSize || contentLength;
+		originalFilename = metadata.fileName || originalFilename;
+		mimeType = metadata.mimeType || mimeType;
 	}
 
 	return {

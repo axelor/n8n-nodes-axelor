@@ -51,8 +51,6 @@ export const START_OPTIONS = [
 	},
 ];
 
-export const UPLOAD_CHUNK_SIZE = 256 * 1024;
-
 export const FIELD_ATTRIBUTES = [
 	'title',
 	'required',
