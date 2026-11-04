@@ -8,11 +8,27 @@ import {
 } from 'n8n-workflow';
 import { isValidResponse, processAxelorError, wrapData } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
+import { searchRecords } from '../../helpers/pagination';
 import { apiRequest } from '../../transport';
 import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 import type { AxelorModelFieldSchema, FieldCategory } from '../../helpers/interface';
 
 export const properties: INodeProperties[] = [
+	{
+		displayName: 'Find By ID',
+		name: 'findById',
+		type: FIELD_TYPE.BOOLEAN,
+		default: false,
+		description: 'Whether to find a record by ID',
+	},
+	{
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: FIELD_TYPE.BOOLEAN,
+		default: false,
+		description: 'Whether to return all results or only up to a given limit',
+		displayOptions: { show: { findById: [false] } },
+	},
 	{
 		displayName: 'Limit',
 		name: 'limit',
@@ -22,13 +38,7 @@ export const properties: INodeProperties[] = [
 		},
 		default: 50,
 		description: 'Max number of results to return',
-	},
-	{
-		displayName: 'Find By ID',
-		name: 'findById',
-		type: FIELD_TYPE.BOOLEAN,
-		default: false,
-		description: 'Whether to find a record by ID',
+		displayOptions: { show: { findById: [false], returnAll: [false] } },
 	},
 	{
 		displayName: 'ID',
@@ -61,7 +71,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		try {
 			const findById = this.getNodeParameter('findById', i, false) as boolean;
 			const recordId = this.getNodeParameter('recordId', i, null) as string;
-			const limit = this.getNodeParameter('limit', i, 10) as number;
+			const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+			const limit = this.getNodeParameter('limit', i, 50) as number;
 
 			let cacheData = metaFieldCache[model];
 			if (!cacheData) {
@@ -72,26 +83,28 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const fields = [...(cacheData?.fields || [])];
 			const fieldNames = fields.map((f: { name: string }) => f.name);
 
-			const url = findById
-				? `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`
-				: `/ws/rest/${encodeURIComponent(model)}/search`;
+			let records: IDataObject[];
 
-			const body: IDataObject = {
-				offset: 0,
-				limit,
-				fields: fieldNames,
-				sortBy: ['-updatedOn'],
-				data: {},
-			};
+			if (findById) {
+				const url = `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`;
+				const resp = await apiRequest.call(this, HTTP.POST, url, { fields: fieldNames });
 
-			const resp = await apiRequest.call(this, HTTP.POST, url, body);
+				isValidResponse(resp);
 
-			isValidResponse(resp);
+				records = (resp.data as IDataObject[]) || [];
+			} else {
+				const body: IDataObject = {
+					fields: fieldNames,
+					sortBy: ['-updatedOn'],
+					data: {},
+				};
 
-			const executionData = this.helpers.constructExecutionMetaData(
-				wrapData((resp.data as IDataObject[]) || []),
-				{ itemData: { item: i } },
-			);
+				records = await searchRecords.call(this, model, body, { returnAll, limit });
+			}
+
+			const executionData = this.helpers.constructExecutionMetaData(wrapData(records), {
+				itemData: { item: i },
+			});
 			returnData.push(...executionData);
 		} catch (error) {
 			const processedError = processAxelorError(error as NodeApiError);

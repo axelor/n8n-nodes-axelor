@@ -11,17 +11,16 @@ import {
 	getContextFields,
 	getSelectedFields,
 	getSortByFields,
-	isValidResponse,
 	processAxelorError,
 	processCustomFieldResponse,
 	processSelectedFields,
 	wrapData,
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
-import { ARCHIVED_OPTIONS, FIELD_TYPE, HTTP, SORT_BY_OPTIONS } from '../../helpers/constants';
+import { ARCHIVED_OPTIONS, FIELD_TYPE, SORT_BY_OPTIONS } from '../../helpers/constants';
 import type { AxelorModelFieldSchema, FieldCategory } from '../../helpers/interface';
 import { isEmpty } from '../../helpers/lodash';
-import { apiRequest } from '../../transport';
+import { searchRecords } from '../../helpers/pagination';
 
 const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
 
@@ -37,11 +36,11 @@ export const properties: INodeProperties[] = [
 			'The formula will be evaluated for each record, and if the result is not 0, false, "", NaN, [], or #Error! the record will be included in the response. <a href="https://support.airtable.com/docs/formula-field-reference" target="_blank">More info</a>.',
 	},
 	{
-		displayName: 'Advanced Settings',
-		name: 'advancedSettings',
+		displayName: 'Return All',
+		name: 'returnAll',
 		type: FIELD_TYPE.BOOLEAN,
 		default: false,
-		description: 'Whether to show advanced options',
+		description: 'Whether to return all results or only up to a given limit',
 	},
 	{
 		displayName: 'Limit',
@@ -52,8 +51,14 @@ export const properties: INodeProperties[] = [
 		},
 		default: 50,
 		description: 'Max number of results to return',
-		hint: 'The maximum number of records returned',
-		displayOptions: ENABLED_ON_ADVANCED_SETTING,
+		displayOptions: { show: { returnAll: [false] } },
+	},
+	{
+		displayName: 'Advanced Settings',
+		name: 'advancedSettings',
+		type: FIELD_TYPE.BOOLEAN,
+		default: false,
+		description: 'Whether to show advanced options',
 	},
 	{
 		displayName: 'Field Name Names or IDs',
@@ -160,7 +165,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 
 		try {
 			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
-			const limit = this.getNodeParameter('limit', i, enableAdvancedSettings ? 50 : 10) as number;
+			const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+			const limit = this.getNodeParameter('limit', i, 50) as number;
 
 			let cacheData = metaFieldCache[model];
 			if (!cacheData) {
@@ -172,7 +178,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const fieldNames = fields.map((f: { name: string }) => f.name);
 
 			const data: IDataObject = {};
-			const body: IDataObject = { offset: 0, limit, data, fields: fieldNames };
+			const body: IDataObject = { data, fields: fieldNames };
 
 			const query = this.getNodeParameter('query', i, '') as string;
 			if (query) {
@@ -203,12 +209,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 				}
 			}
 
-			const url = `/ws/rest/${encodeURIComponent(model)}/search`;
-			const resp = await apiRequest.call(this, HTTP.POST, url, body);
-
-			isValidResponse(resp);
-
-			let result: IDataObject[] = Array.isArray(resp.data) ? resp.data : [];
+			let result = await searchRecords.call(this, model, body, { returnAll, limit });
 			if (jsonFields && jsonFields.length > 0) {
 				const processedResponse = result.map((item: IDataObject) =>
 					processCustomFieldResponse(item, selectedFields!, jsonFields),

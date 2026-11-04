@@ -68,6 +68,7 @@ describe('Test Axelor, Search Operation', () => {
 
 		const mockResponse = {
 			status: 0,
+			total: 2,
 			data: [
 				{ id: 1, name: 'Bob' },
 				{ id: 2, name: 'Bob-Lorex' },
@@ -82,6 +83,7 @@ describe('Test Axelor, Search Operation', () => {
 			if (param === 'limit') return limit;
 			if (param === 'archived') return archived;
 			if (param === 'advancedSettings') return advancedSettings;
+			if (param === 'returnAll') return false;
 			if (param === 'fields') return fields;
 			return null;
 		});
@@ -89,12 +91,16 @@ describe('Test Axelor, Search Operation', () => {
 		(apiHelper.getFields as jest.Mock).mockResolvedValue(mockFields);
 		(transport.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
-		const result = await search.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, item);
+		const result = await search.execute.call(
+			mockExecuteFunction as unknown as IExecuteFunctions,
+			item,
+		);
 
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('advancedSettings', 0);
 
 		expect(apiHelper.getFields).toHaveBeenCalledWith(model);
+		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('returnAll', 0, false);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('limit', 0, 50);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('query', 0, '');
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('sortBy', 0, {});
@@ -112,13 +118,69 @@ describe('Test Axelor, Search Operation', () => {
 					_archived: false,
 				},
 
+				offset: 0,
 				limit,
-				sortBy: ['-updatedOn'],
+				sortBy: ['-updatedOn', 'id'],
 			}),
 		);
+		expect(transport.apiRequest).toHaveBeenCalledTimes(1);
 		expect(result).toEqual([
 			{ json: { id: 1, name: 'Bob' } },
 			{ json: { id: 2, name: 'Bob-Lorex' } },
 		]);
+	});
+
+	test('should page through all records when Return All is enabled', async () => {
+		const item = [{ json: {} }];
+		const model = 'com.axelor.test.model';
+		const url = `/ws/rest/${encodeURIComponent(model)}/search`;
+		const page = (from: number, count: number) =>
+			Array.from({ length: count }, (_, i) => ({ id: from + i }));
+
+		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
+			if (param === 'model') return model;
+			if (param === 'query') return '';
+			if (param === 'advancedSettings') return false;
+			if (param === 'returnAll') return true;
+			if (param === 'limit') return 50;
+			return null;
+		});
+
+		(apiHelper.getFields as jest.Mock).mockResolvedValue({
+			metaFields: [{ name: 'id', type: 'number' }],
+			jsonFields: [],
+			metaJsonFields: [],
+		});
+		(transport.apiRequest as jest.Mock)
+			.mockResolvedValueOnce({ status: 0, total: 230, data: page(0, 100) })
+			.mockResolvedValueOnce({ status: 0, total: 230, data: page(100, 100) })
+			.mockResolvedValueOnce({ status: 0, total: 230, data: page(200, 30) });
+
+		const result = await search.execute.call(
+			mockExecuteFunction as unknown as IExecuteFunctions,
+			item,
+		);
+
+		expect(result).toHaveLength(230);
+		expect(transport.apiRequest).toHaveBeenCalledTimes(3);
+		expect(transport.apiRequest).toHaveBeenNthCalledWith(1, 'POST', url, {
+			data: {},
+			fields: ['id'],
+			sortBy: ['id'],
+			offset: 0,
+			limit: 100,
+		});
+		expect(transport.apiRequest).toHaveBeenNthCalledWith(
+			2,
+			'POST',
+			url,
+			expect.objectContaining({ offset: 100, limit: 100 }),
+		);
+		expect(transport.apiRequest).toHaveBeenNthCalledWith(
+			3,
+			'POST',
+			url,
+			expect.objectContaining({ offset: 200, limit: 100 }),
+		);
 	});
 });

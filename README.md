@@ -84,9 +84,9 @@ When you save the credential, n8n tests it by logging in to Axelor (`POST /callb
 | Create Custom Record | Create a record in a custom (Studio / JSON) model                   |
 | Create Record        | Create a record in a model. Fields are mapped from the model's metadata. |
 | Delete Record        | Delete a record                                                     |
-| Find Records         | Return the most recently updated records (up to **Limit**), or one record when **Find By ID** is on |
+| Find Records         | Return the most recently updated records (all of them with **Return All**, otherwise up to **Limit**), or one record when **Find By ID** is on |
 | Read Records         | Read one selected record, with the fields you choose                |
-| Search Records       | Search records using filter criteria                                |
+| Search Records       | Search records using filter criteria. **Return All** pages through every match, otherwise up to **Limit** |
 | Update Custom Record | Update a record of a custom model                                   |
 | Update Record        | Update an existing record                                           |
 
