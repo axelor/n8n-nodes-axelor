@@ -35,17 +35,19 @@ describe('Test Axelor, Search Operation', () => {
 	test('should search record successfully', async () => {
 		const item = [{ json: { test: 'test' } }];
 		const model = 'com.axelor.test.model';
-		const advancedSettings = true;
 		const limit = 50;
 		const query = 'self.name like :name';
-		const archived = false;
-		const sortBy = {
+		const fields = ['id', 'name'];
+		const sort = {
 			sortBy: [{ field: 'updatedOn', rule: 'desc' }],
 		};
-		const context = {
-			context: [{ key: 'name', value: '%Bob%' }],
+		const options = {
+			fields,
+			archived: false,
+			context: {
+				context: [{ key: 'name', value: '%Bob%' }],
+			},
 		};
-		const fields = ['id', 'name'];
 
 		const mockFields = {
 			metaFields: [
@@ -78,13 +80,10 @@ describe('Test Axelor, Search Operation', () => {
 		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
 			if (param === 'query') return query;
 			if (param === 'model') return model;
-			if (param === 'context') return context;
-			if (param === 'sortBy') return sortBy;
+			if (param === 'options') return options;
+			if (param === 'sort') return sort;
 			if (param === 'limit') return limit;
-			if (param === 'archived') return archived;
-			if (param === 'advancedSettings') return advancedSettings;
 			if (param === 'returnAll') return false;
-			if (param === 'fields') return fields;
 			return null;
 		});
 
@@ -97,15 +96,13 @@ describe('Test Axelor, Search Operation', () => {
 		);
 
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
-		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('advancedSettings', 0);
 
 		expect(apiHelper.getFields).toHaveBeenCalledWith(model);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('returnAll', 0, false);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('limit', 0, 50);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('query', 0, '');
-		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('sortBy', 0, {});
-		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('archived', 0, false);
-		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('context', 0, {});
+		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('options', 0, {});
+		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('sort', 0, {});
 
 		expect(transport.apiRequest).toHaveBeenCalledWith(
 			'POST',
@@ -140,7 +137,8 @@ describe('Test Axelor, Search Operation', () => {
 		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
 			if (param === 'model') return model;
 			if (param === 'query') return '';
-			if (param === 'advancedSettings') return false;
+			if (param === 'options') return {};
+			if (param === 'sort') return {};
 			if (param === 'returnAll') return true;
 			if (param === 'limit') return 50;
 			return null;

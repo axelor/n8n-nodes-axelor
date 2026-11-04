@@ -19,9 +19,18 @@ import {
 	PARAMETER,
 	UPLOAD_CHUNK_SIZE,
 } from './constants';
-import { AxelorApiCredentials, AxelorApiResponse, AxelorModelFieldSchema, WebServiceInfo } from './interface';
+import type {
+	AxelorApiCredentials,
+	AxelorApiResponse,
+	AxelorModelFieldSchema,
+	ContextValues,
+	SortValues,
+	WebServiceInfo,
+} from './interface';
 
-type BinaryFileContent = Buffer | Awaited<ReturnType<IExecuteFunctions['helpers']['getBinaryStream']>>;
+type BinaryFileContent =
+	| Buffer
+	| Awaited<ReturnType<IExecuteFunctions['helpers']['getBinaryStream']>>;
 
 interface FieldMapping {
 	schema?: Array<{ id: string; removed?: boolean }>;
@@ -96,16 +105,16 @@ export function wrapData(data: IDataObject | IDataObject[]): INodeExecutionData[
 
 export function isValidResponse(response: AxelorApiResponse): boolean {
 	if (response.status === -1) {
-		throw new Error((response.data as IDataObject | undefined)?.message as string || 'Invalid response');
+		throw new Error(
+			((response.data as IDataObject | undefined)?.message as string) || 'Invalid response',
+		);
 	}
 
 	return true;
 }
 
 export function getChangedFieldNames(mapping: FieldMapping): string[] {
-	return (mapping.schema || [])
-		.filter((field) => !field.removed)
-		.map((field) => field.id);
+	return (mapping.schema || []).filter((field) => !field.removed).map((field) => field.id);
 }
 
 export function buildRequestData(
@@ -144,26 +153,18 @@ export function buildRequestData(
 	return data;
 }
 
-export function getSortByFields(this: IExecuteFunctions, i: number): Array<string> {
-	const sortByValues = this.getNodeParameter('sortBy', i, {}) as {
-		sortBy: { field: string; rule: string }[];
-	};
-	const sortByArray = get(sortByValues, 'sortBy', []) as { field: string; rule: string }[];
-	return sortByArray.length > 0
-		? sortByArray.map((sort) => (sort.rule === 'desc' ? `-${sort.field}` : sort.field))
-		: [];
+/** Converts the rules of the Sort fixed collection into Axelor's sortBy list (`field` / `-field`). */
+export function sortRulesToSortBy(sort?: SortValues): string[] {
+	const rules = get(sort ?? {}, 'sortBy', []) as { field: string; rule: string }[];
+	return rules
+		.filter((rule) => rule.field)
+		.map((rule) => (rule.rule === 'desc' ? `-${rule.field}` : rule.field));
 }
 
-export function getContextFields(this: IExecuteFunctions, i: number): object {
-	const contextValues = this.getNodeParameter('context', i, {}) as {
-		context: { key: string; value: string }[];
-	};
-	const contextArray = get(contextValues, 'context', []) as { key: string; value: string }[];
-	return fromPairs(contextArray.map((c) => [c.key, c.value]));
-}
-
-export function getSelectedFields(this: IExecuteFunctions, i: number): Array<string> {
-	return this.getNodeParameter('fields', i, []) as Array<string>;
+/** Converts the key/value pairs of the Context fixed collection into a `_domainContext` object. */
+export function contextToDomainContext(context?: ContextValues): IDataObject {
+	const pairs = get(context ?? {}, 'context', []) as { key: string; value: string }[];
+	return fromPairs(pairs.filter((c) => c.key).map((c) => [c.key, c.value]));
 }
 
 export function createCriteria(fieldName: string, operator: string, value: string) {

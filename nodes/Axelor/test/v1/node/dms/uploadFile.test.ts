@@ -53,17 +53,20 @@ describe('Test Axelor, upload file operation', () => {
 
 		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
 			if (param === 'inputDataFieldName') return inputDataFieldName;
-			if (param === 'fileName') return fileName;
+			if (param === 'options') return { fileName };
 			return null;
 		});
 
 		(utils.getItemBinaryData as jest.Mock).mockResolvedValue(binaryData);
 		(apiRequest.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
-		const result = await uploadFile.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
+		const result = await uploadFile.execute.call(
+			mockExecuteFunction as unknown as IExecuteFunctions,
+			items,
+		);
 
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('inputDataFieldName', 0);
-		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('fileName', 0);
+		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('options', 0, {});
 		expect(utils.getItemBinaryData).toHaveBeenCalledWith(inputDataFieldName, 0);
 
 		expect(apiRequest.apiRequest).toHaveBeenCalledWith(

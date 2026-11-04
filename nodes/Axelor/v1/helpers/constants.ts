@@ -30,21 +30,6 @@ export const WEB_SERVICE = {
 	CONNECT_WS: '/ws/connect/connect-web-services',
 };
 
-export const ARCHIVED_OPTIONS = [
-	{
-		name: 'Yes',
-		value: true,
-	},
-	{
-		name: 'No',
-		value: false,
-	},
-	{
-		name: 'Unset',
-		value: 'unset',
-	},
-];
-
 export const SORT_BY_OPTIONS = [
 	{
 		name: 'ASC',
