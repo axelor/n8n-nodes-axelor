@@ -84,9 +84,9 @@ When you save the credential, n8n tests it by logging in to Axelor (`POST /callb
 | Create Custom Record | Create a record in a custom (Studio / JSON) model                   |
 | Create Record        | Create a record in a model. Fields are mapped from the model's metadata. |
 | Delete Record        | Delete a record                                                     |
-| Find Records         | Return the most recently updated records (up to **Limit**), or one record when **Find By ID** is on |
+| Find Records         | Return the most recently updated records (all of them with **Return All**, otherwise up to **Limit**), or one record when **Find By ID** is on |
 | Read Records         | Read one selected record, with the fields you choose                |
-| Search Records       | Search records using filter criteria                                |
+| Search Records       | Search records using filter criteria. **Return All** pages through every match, otherwise up to **Limit** |
 | Update Custom Record | Update a record of a custom model                                   |
 | Update Record        | Update an existing record                                           |
 
@@ -122,7 +122,7 @@ Polls a model at the interval you set and outputs records that are new (**Create
 
 - **Poll Times**: how often to check for records (required).
 - **Choose Where To Start**: `All` returns every existing record on the first poll; `Since Specific Date` starts from the date you pick.
-- **Limit**: the maximum number of records fetched per poll.
+- Every record that changed since the previous poll is returned, fetched in pages of 100, so nothing is skipped when many records change between two polls.
 
 ### Axelor Delete Trigger
 

@@ -377,12 +377,13 @@
 				"operation": "search",
 				"model": "com.axelor.apps.portal.db.PortalNewsCategory",
 				"query": "self.workspace.id = 3",
-				"advancedSettings": true,
-				"fields": [
-					"workspace",
-					"importId",
-					"name"
-				]
+				"options": {
+					"fields": [
+						"workspace",
+						"importId",
+						"name"
+					]
+				}
 			},
 			"type": "@axelor/n8n-nodes-axelor.axelor",
 			"typeVersion": 1,

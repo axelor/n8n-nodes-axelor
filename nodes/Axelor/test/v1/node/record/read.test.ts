@@ -19,8 +19,19 @@ type MockExecuteFunction = {
 	helpers: { constructExecutionMetaData: jest.Mock };
 };
 
-describe('Test Axeor, Read Operation', () => {
+describe('Test Axelor, Read Operation', () => {
 	let mockExecuteFunction: MockExecuteFunction;
+
+	const model = 'com.axelor.test.Model';
+	const recordId = 123;
+	const url = `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`;
+	const mockFields = {
+		metaFields: [{ name: 'id' }, { name: 'name' }, { name: 'code' }],
+	};
+	const mockApiResponse = {
+		status: 0,
+		data: [{ id: 1, name: 'test' }],
+	};
 
 	beforeEach(() => {
 		jest.clearAllMocks();
@@ -31,52 +42,56 @@ describe('Test Axeor, Read Operation', () => {
 				constructExecutionMetaData: jest.fn((item) => item),
 			},
 		};
+		(apiHelper.getFields as jest.Mock).mockResolvedValue(mockFields);
+		(transport.apiRequest as jest.Mock).mockResolvedValue(mockApiResponse);
 	});
-	test('Should read record successfully ', async () => {
-		const items = [{ json: { data: 'test' } }];
-		const model = 'com.axelor.test.Model';
-		const recordId = 123;
-		const advancedSettings = true;
-		const fields = ['id', 'name'];
 
-		const mockFields = {
-			metaFields: [{ name: 'id' }, { name: 'name' }, { name: 'code' }],
-		};
-		const mockApiResponse = {
-			status: 0,
-			data: [{ id: 1, name: 'test' }],
-		};
+	test('Should read a record with the selected fields', async () => {
+		const items = [{ json: { data: 'test' } }];
+		const fields = ['id', 'name'];
 
 		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
 			if (param === 'model') return model;
 			if (param === 'records') return recordId;
-			if (param === 'advancedSettings') return advancedSettings;
-			if (param === 'fields') return fields;
+			if (param === 'options') return { fields };
 			return null;
 		});
 
-		(apiHelper.getFields as jest.Mock).mockResolvedValue(mockFields);
-		(transport.apiRequest as jest.Mock).mockResolvedValue(mockApiResponse);
+		const result = await read.execute.call(
+			mockExecuteFunction as unknown as IExecuteFunctions,
+			items,
+		);
 
-		const result = await read.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
-
-		//assertion
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('model', 0);
 		expect(apiHelper.getFields).toHaveBeenCalledWith(model);
 		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('records', 0);
-		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('advancedSettings', 0);
-
-		expect(transport.apiRequest).toHaveBeenCalledWith(
-			'POST',
-			`/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`,
-			{
-				fields,
-				data: {},
-			},
-		);
+		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('options', 0, {});
 
 		expect(transport.apiRequest).toHaveBeenCalledTimes(1);
+		expect(transport.apiRequest).toHaveBeenCalledWith('POST', url, { fields, data: {} });
 
+		expect(result).toEqual([{ json: { id: 1, name: 'test' } }]);
+	});
+
+	test('Should read a record with all model fields when no option is set', async () => {
+		const items = [{ json: {} }];
+
+		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
+			if (param === 'model') return model;
+			if (param === 'records') return recordId;
+			if (param === 'options') return {};
+			return null;
+		});
+
+		const result = await read.execute.call(
+			mockExecuteFunction as unknown as IExecuteFunctions,
+			items,
+		);
+
+		expect(transport.apiRequest).toHaveBeenCalledWith('POST', url, {
+			fields: ['id', 'name', 'code'],
+			data: {},
+		});
 		expect(result).toEqual([{ json: { id: 1, name: 'test' } }]);
 	});
 });

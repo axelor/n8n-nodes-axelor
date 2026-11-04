@@ -19,14 +19,15 @@
 				"operation": "search",
 				"model": "com.axelor.apps.sale.db.SaleOrder",
 				"query": "=self.createdOn >= :createdOn",
-				"advancedSettings": true,
-				"context": {
-					"context": [
-						{
-							"key": "createdOn",
-							"value": "={{ $json.newTimestamp }}"
-						}
-					]
+				"options": {
+					"context": {
+						"context": [
+							{
+								"key": "createdOn",
+								"value": "={{ $json.newTimestamp }}"
+							}
+						]
+					}
 				}
 			},
 			"type": "@axelor/n8n-nodes-axelor.axelor",

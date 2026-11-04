@@ -26,23 +26,24 @@
 				"operation": "search",
 				"model": "com.axelor.apps.sale.db.SaleOrder",
 				"query": "=self.createdOn <= :createdMonthBefore   AND self.amountInvoiced > 0\n",
-				"advancedSettings": true,
-				"fields": [
-					"createdOn",
-					"fullName",
-					"amountInvoiced",
-					"companyExTaxTotal",
-					"inTaxTotal",
-					"exTaxTotal",
-					"priceBeforeGlobalDiscount"
-				],
-				"context": {
-					"context": [
-						{
-							"key": "createdMonthBefore",
-							"value": "={{ $json.previousMonthTimestamp }}"
-						}
-					]
+				"options": {
+					"fields": [
+						"createdOn",
+						"fullName",
+						"amountInvoiced",
+						"companyExTaxTotal",
+						"inTaxTotal",
+						"exTaxTotal",
+						"priceBeforeGlobalDiscount"
+					],
+					"context": {
+						"context": [
+							{
+								"key": "createdMonthBefore",
+								"value": "={{ $json.previousMonthTimestamp }}"
+							}
+						]
+					}
 				}
 			},
 			"type": "@axelor/n8n-nodes-axelor.axelor",

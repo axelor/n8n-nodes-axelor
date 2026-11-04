@@ -1,6 +1,5 @@
 import { fromPairs, get, isEqual, join, set, startCase } from './lodash';
 import {
-	BINARY_ENCODING,
 	FieldType,
 	IDataObject,
 	IExecuteFunctions,
@@ -17,11 +16,15 @@ import {
 	FIELD_TYPE,
 	NON_INPUT_FIELDS,
 	PARAMETER,
-	UPLOAD_CHUNK_SIZE,
 } from './constants';
-import { AxelorApiCredentials, AxelorApiResponse, AxelorModelFieldSchema, WebServiceInfo } from './interface';
-
-type BinaryFileContent = Buffer | Awaited<ReturnType<IExecuteFunctions['helpers']['getBinaryStream']>>;
+import type {
+	AxelorApiCredentials,
+	AxelorApiResponse,
+	AxelorModelFieldSchema,
+	ContextValues,
+	SortValues,
+	WebServiceInfo,
+} from './interface';
 
 interface FieldMapping {
 	schema?: Array<{ id: string; removed?: boolean }>;
@@ -96,16 +99,16 @@ export function wrapData(data: IDataObject | IDataObject[]): INodeExecutionData[
 
 export function isValidResponse(response: AxelorApiResponse): boolean {
 	if (response.status === -1) {
-		throw new Error((response.data as IDataObject | undefined)?.message as string || 'Invalid response');
+		throw new Error(
+			((response.data as IDataObject | undefined)?.message as string) || 'Invalid response',
+		);
 	}
 
 	return true;
 }
 
 export function getChangedFieldNames(mapping: FieldMapping): string[] {
-	return (mapping.schema || [])
-		.filter((field) => !field.removed)
-		.map((field) => field.id);
+	return (mapping.schema || []).filter((field) => !field.removed).map((field) => field.id);
 }
 
 export function buildRequestData(
@@ -144,26 +147,18 @@ export function buildRequestData(
 	return data;
 }
 
-export function getSortByFields(this: IExecuteFunctions, i: number): Array<string> {
-	const sortByValues = this.getNodeParameter('sortBy', i, {}) as {
-		sortBy: { field: string; rule: string }[];
-	};
-	const sortByArray = get(sortByValues, 'sortBy', []) as { field: string; rule: string }[];
-	return sortByArray.length > 0
-		? sortByArray.map((sort) => (sort.rule === 'desc' ? `-${sort.field}` : sort.field))
-		: [];
+/** Converts the rules of the Sort fixed collection into Axelor's sortBy list (`field` / `-field`). */
+export function sortRulesToSortBy(sort?: SortValues): string[] {
+	const rules = get(sort ?? {}, 'sortBy', []) as { field: string; rule: string }[];
+	return rules
+		.filter((rule) => rule.field)
+		.map((rule) => (rule.rule === 'desc' ? `-${rule.field}` : rule.field));
 }
 
-export function getContextFields(this: IExecuteFunctions, i: number): object {
-	const contextValues = this.getNodeParameter('context', i, {}) as {
-		context: { key: string; value: string }[];
-	};
-	const contextArray = get(contextValues, 'context', []) as { key: string; value: string }[];
-	return fromPairs(contextArray.map((c) => [c.key, c.value]));
-}
-
-export function getSelectedFields(this: IExecuteFunctions, i: number): Array<string> {
-	return this.getNodeParameter('fields', i, []) as Array<string>;
+/** Converts the key/value pairs of the Context fixed collection into a `_domainContext` object. */
+export function contextToDomainContext(context?: ContextValues): IDataObject {
+	const pairs = get(context ?? {}, 'context', []) as { key: string; value: string }[];
+	return fromPairs(pairs.filter((c) => c.key).map((c) => [c.key, c.value]));
 }
 
 export function createCriteria(fieldName: string, operator: string, value: string) {
@@ -174,17 +169,19 @@ export function createCriteria(fieldName: string, operator: string, value: strin
 	};
 }
 
+/**
+ * Reads the binary attached to item `i` under `inputDataFieldName` as a Buffer,
+ * with its size, original file name and MIME type.
+ *
+ * Works in both n8n binary data modes: in memory, where the bytes sit on the
+ * item, and filesystem/S3, where the item only carries an id and the bytes
+ * must be fetched from the binary data store.
+ */
 export async function getItemBinaryData(
 	this: IExecuteFunctions,
 	inputDataFieldName: string,
 	i: number,
-	chunkSize = UPLOAD_CHUNK_SIZE,
 ) {
-	let contentLength: number;
-	let fileContent: BinaryFileContent;
-	let originalFilename: string | undefined;
-	let mimeType;
-
 	if (!inputDataFieldName) {
 		throw new NodeOperationError(
 			this.getNode(),
@@ -195,19 +192,17 @@ export async function getItemBinaryData(
 		);
 	}
 	const binaryData = this.helpers.assertBinaryData(i, inputDataFieldName);
+	const fileContent = await this.helpers.getBinaryDataBuffer(i, inputDataFieldName);
+
+	let contentLength = fileContent.length;
+	let originalFilename = binaryData.fileName;
+	let mimeType = binaryData.mimeType;
 
 	if (binaryData.id) {
-		// Stream data in 256KB chunks, and upload the via the resumable upload api
-		fileContent = await this.helpers.getBinaryStream(binaryData.id, chunkSize);
 		const metadata = await this.helpers.getBinaryMetadata(binaryData.id);
-		contentLength = metadata.fileSize;
-		originalFilename = metadata.fileName;
-		if (metadata.mimeType) mimeType = binaryData.mimeType;
-	} else {
-		fileContent = Buffer.from(binaryData.data, BINARY_ENCODING);
-		contentLength = fileContent.length;
-		originalFilename = binaryData.fileName;
-		mimeType = binaryData.mimeType;
+		contentLength = metadata.fileSize || contentLength;
+		originalFilename = metadata.fileName || originalFilename;
+		mimeType = metadata.mimeType || mimeType;
 	}
 
 	return {

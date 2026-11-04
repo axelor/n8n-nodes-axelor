@@ -18,8 +18,6 @@ import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 import { apiRequest } from '../../transport';
 import type { AxelorModelFieldSchema, FieldCategory } from '../../helpers/interface';
 
-const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
-
 const properties: INodeProperties[] = [
 	{
 		displayName: 'Records Name or ID',
@@ -41,26 +39,26 @@ const properties: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Advanced Settings',
-		name: 'advancedSettings',
-		type: FIELD_TYPE.BOOLEAN,
-		default: false,
-		description: 'Whether to show advanced options',
-	},
-	{
-
-		displayName: 'Select Fields',
-		name: 'fields',
-		type: FIELD_TYPE.MULTI_OPTIONS,
-		description:
-			'Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
-		default: [],
-		typeOptions: {
-			loadOptionsMethod: 'loadMetaFields',
-			loadOptionsDependsOn: ['model'],
-			refreshOn: ['model'],
-		},
-		displayOptions: ENABLED_ON_ADVANCED_SETTING,
+		displayName: 'Options',
+		name: 'options',
+		type: FIELD_TYPE.COLLECTION,
+		placeholder: 'Add option',
+		default: {},
+		options: [
+			{
+				displayName: 'Field Names or IDs',
+				name: 'fields',
+				type: FIELD_TYPE.MULTI_OPTIONS,
+				description:
+					'Fields to return. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+				default: [],
+				typeOptions: {
+					loadOptionsMethod: 'loadMetaFields',
+					loadOptionsDependsOn: ['model'],
+					refreshOn: ['model'],
+				},
+			},
+		],
 	},
 ];
 
@@ -91,19 +89,16 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const fieldNames = fields.map((f: { name: string }) => f.name);
 
 			const recordId = this.getNodeParameter('records', i) as string;
-			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
+			const options = this.getNodeParameter('options', i, {}) as { fields?: string[] };
 
 			const body: { fields: string[]; data: IDataObject } = { fields: fieldNames, data: {} };
 			let jsonFields: Array<string> | undefined;
-			let selectedFields: Array<string> | undefined;
 
-			if (enableAdvancedSettings) {
-				selectedFields = this.getNodeParameter('fields', i, []) as Array<string>;
-				if (selectedFields.length > 0) {
-					const processedFields = processSelectedFields(selectedFields);
-					body.fields = processedFields.fields;
-					jsonFields = processedFields.jsonFields as Array<string>;
-				}
+			const selectedFields = options.fields ?? [];
+			if (selectedFields.length > 0) {
+				const processedFields = processSelectedFields(selectedFields);
+				body.fields = processedFields.fields;
+				jsonFields = processedFields.jsonFields as Array<string>;
 			}
 
 			const url = `/ws/rest/${encodeURIComponent(model)}/${recordId}/fetch`;
@@ -113,7 +108,7 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 
 			let result = (Array.isArray(resp.data) ? resp.data[0] : resp.data) || {};
 			if (jsonFields && jsonFields.length > 0) {
-				result = processCustomFieldResponse(result, selectedFields!, jsonFields);
+				result = processCustomFieldResponse(result, selectedFields, jsonFields);
 			}
 			const executionData = this.helpers.constructExecutionMetaData(
 				wrapData(result as IDataObject),

@@ -42,19 +42,18 @@ describe('Test Axelor, list files operation', () => {
 		};
 
 		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
-			if (param === 'parentId') return parentId;
-			if (param === 'pattern') return pattern;
+			if (param === 'filters') return { parentId, pattern };
 			return null;
 		});
 
 		(apiRequest.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
-		// execute the function
-		const result = await listFiles.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
+		const result = await listFiles.execute.call(
+			mockExecuteFunction as unknown as IExecuteFunctions,
+			items,
+		);
 
-		// assertions
-		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('parentId', 0);
-		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('pattern', 0);
+		expect(mockExecuteFunction.getNodeParameter).toHaveBeenCalledWith('filters', 0, {});
 
 		expect(apiRequest.apiRequest).toHaveBeenCalledTimes(1);
 		expect(apiRequest.apiRequest).toHaveBeenCalledWith(
@@ -72,9 +71,7 @@ describe('Test Axelor, list files operation', () => {
 	test('should list files with only parent ID', async () => {
 		const items = [{ json: { data: 'test' } }];
 		const parentId = 123;
-		const pattern = '';
 
-		// mock response
 		const mockResponse = {
 			status: 0,
 			data: [
@@ -85,17 +82,17 @@ describe('Test Axelor, list files operation', () => {
 		};
 
 		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
-			if (param === 'parentId') return parentId;
-			if (param === 'pattern') return pattern;
+			if (param === 'filters') return { parentId };
 			return null;
 		});
 
 		(apiRequest.apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
-		// execute the function
-		const result = await listFiles.execute.call(mockExecuteFunction as unknown as IExecuteFunctions, items);
+		const result = await listFiles.execute.call(
+			mockExecuteFunction as unknown as IExecuteFunctions,
+			items,
+		);
 
-		// assertions
 		expect(apiRequest.apiRequest).toHaveBeenCalledWith(
 			'GET',
 			'/ws/dms/files',
@@ -107,5 +104,23 @@ describe('Test Axelor, list files operation', () => {
 			{ json: { id: 2, fileName: 'folder1', isDirectory: true } },
 			{ json: { id: 3, fileName: 'document2.txt', isDirectory: false } },
 		]);
+	});
+
+	test('should list files without filters', async () => {
+		const items = [{ json: {} }];
+
+		mockExecuteFunction.getNodeParameter.mockImplementation((param: string) => {
+			if (param === 'filters') return {};
+			return null;
+		});
+		(apiRequest.apiRequest as jest.Mock).mockResolvedValue({ status: 0, data: [] });
+
+		const result = await listFiles.execute.call(
+			mockExecuteFunction as unknown as IExecuteFunctions,
+			items,
+		);
+
+		expect(apiRequest.apiRequest).toHaveBeenCalledWith('GET', '/ws/dms/files', {}, {});
+		expect(result).toEqual([]);
 	});
 });

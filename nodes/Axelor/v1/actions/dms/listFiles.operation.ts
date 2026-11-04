@@ -13,21 +13,30 @@ import { FIELD_TYPE, HTTP } from '../../helpers/constants';
 
 export const properties: INodeProperties[] = [
 	{
-		displayName: 'Parent ID',
-		name: 'parentId',
-		type: FIELD_TYPE.NUMBER,
-		default: '',
-		description: 'ID of the parent folder from which to list files',
-		typeOptions: {
-			minValue: 0,
-		},
-	},
-	{
-		displayName: 'Pattern',
-		name: 'pattern',
-		type: FIELD_TYPE.STRING,
-		default: '',
-		description: 'Pattern to match file names',
+		displayName: 'Filters',
+		name: 'filters',
+		type: FIELD_TYPE.COLLECTION,
+		placeholder: 'Add Filter',
+		default: {},
+		options: [
+			{
+				displayName: 'Parent ID',
+				name: 'parentId',
+				type: FIELD_TYPE.NUMBER,
+				default: 0,
+				description: 'ID of the parent folder from which to list files',
+				typeOptions: {
+					minValue: 0,
+				},
+			},
+			{
+				displayName: 'Pattern',
+				name: 'pattern',
+				type: FIELD_TYPE.STRING,
+				default: '',
+				description: 'Pattern to match file names',
+			},
+		],
 	},
 ];
 
@@ -47,8 +56,11 @@ export async function execute(
 	const returnData: INodeExecutionData[] = [];
 
 	for (let i = 0; i < items.length; i++) {
-		const parentId = this.getNodeParameter('parentId', i);
-		const pattern = this.getNodeParameter('pattern', i);
+		const filters = this.getNodeParameter('filters', i, {}) as {
+			parentId?: number;
+			pattern?: string;
+		};
+		const { parentId, pattern } = filters;
 
 		const qs: IDataObject = {
 			...(parentId && { parent: parentId }),

@@ -8,22 +8,23 @@ import {
 } from 'n8n-workflow';
 
 import {
-	getContextFields,
-	getSelectedFields,
-	getSortByFields,
-	isValidResponse,
+	contextToDomainContext,
 	processAxelorError,
 	processCustomFieldResponse,
 	processSelectedFields,
+	sortRulesToSortBy,
 	wrapData,
 } from '../../helpers/utils';
 import { getFields } from '../../helpers/api-helper';
-import { ARCHIVED_OPTIONS, FIELD_TYPE, HTTP, SORT_BY_OPTIONS } from '../../helpers/constants';
-import type { AxelorModelFieldSchema, FieldCategory } from '../../helpers/interface';
+import { FIELD_TYPE, SORT_BY_OPTIONS } from '../../helpers/constants';
+import type {
+	AxelorModelFieldSchema,
+	ContextValues,
+	FieldCategory,
+	SortValues,
+} from '../../helpers/interface';
 import { isEmpty } from '../../helpers/lodash';
-import { apiRequest } from '../../transport';
-
-const ENABLED_ON_ADVANCED_SETTING = { show: { advancedSettings: [true] } };
+import { searchRecords } from '../../helpers/pagination';
 
 export const properties: INodeProperties[] = [
 	{
@@ -31,17 +32,17 @@ export const properties: INodeProperties[] = [
 		name: 'query',
 		type: FIELD_TYPE.STRING,
 		default: '',
-		placeholder: '',
+		placeholder: "self.name like 'A%' AND self.archived = false",
 		hint: 'If empty, all the records will be returned',
 		description:
-			'The formula will be evaluated for each record, and if the result is not 0, false, "", NaN, [], or #Error! the record will be included in the response. <a href="https://support.airtable.com/docs/formula-field-reference" target="_blank">More info</a>.',
+			'Axelor domain filter, e.g. <code>self.email like :email</code>, with named parameters taken from the Context option. <a href="https://docs.axelor.com/adk/latest/dev-guide/web-services/advanced.html#advanced-search" target="_blank">More info</a>.',
 	},
 	{
-		displayName: 'Advanced Settings',
-		name: 'advancedSettings',
+		displayName: 'Return All',
+		name: 'returnAll',
 		type: FIELD_TYPE.BOOLEAN,
 		default: false,
-		description: 'Whether to show advanced options',
+		description: 'Whether to return all results or only up to a given limit',
 	},
 	{
 		displayName: 'Limit',
@@ -52,73 +53,77 @@ export const properties: INodeProperties[] = [
 		},
 		default: 50,
 		description: 'Max number of results to return',
-		hint: 'The maximum number of records returned',
-		displayOptions: ENABLED_ON_ADVANCED_SETTING,
+		displayOptions: { show: { returnAll: [false] } },
 	},
 	{
-		displayName: 'Field Name Names or IDs',
-		name: 'fields',
-		type: FIELD_TYPE.MULTI_OPTIONS,
-		description:
-			'Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
-		default: [],
-		typeOptions: {
-			loadOptionsMethod: 'loadMetaFields',
-			loadOptionsDependsOn: ['model'],
-		},
-		displayOptions: ENABLED_ON_ADVANCED_SETTING,
-	},
-
-	{
-		displayName: 'Show Archived',
-		name: 'archived',
-		type: FIELD_TYPE.OPTIONS,
-		options: ARCHIVED_OPTIONS,
-		default: 'unset',
-		description: 'Whether the item is archived',
-		displayOptions: ENABLED_ON_ADVANCED_SETTING,
-		required: true,
-	},
-
-	{
-		displayName: 'Context',
-		name: 'context',
-		type: FIELD_TYPE.FIXED_COLLECTION,
-		typeOptions: { multipleValues: true },
+		displayName: 'Options',
+		name: 'options',
+		type: FIELD_TYPE.COLLECTION,
+		placeholder: 'Add option',
 		default: {},
 		options: [
 			{
-				name: 'context',
 				displayName: 'Context',
-				values: [
+				name: 'context',
+				type: FIELD_TYPE.FIXED_COLLECTION,
+				typeOptions: { multipleValues: true },
+				placeholder: 'Add Context Variable',
+				default: {},
+				description: 'Values for the named parameters used in the search query (for example :name)',
+				options: [
 					{
-						displayName: 'Key',
-						name: 'key',
-						type: FIELD_TYPE.STRING,
-						required: true,
-						default: '',
-					},
-					{
-						displayName: 'Value',
-						name: 'value',
-						type: FIELD_TYPE.STRING,
-						required: true,
-						default: '',
+						name: 'context',
+						displayName: 'Context',
+						values: [
+							{
+								displayName: 'Key',
+								name: 'key',
+								type: FIELD_TYPE.STRING,
+								required: true,
+								default: '',
+							},
+							{
+								displayName: 'Value',
+								name: 'value',
+								type: FIELD_TYPE.STRING,
+								required: true,
+								default: '',
+							},
+						],
 					},
 				],
 			},
+			{
+				displayName: 'Field Names or IDs',
+				name: 'fields',
+				type: FIELD_TYPE.MULTI_OPTIONS,
+				description:
+					'Fields to return. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+				default: [],
+				typeOptions: {
+					loadOptionsMethod: 'loadMetaFields',
+					loadOptionsDependsOn: ['model'],
+				},
+			},
+			{
+				displayName: 'Include Archived',
+				name: 'archived',
+				type: FIELD_TYPE.BOOLEAN,
+				default: false,
+				description: 'Whether to include archived records in the results',
+			},
 		],
-		displayOptions: ENABLED_ON_ADVANCED_SETTING,
 	},
 	{
-		displayName: 'Sort By',
-		name: 'sortBy',
+		displayName: 'Sort',
+		name: 'sort',
 		type: FIELD_TYPE.FIXED_COLLECTION,
 		typeOptions: { multipleValues: true },
+		placeholder: 'Add Sort Rule',
 		default: {},
 		options: [
 			{
-				displayName: 'Sort By',
+				displayName: 'Sort Rule',
 				name: 'sortBy',
 				values: [
 					{
@@ -134,16 +139,15 @@ export const properties: INodeProperties[] = [
 						},
 					},
 					{
-						displayName: 'Rule',
+						displayName: 'Direction',
 						name: 'rule',
 						type: FIELD_TYPE.OPTIONS,
 						options: SORT_BY_OPTIONS,
-						default: '',
+						default: 'asc',
 					},
 				],
 			},
 		],
-		displayOptions: ENABLED_ON_ADVANCED_SETTING,
 	},
 ];
 const displayOptions = { show: { resource: ['record'], operation: ['search'] } };
@@ -159,8 +163,8 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 		const model = this.getNodeParameter('model', i) as string;
 
 		try {
-			const enableAdvancedSettings = this.getNodeParameter('advancedSettings', i) as boolean;
-			const limit = this.getNodeParameter('limit', i, enableAdvancedSettings ? 50 : 10) as number;
+			const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+			const limit = this.getNodeParameter('limit', i, 50) as number;
 
 			let cacheData = metaFieldCache[model];
 			if (!cacheData) {
@@ -172,46 +176,46 @@ export async function execute(this: IExecuteFunctions, items: INodeExecutionData
 			const fieldNames = fields.map((f: { name: string }) => f.name);
 
 			const data: IDataObject = {};
-			const body: IDataObject = { offset: 0, limit, data, fields: fieldNames };
+			const body: IDataObject = { data, fields: fieldNames };
 
 			const query = this.getNodeParameter('query', i, '') as string;
 			if (query) {
 				data._domain = query;
 			}
 			let jsonFields: Array<string> | undefined;
-			let selectedFields: Array<string> | undefined;
 
-			if (enableAdvancedSettings) {
-				body.sortBy = getSortByFields.call(this, i);
-				selectedFields = getSelectedFields.call(this, i) as Array<string>;
-				const domainContext = getContextFields.call(this, i);
-				const archived = this.getNodeParameter('archived', i, false) as boolean | string;
+			const options = this.getNodeParameter('options', i, {}) as {
+				fields?: string[];
+				archived?: boolean;
+				context?: ContextValues;
+			};
+			const sort = this.getNodeParameter('sort', i, {}) as SortValues;
 
-				if (selectedFields.length > 0) {
-					const processedFields = processSelectedFields(selectedFields);
-					body.fields = processedFields.fields;
-					jsonFields = processedFields.jsonFields as Array<string>;
-				}
-				if (!isEmpty(domainContext)) {
-					data._domainContext = domainContext;
-				}
-
-				if (typeof archived === 'boolean') {
-					data._archived = archived;
-				} else {
-					delete data._archived;
-				}
+			const sortBy = sortRulesToSortBy(sort);
+			if (sortBy.length > 0) {
+				body.sortBy = sortBy;
 			}
 
-			const url = `/ws/rest/${encodeURIComponent(model)}/search`;
-			const resp = await apiRequest.call(this, HTTP.POST, url, body);
+			const selectedFields = options.fields ?? [];
+			if (selectedFields.length > 0) {
+				const processedFields = processSelectedFields(selectedFields);
+				body.fields = processedFields.fields;
+				jsonFields = processedFields.jsonFields as Array<string>;
+			}
 
-			isValidResponse(resp);
+			const domainContext = contextToDomainContext(options.context);
+			if (!isEmpty(domainContext)) {
+				data._domainContext = domainContext;
+			}
 
-			let result: IDataObject[] = Array.isArray(resp.data) ? resp.data : [];
+			if (typeof options.archived === 'boolean') {
+				data._archived = options.archived;
+			}
+
+			let result = await searchRecords.call(this, model, body, { returnAll, limit });
 			if (jsonFields && jsonFields.length > 0) {
 				const processedResponse = result.map((item: IDataObject) =>
-					processCustomFieldResponse(item, selectedFields!, jsonFields),
+					processCustomFieldResponse(item, selectedFields, jsonFields),
 				);
 				result = processedResponse;
 			}

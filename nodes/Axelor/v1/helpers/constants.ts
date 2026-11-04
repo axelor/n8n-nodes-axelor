@@ -30,21 +30,6 @@ export const WEB_SERVICE = {
 	CONNECT_WS: '/ws/connect/connect-web-services',
 };
 
-export const ARCHIVED_OPTIONS = [
-	{
-		name: 'Yes',
-		value: true,
-	},
-	{
-		name: 'No',
-		value: false,
-	},
-	{
-		name: 'Unset',
-		value: 'unset',
-	},
-];
-
 export const SORT_BY_OPTIONS = [
 	{
 		name: 'ASC',
@@ -65,8 +50,6 @@ export const START_OPTIONS = [
 		value: 'all',
 	},
 ];
-
-export const UPLOAD_CHUNK_SIZE = 256 * 1024;
 
 export const FIELD_ATTRIBUTES = [
 	'title',

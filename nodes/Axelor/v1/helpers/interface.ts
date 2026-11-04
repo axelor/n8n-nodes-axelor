@@ -53,3 +53,13 @@ export interface AxelorApiResponse {
 	total?: number;
 	[key: string]: unknown;
 }
+
+/** Value of the Sort fixed collection on Search Records. */
+export interface SortValues {
+	sortBy?: Array<{ field: string; rule: string }>;
+}
+
+/** Value of the Context fixed collection on Search Records. */
+export interface ContextValues {
+	context?: Array<{ key: string; value: string }>;
+}

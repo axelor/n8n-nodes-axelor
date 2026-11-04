@@ -4,7 +4,6 @@ import {
 	INodeExecutionData,
 	INodeProperties,
 	NodeApiError,
-	NodeOperationError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import {
@@ -29,12 +28,21 @@ export const properties: INodeProperties[] = [
 			'Find the name of input field containing the binary data to update the file in the Input panel on the left, in the Binary tab',
 	},
 	{
-		displayName: 'File Name',
-		name: 'fileName',
-		type: FIELD_TYPE.STRING,
-		default: '',
-		placeholder: 'e.g. My New File',
-		description: 'If not specified, the original file name will be used',
+		displayName: 'Options',
+		name: 'options',
+		type: FIELD_TYPE.COLLECTION,
+		placeholder: 'Add option',
+		default: {},
+		options: [
+			{
+				displayName: 'File Name',
+				name: 'fileName',
+				type: FIELD_TYPE.STRING,
+				default: '',
+				placeholder: 'e.g. My New File',
+				description: 'If not specified, the original file name will be used',
+			},
+		],
 	},
 ];
 
@@ -62,11 +70,8 @@ export async function execute(
 			i,
 		);
 
-		const name = (this.getNodeParameter('fileName', i) as string) || originalFilename;
-
-		if (!Buffer.isBuffer(fileContent)) {
-			throw new NodeOperationError(this.getNode(), 'Invalid file content. Expected a Buffer.');
-		}
+		const options = this.getNodeParameter('options', i, {}) as { fileName?: string };
+		const name = options.fileName || originalFilename;
 
 		try {
 			const headers = {
