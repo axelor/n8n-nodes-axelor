@@ -4,6 +4,7 @@ import {
 	INodeExecutionData,
 	INodeProperties,
 	NodeApiError,
+	NodeOperationError,
 	updateDisplayOptions,
 } from 'n8n-workflow';
 import {
@@ -13,7 +14,11 @@ import {
 	processAxelorError,
 	wrapData,
 } from '../../helpers/utils';
-import type { AxelorApiCredentials, AxelorModelFieldSchema, WebServiceInfo } from '../../helpers/interface';
+import type {
+	AxelorApiCredentials,
+	AxelorModelFieldSchema,
+	WebServiceInfo,
+} from '../../helpers/interface';
 import { FIELD_TYPE, HTTP, WEB_SERVICE } from '../../helpers/constants';
 import { join } from '../../helpers/lodash';
 import { apiRequest } from '../../transport';
@@ -110,14 +115,18 @@ export async function execute(
 	for (let i = 0; i < items.length; i++) {
 		const creds = (await this.getCredentials('axelorApi')) as AxelorApiCredentials;
 
+		const module = this.getNodeParameter('module', i) as string;
 		const actionRaw = this.getNodeParameter('action', i) as string;
-		const actionData = JSON.parse(actionRaw);
+		const actionData = actionRaw ? JSON.parse(actionRaw) : {};
 
 		const action = actionData.name;
 		const classFullyQualifiedName = actionData.classFullyQualifiedName;
 
-		if (!module || !action) return returnData;
-
+		if (!module || !action) {
+			throw new NodeOperationError(this.getNode(), 'Module and Action must be selected', {
+				itemIndex: i,
+			});
+		}
 
 		const qs: IDataObject = {};
 
@@ -131,7 +140,7 @@ export async function execute(
 			if (!cacheData) {
 				const url = WEB_SERVICE.CONNECT_WS_INFO;
 				const data: IDataObject = {};
-				response = await apiRequest.call(this, HTTP.GET, url, data, qs) as unknown as ServiceInfo;
+				response = (await apiRequest.call(this, HTTP.GET, url, data, qs)) as unknown as ServiceInfo;
 
 				infoCache[key] = response;
 				cacheData = response;
@@ -153,7 +162,11 @@ export async function execute(
 				const data = buildBuisnessAPIRequestData(changedKeys, mapping.value ?? {}, fields);
 				requestBody.body = data;
 			}
-			const buisnessCallResponse = await this.helpers.httpRequestWithAuthentication.call(this, 'axelorApi', requestBody);
+			const buisnessCallResponse = await this.helpers.httpRequestWithAuthentication.call(
+				this,
+				'axelorApi',
+				requestBody,
+			);
 			const executionData = this.helpers.constructExecutionMetaData(
 				wrapData(buisnessCallResponse as IDataObject[]),
 				{ itemData: { item: i } },
